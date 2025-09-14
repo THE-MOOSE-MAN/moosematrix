@@ -1,0 +1,13 @@
+# Node / Next / Turbo
+node_modules/
+.next/
+dist/
+out/
+.cache/
+.turbo/
+*.log
+.env
+.env.*
+.DS_Store
+*.local
+coverage/
