@@ -43,20 +43,21 @@ jobs:
           port: ${{ secrets.VPS_PORT }}
           script: |
             set -e
+            echo "Pulling latest image..."
             docker pull ghcr.io/the-moose-man/moosematrix:latest
 
-            # Stop/remove any old container
+            echo "Stopping/removing old container..."
             docker stop moosematrix-app || true
             docker rm moosematrix-app || true
 
-            # Ensure env file directory exists
+            echo "Ensuring env file exists..."
             mkdir -p /var/www/moosematrix
 
-            # Run new container with restart policy + env file
+            echo "Starting new container..."
             docker run -d \
               --restart always \
               --env-file /var/www/moosematrix/.env \
-              -p 127.0.0.1:3000:3000 \   # bind only to localhost
+              -p 127.0.0.1:3000:3000 \
               --name moosematrix-app \
               ghcr.io/the-moose-man/moosematrix:latest
 
