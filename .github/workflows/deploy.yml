@@ -56,7 +56,7 @@ jobs:
             docker run -d \
               --restart always \
               --env-file /var/www/moosematrix/.env \
-              -p 3000:3000 \
+              -p 127.0.0.1:3000:3000 \   # bind only to localhost
               --name moosematrix-app \
               ghcr.io/the-moose-man/moosematrix:latest
 

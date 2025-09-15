@@ -1,3 +1,41 @@
+# Ignore git + GitHub files
+.git
+.gitignore
+.github
+
+# Node + package manager stuff
+node_modules
+npm-debug.log
+yarn.lock
+pnpm-lock.yaml
+*.log
+
+# Turbo cache
+.turbo
+turbo.json.local
+
+# Build outputs (we only copy what we need in Dockerfile)
+apps/*/.next
+apps/*/out
+apps/*/dist
+packages/*/dist
+
+# OS / Editor junk
+.DS_Store
+*.swp
+*.swo
+Thumbs.db
+.vscode
+.idea
+
+# Env files (never bake secrets into image)
+.env
+.env.local
+.env.*.local
+
+# Docker itself
+Dockerfile
+docker-compose*.yml
 node_modules
 npm-debug.log
 Dockerfile

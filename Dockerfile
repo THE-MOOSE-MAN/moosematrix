@@ -1,24 +1,24 @@
 # -------------------------------
-# 1. Base deps (all deps incl dev)
+# 1. Dependencies stage
 # -------------------------------
 FROM node:18-alpine AS deps
 WORKDIR /app
 
-# Install libc6-compat for some npm packages
+# Add libc6-compat for better compatibility
 RUN apk add --no-cache libc6-compat
 
-# Copy root configs
+# Copy root manifests
 COPY package*.json turbo.json tsconfig.json ./
 
-# Copy workspaces
+# Copy workspace manifests (so npm install can resolve deps)
 COPY packages ./packages
 COPY apps ./apps
 
-# Install all deps (workspaces handled automatically)
+# Install all deps including dev (for build step)
 RUN npm install --workspaces
 
 # -------------------------------
-# 2. Build the app
+# 2. Build stage
 # -------------------------------
 FROM node:18-alpine AS build
 WORKDIR /app
@@ -29,32 +29,29 @@ COPY --from=deps /app/node_modules ./node_modules
 # Copy source code
 COPY . .
 
-# Build with Turbo (only the moosematrix app)
+# Build only the moosematrix app
 RUN npx turbo run build --filter=moosematrix...
 
 # -------------------------------
-# 3. Production runtime
+# 3. Runtime stage
 # -------------------------------
 FROM node:18-alpine AS runner
 WORKDIR /app
 
-# Add runtime dependencies
 RUN apk add --no-cache dumb-init
 
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Copy only the built app + prod node_modules
+# Copy only built output + runtime deps
 COPY --from=build /app/apps/moosematrix/.next ./apps/moosematrix/.next
-COPY --from=build /app/apps/moosematrix/package.json ./apps/moosematrix/package.json
+COPY --from=build /app/apps/moosematrix/public ./apps/moosematrix/public
+COPY --from=build /app/apps/moosematrix/package.json ./apps/moosematrix/
 COPY --from=build /app/packages ./packages
 COPY --from=deps /app/node_modules ./node_modules
 
-# Ensure next binary exists for runtime
-RUN npm install --omit=dev --workspace=apps/moosematrix
-
-# Expose port
+# Expose the app port
 EXPOSE 3000
 
-# Start the app
-CMD ["dumb-init", "npx", "next", "start", "-p", "3000", "apps/moosematrix"]
+# Use dumb-init for clean signal handling
+CMD ["dumb-init", "npm", "start", "--workspace", "apps/moosematrix"]

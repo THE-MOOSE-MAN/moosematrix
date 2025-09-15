@@ -2,11 +2,11 @@
   "name": "moosematrix",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
+  "dev": "next dev",
+  "build": "next build",
+  "start": "next start -p ${PORT:-3000}",
+  "lint": "next lint"
+},
   "dependencies": {
     "@moosematrix/ui": "file:../../packages/ui",
     "next": "^14.2.32",
