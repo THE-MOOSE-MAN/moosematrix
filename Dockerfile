@@ -35,7 +35,7 @@ WORKDIR /app
 
 # ---- Dependencies layer (better caching) ----
 COPY package*.json ./
-RUN npm install --production
+RUN npm install
 
 # ---- Build layer ----
 COPY . .
