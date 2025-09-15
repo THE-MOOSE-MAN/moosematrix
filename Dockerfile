@@ -1,58 +1,60 @@
-# ---- Base image ----
-FROM node:18-alpine AS base
-
-# Set working directory
+# -------------------------------
+# 1. Base deps (all deps incl dev)
+# -------------------------------
+FROM node:18-alpine AS deps
 WORKDIR /app
 
-# ---- Dependencies layer (better caching) ----
-COPY package*.json ./
-RUN npm install --production
+# Install libc6-compat for some npm packages
+RUN apk add --no-cache libc6-compat
 
-# ---- Build layer ----
-COPY . .
-RUN npm run build
+# Copy root configs
+COPY package*.json turbo.json tsconfig.json ./
 
-# ---- Run layer ----
-# Create a non-root user for security
-RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
+# Copy workspaces
+COPY packages ./packages
+COPY apps ./apps
 
-# Make sure app files belong to that user
-RUN chown -R appuser:appgroup /app
+# Install all deps (workspaces handled automatically)
+RUN npm install --workspaces
 
-# Switch to the new user
-USER appuser
-
-# Expose port 3000 (Next.js default)
-EXPOSE 3000
-
-# Start Next.js server
-CMD ["npm", "start"]
-# ---- Base image ----
-FROM node:18-alpine AS base
-
-# Set working directory
+# -------------------------------
+# 2. Build the app
+# -------------------------------
+FROM node:18-alpine AS build
 WORKDIR /app
 
-# ---- Dependencies layer (better caching) ----
-COPY package*.json ./
-RUN npm install
+# Copy node_modules from deps stage
+COPY --from=deps /app/node_modules ./node_modules
 
-# ---- Build layer ----
+# Copy source code
 COPY . .
-RUN npm run build
 
-# ---- Run layer ----
-# Create a non-root user for security
-RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
+# Build with Turbo (only the moosematrix app)
+RUN npx turbo run build --filter=moosematrix...
 
-# Make sure app files belong to that user
-RUN chown -R appuser:appgroup /app
+# -------------------------------
+# 3. Production runtime
+# -------------------------------
+FROM node:18-alpine AS runner
+WORKDIR /app
 
-# Switch to the new user
-USER appuser
+# Add runtime dependencies
+RUN apk add --no-cache dumb-init
 
-# Expose port 3000 (Next.js default)
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Copy only the built app + prod node_modules
+COPY --from=build /app/apps/moosematrix/.next ./apps/moosematrix/.next
+COPY --from=build /app/apps/moosematrix/package.json ./apps/moosematrix/package.json
+COPY --from=build /app/packages ./packages
+COPY --from=deps /app/node_modules ./node_modules
+
+# Ensure next binary exists for runtime
+RUN npm install --omit=dev --workspace=apps/moosematrix
+
+# Expose port
 EXPOSE 3000
 
-# Start Next.js server
-CMD ["npm", "start"]
+# Start the app
+CMD ["dumb-init", "npx", "next", "start", "-p", "3000", "apps/moosematrix"]

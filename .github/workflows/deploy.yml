@@ -24,6 +24,7 @@ jobs:
         with:
           context: .
           push: true
+          file: ./Dockerfile
           tags: |
             ghcr.io/the-moose-man/moosematrix:latest
             ghcr.io/the-moose-man/moosematrix:${{ github.sha }}
@@ -42,10 +43,9 @@ jobs:
           port: ${{ secrets.VPS_PORT }}
           script: |
             set -e
-            # Pull latest image
             docker pull ghcr.io/the-moose-man/moosematrix:latest
 
-            # Stop and remove existing container if running
+            # Stop/remove any old container
             docker stop moosematrix-app || true
             docker rm moosematrix-app || true
 
@@ -59,3 +59,5 @@ jobs:
               -p 3000:3000 \
               --name moosematrix-app \
               ghcr.io/the-moose-man/moosematrix:latest
+
+      
