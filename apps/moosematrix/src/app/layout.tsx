@@ -1,32 +1,37 @@
+import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Navbar, Footer } from "@moosematrix/ui";
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
 
-const jetbrains = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-jetbrains",
-});
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "The Moose Matrix",
-  description: "Research, security, and writing by Dustin Warren",
+  description: "A hub for projects, writing, and products.",
+  metadataBase: new URL("https://moosematrix.com"),
+  icons: { icon: "/moose.png" },
+  openGraph: {
+    title: "The Moose Matrix",
+    description: "A hub for projects, writing, and products.",
+    url: "https://moosematrix.com",
+    siteName: "The Moose Matrix",
+    images: [{ url: "/og.png", width: 1200, height: 630 }],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: { card: "summary_large_image", title: "The Moose Matrix", description: "A hub for projects, writing, and products.", images: ["/og.png"] },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html
-      lang="en"
-      className={`${inter.variable} ${jetbrains.variable}`}
-    >
-      {/* Default body font = Inter (sans), override with font-mono for headings/code */}
-      <body className="bg-black text-white font-sans">
-        {children}
+    <html lang="en">
+      <body className="min-h-screen antialiased">
+        <Navbar />
+        <Footer />
+         {children}
+       {/* Plausible analytics (optional; safe to leave) */}
+        <Script defer data-domain="moosematrix.com" src="https://plausible.io/js/script.js" />
       </body>
     </html>
   );
 }
-
