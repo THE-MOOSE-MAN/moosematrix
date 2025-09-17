@@ -92,21 +92,23 @@ export default function HomePage() {
                 img: "/moose_merch_logo.png",
               },
             ].map(({ title, desc, href, img }) => (
-              <a key={title} href={href} className="no-underline group">
-                <Card className="relative overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-gray-900 to-black p-6 shadow-md transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl">
-                  <div className="flex items-center gap-4">
-                    <Image
-                      src={img}
-                      alt={title}
-                      width={56}
-                      height={56}
-                      className="rounded-lg border border-white/10 bg-white/5 p-2 transition-transform duration-300 group-hover:scale-110"
-                    />
-                    <h3 className="text-2xl font-bold text-white group-hover:text-indigo-400 transition">
-                      {title}
-                    </h3>
+              <a key={title} href={href} className="no-underline group h-full">
+                <Card className="flex flex-col justify-between h-full relative overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-gray-900 to-black p-6 shadow-md transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl">
+                  <div>
+                    <div className="flex items-center gap-4">
+                      <Image
+                        src={img}
+                        alt={title}
+                        width={56}
+                        height={56}
+                        className="rounded-lg border border-white/10 bg-white/5 p-2 transition-transform duration-300 group-hover:scale-110"
+                      />
+                      <h3 className="text-2xl font-bold text-white group-hover:text-indigo-400 transition">
+                        {title}
+                      </h3>
+                    </div>
+                    <p className="mt-3 text-white/70 leading-relaxed">{desc}</p>
                   </div>
-                  <p className="mt-3 text-white/70 leading-relaxed">{desc}</p>
                   <div className="mt-5">
                     <Button variant="ghost" className="group-hover:text-indigo-400">
                       Visit →
@@ -148,16 +150,19 @@ export default function HomePage() {
               },
             ].map((p) => (
               <a key={p.title} href={p.link} className="no-underline group">
-                <Card className="rounded-xl border border-white/10 bg-gray-900/80 p-6 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-                  <h3 className="text-lg font-semibold text-white group-hover:text-indigo-400 transition">
-                    {p.title}
-                  </h3>
-                  <p className="mt-1 text-xs uppercase tracking-wide text-white/50">
-                    {new Date(p.date).toLocaleDateString()}
-                  </p>
-                  <p className="mt-2 text-sm text-white/70">
-                    A short excerpt will live here in the real feed.
-                  </p>
+                <Card className="rounded-xl border border-white/10 bg-gray-900/80 p-6 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-lg h-full flex flex-col justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-white group-hover:text-indigo-400 transition">
+                      {p.title}
+                    </h3>
+                    <p className="mt-1 text-xs uppercase tracking-wide text-white/50">
+                      {new Date(p.date).toLocaleDateString()}
+                    </p>
+                    <p className="mt-2 text-sm text-white/70">
+                      A short excerpt will live here in the real feed.
+                    </p>
+                  </div>
+                  <div className="mt-4 text-indigo-400 text-sm">Read more →</div>
                 </Card>
               </a>
             ))}
@@ -186,4 +191,3 @@ export default function HomePage() {
     </div>
   );
 }
-
