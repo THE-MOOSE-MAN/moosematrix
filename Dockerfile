@@ -40,6 +40,7 @@ ENV PORT=3000
 
 # Copy built app and only what's needed at runtime
 COPY --from=build /app/apps/moosematrix/.next ./.next
+COPY --from=build /app/apps/moosematrix/public ./public
 COPY --from=build /app/apps/moosematrix/package.json ./package.json
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=build /app/packages /app/packages

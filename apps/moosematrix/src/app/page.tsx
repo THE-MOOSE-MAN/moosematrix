@@ -35,7 +35,7 @@ export default function HomePage() {
           <h3 className="text-lg font-semibold text-white">At a glance</h3>
           <ul className="mt-3 space-y-2 text-white/80">
             <li>• Three active subsidiaries</li>
-            <li>• Personal blog: Moose Mumbles</li>
+            <li>• Blog </li>
             <li>• Contact for partnerships</li>
           </ul>
         </Card>
@@ -51,7 +51,7 @@ export default function HomePage() {
             <Card>
               <div className="flex items-center gap-3">
                 <Image src="/matrix-logo.png" alt="" width={36} height={36} className="rounded-lg border border-white/10" />
-                <h3 className="text-xl font-semibold text-white">Moose Matrix</h3>
+                <h3 className="text-xl font-semibold text-white">The Moose Matrix</h3>
               </div>
               <p className="mt-2 text-white/70">Studio & corporate hub: mission, portfolio, services, press.</p>
               <div className="mt-4"><Button variant="ghost">Visit</Button></div>
@@ -72,7 +72,7 @@ export default function HomePage() {
             <Card>
               <div className="flex items-center gap-3">
                 <Image src="/moose_merch_logo.png" alt="" width={36} height={36} className="rounded-lg border border-white/10" />
-                <h3 className="text-xl font-semibold text-white">Moose Merch</h3>
+                <h3 className="text-xl font-semibold text-white">Store</h3>
               </div>
               <p className="mt-2 text-white/70">Physical + digital goods that support the work and community.</p>
               <div className="mt-4"><Button variant="ghost">Visit</Button></div>
@@ -84,7 +84,7 @@ export default function HomePage() {
       {/* Blog preview */}
       <section className="mt-16">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-semibold text-white">From Moose Mumbles</h2>
+          <h2 className="text-2xl font-semibold text-white">From the Blog</h2>
           <a href="https://mooseman.moosematrix.com" className="text-sm text-white/80 hover:text-white">View all</a>
         </div>
         <div className="mt-6 grid gap-6 md:grid-cols-3">

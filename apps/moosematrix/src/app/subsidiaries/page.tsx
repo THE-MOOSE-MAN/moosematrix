@@ -33,7 +33,7 @@ export default function SubsidiariesPage() {
             <div className="flex items-center gap-3">
               <img
                 src="/moose_matrix_logo.png"
-                alt="Moose Matrix"
+                alt="The Moose Matrix"
                 width={40}
                 height={40}
                 className="h-10 w-10 rounded-lg border border-white/10"
@@ -101,7 +101,7 @@ export default function SubsidiariesPage() {
             <div className="flex items-center gap-3">
               <img
                 src="/moose_merch_logo.png"
-                alt="Moose Merch"
+                alt="Store"
                 width={40}
                 height={40}
                 className="h-10 w-10 rounded-lg border border-white/10"
