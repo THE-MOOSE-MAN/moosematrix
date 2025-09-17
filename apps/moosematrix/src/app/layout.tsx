@@ -27,8 +27,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className="min-h-screen antialiased">
         <Navbar />
+          {children}
         <Footer />
-         {children}
        {/* Plausible analytics (optional; safe to leave) */}
         <Script defer data-domain="moosematrix.com" src="https://plausible.io/js/script.js" />
       </body>

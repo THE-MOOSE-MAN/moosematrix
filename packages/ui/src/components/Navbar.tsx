@@ -124,13 +124,13 @@ export function Navbar({
             className={["rounded-lg border border-white/10 shadow-sm", logoClassName].join(" ")}
             priority
           />
-          <span className={`${titleSize} font-semibold tracking-tight text-white group-hover:text-indigo-400 transition`}>
+          <span className={`${titleSize} font-mono font-semibold tracking-tight text-white group-hover:text-indigo-400 transition`}>
             {title}
           </span>
         </a>
 
         {/* Desktop nav */}
-        <nav className={["hidden md:flex items-center gap-5 text-white/85", desktopLinkSize].join(" ")}>
+        <nav className={["hidden md:flex items-center gap-5 text-white/85 font-sans", desktopLinkSize].join(" ")}>
           {/* Matrix Portals dropdown */}
           <div
             className="relative"
@@ -140,7 +140,7 @@ export function Navbar({
             <button
               ref={subsBtnRef}
               type="button"
-              className="inline-flex items-center gap-1 rounded px-3 py-2 transition hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+              className="inline-flex items-center gap-1 rounded px-3 py-2 transition hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 font-mono"
               aria-haspopup="menu"
               aria-expanded={subsOpen}
               aria-controls="subs-menu"
@@ -157,7 +157,7 @@ export function Navbar({
                 id="subs-menu"
                 ref={subsPanelRef}
                 role="menu"
-                className="absolute right-0 top-full mt-2 min-w-[240px] rounded-2xl border border-white/10 bg-[#0b0c10] p-1.5 shadow-lg ring-1 ring-white/10"
+                className="absolute right-0 top-full mt-2 min-w-[240px] rounded-2xl border border-white/10 bg-[#0b0c10] p-1.5 shadow-lg ring-1 ring-white/10 font-sans"
                 onMouseEnter={openOnHover}
                 onMouseLeave={closeAfterDelay}
               >
@@ -194,7 +194,7 @@ export function Navbar({
               href={href}
               target={external ? "_blank" : undefined}
               rel={external ? "noopener noreferrer" : undefined}
-              className="inline-flex items-center rounded px-3 py-2 transition hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+              className="inline-flex items-center rounded px-3 py-2 transition hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 font-sans"
             >
               {label}
             </a>
@@ -233,7 +233,7 @@ export function Navbar({
             aria-modal="true"
           >
             <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
-              <span className="text-white font-semibold">Menu</span>
+              <span className="text-white font-mono font-semibold">Menu</span>
               <button
                 type="button"
                 className="rounded-lg border border-white/10 bg-white/5 p-2 text-white/85 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
@@ -250,7 +250,7 @@ export function Navbar({
             <div className="px-5 py-3 border-b border-white/10">
               <button
                 type="button"
-                className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-base text-white/90 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-base text-white/90 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 font-mono"
                 aria-expanded={mobileSubsOpen}
                 onClick={() => setMobileSubsOpen(v => !v)}
               >
@@ -260,7 +260,7 @@ export function Navbar({
                 </svg>
               </button>
               {mobileSubsOpen && (
-                <ul className="mt-1 space-y-1">
+                <ul className="mt-1 space-y-1 font-sans">
                   <li>
                     <a
                       href="/subsidiaries"
@@ -296,7 +296,7 @@ export function Navbar({
                       href={href}
                       target={external ? "_blank" : undefined}
                       rel={external ? "noopener noreferrer" : undefined}
-                      className="block rounded-lg px-3 py-3 text-base text-white/90 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                      className="block rounded-lg px-3 py-3 text-base text-white/90 hover:bg-white/10 font-sans"
                       onClick={() => setMobileOpen(false)}
                     >
                       {label}
@@ -311,4 +311,3 @@ export function Navbar({
     </header>
   );
 }
-
