@@ -7,9 +7,9 @@ import { Button, Card } from "@moosematrix/ui";
 
 // Taglines revealed while scrolling
 const taglines = [
-  "🌀 Enter the Matrix.",
-  "🛠️ Build in Public.",
-  "⚡ From Idea to Impact.",
+  "🌀 Step into the Matrix.",
+  "🔐 Breaking → Building → Sharing.",
+  "⚡ Exploits, Insights, and Impact.",
 ];
 
 export default function HomePage() {
@@ -36,11 +36,11 @@ export default function HomePage() {
           </div>
 
           {/* Title + tagline */}
-          <h1 className="mt-10 text-5xl md:text-6xl font-extrabold text-white drop-shadow-lg">
+          <h1 className="mt-10 text-5xl md:text-6xl font-mono font-extrabold text-white drop-shadow-lg">
             Enter The Moose Matrix
           </h1>
           <p className="mt-4 text-lg text-white/80 max-w-2xl mx-auto">
-            A hub for software, content, and products that make workflows smoother.
+            Writing, research, and projects at the intersection of code, security, and systems.
           </p>
 
           {/* CTA button */}
@@ -50,7 +50,7 @@ export default function HomePage() {
                 size="lg"
                 className="bg-indigo-600 hover:bg-indigo-700 text-white text-xl px-10 py-4 rounded-xl shadow-lg animate-pulse"
               >
-                🌀 Enter The Matrix
+                🌀 Step into the Matrix
               </Button>
             </Link>
           </div>
@@ -67,7 +67,7 @@ export default function HomePage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.6 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-4xl md:text-5xl font-extrabold text-center text-white"
+              className="text-4xl md:text-5xl font-mono font-extrabold text-center text-white"
             >
               {line}
             </motion.h2>
@@ -78,14 +78,14 @@ export default function HomePage() {
             SUBSIDIARIES
         ======================================================= */}
         <section>
-          <h2 className="text-2xl font-semibold text-white text-center">
+          <h2 className="text-2xl font-mono font-semibold text-white text-center">
             Subsidiaries
           </h2>
           <div className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {[
               {
                 title: "The Moose Matrix",
-                desc: "Studio & corporate hub: mission, portfolio, services, press.",
+                desc: "Core studio — portfolio, mission, research, and collaborations.",
                 href: "https://matrix.moosematrix.com",
                 img: "/moose.png",
               },
@@ -114,7 +114,7 @@ export default function HomePage() {
                         height={56}
                         className="rounded-lg border border-white/10 bg-white/5 p-2 transition-transform duration-300 group-hover:scale-110"
                       />
-                      <h3 className="text-2xl font-bold text-white group-hover:text-indigo-400 transition">
+                      <h3 className="text-2xl font-mono font-bold text-white group-hover:text-indigo-400 transition">
                         {title}
                       </h3>
                     </div>
@@ -138,11 +138,11 @@ export default function HomePage() {
         <section className="mt-32">
           {/* Section heading */}
           <div className="text-center">
-            <h2 className="text-3xl md:text-4xl font-extrabold text-white">
+            <h2 className="text-3xl md:text-4xl font-mono font-extrabold text-white">
               📚 Blog
             </h2>
             <p className="mt-2 text-white/70 text-sm md:text-base">
-              Latest posts and thoughts from The Moose Man.
+              Thoughts, writeups, and reflections from The Moose Man.
             </p>
           </div>
 
@@ -160,16 +160,14 @@ export default function HomePage() {
                   </div>
                   {/* Content */}
                   <div className="flex-1">
-                    <h3 className="text-2xl md:text-3xl font-bold text-white group-hover:text-indigo-400 transition">
+                    <h3 className="text-2xl md:text-3xl font-mono font-bold text-white group-hover:text-indigo-400 transition">
                       Featured: Hello Moose
                     </h3>
                     <p className="mt-2 text-xs uppercase tracking-wide text-white/50">
                       {new Date("2025-01-10").toLocaleDateString()}
                     </p>
                     <p className="mt-4 text-white/70 leading-relaxed">
-                      A deeper dive into what The Moose Matrix is all about and the
-                      journey so far. This will be the most recent post once the blog
-                      database is live.
+                      The Moose Matrix: why it exists, and what’s next at the edge of security and engineering.
                     </p>
                     <div className="mt-4">
                       <span className="text-indigo-400 font-medium">Read more →</span>
@@ -202,14 +200,14 @@ export default function HomePage() {
               <a key={p.title} href={p.link} className="no-underline group h-full">
                 <Card className="h-full flex flex-col justify-between rounded-xl border border-white/10 bg-gray-900/80 p-6 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
                   <div>
-                    <h3 className="text-lg font-semibold text-white group-hover:text-indigo-400 transition">
+                    <h3 className="text-lg font-mono font-semibold text-white group-hover:text-indigo-400 transition">
                       {p.title}
                     </h3>
                     <p className="mt-1 text-xs uppercase tracking-wide text-white/50">
                       {new Date(p.date).toLocaleDateString()}
                     </p>
                     <p className="mt-2 text-sm text-white/70">
-                      A short excerpt will live here in the real feed.
+                      Brief analysis and takeaways — full article coming from the archive.
                     </p>
                   </div>
                   <div className="mt-4 text-indigo-400 text-sm">Read more →</div>
@@ -233,7 +231,7 @@ export default function HomePage() {
         ======================================================= */}
         <section>
           <Card className="text-center bg-gradient-to-br from-indigo-700/40 to-black p-10 shadow-2xl rounded-2xl border border-indigo-500/20">
-            <h2 className="text-3xl font-extrabold text-white">
+            <h2 className="text-3xl font-mono font-extrabold text-white">
               Partner with The Moose Matrix
             </h2>
             <p className="mt-3 text-white/80 max-w-xl mx-auto">
