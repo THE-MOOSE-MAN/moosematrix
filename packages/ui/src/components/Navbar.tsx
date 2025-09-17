@@ -30,9 +30,9 @@ const defaultLinks: NavLink[] = [
 ];
 
 const defaultSubsidiaries: NavLink[] = [
-  { label: "Moose Matrix", href: "https://matrix.moosematrix.com", external: true },
+  { label: "The Moose Matrix", href: "https://matrix.moosematrix.com", external: true },
   { label: "Moo$e Money", href: "https://m2.moosematrix.com", external: true },
-  { label: "Moose Merch", href: "https://moosemerch.moosematrix.com", external: true },
+  { label: "Store", href: "https://moosemerch.moosematrix.com", external: true },
 ];
 
 export function Navbar({

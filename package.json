@@ -1,7 +1,10 @@
 {
   "name": "moosematrix-monorepo",
   "private": true,
-  "workspaces": ["apps/*", "packages/*"],
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "packageManager": "npm@10.9.3",
   "scripts": {
     "dev": "turbo run dev",
@@ -11,5 +14,8 @@
   },
   "devDependencies": {
     "turbo": "^2.0.6"
+  },
+  "dependencies": {
+    "framer-motion": "^12.23.13"
   }
 }
