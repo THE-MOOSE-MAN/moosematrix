@@ -95,8 +95,8 @@ export default function HomePage() {
             <Card>
               <div className="flex items-center gap-3">
                 <Image
-                  src="/matrix-logo.png"
-                  alt="Matrix Logo"
+                  src="/moose.png"
+                  alt="The Moose Matrix Logo"
                   width={36}
                   height={36}
                   className="rounded-lg border border-white/10"
