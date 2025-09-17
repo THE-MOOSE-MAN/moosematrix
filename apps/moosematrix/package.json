@@ -9,6 +9,7 @@
 },
   "dependencies": {
     "@moosematrix/ui": "file:../../packages/ui",
+    "framer-motion": "^11.0.0",
     "next": "^14.2.32",
     "react": "18.3.1",
     "react-dom": "18.3.1"
