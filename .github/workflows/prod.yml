@@ -1,0 +1,115 @@
+name: Deploy MooseMatrix (Prod)
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.build.outputs.image }}
+      ts: ${{ steps.build.outputs.ts }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Build and push image
+        id: build
+        run: |
+          TS=$(date +%Y%m%d-%H%M%S)
+          IMAGE=ghcr.io/the-moose-man/moosematrix:$TS
+          LATEST=ghcr.io/the-moose-man/moosematrix:latest
+
+          echo "::set-output name=image::$IMAGE"
+          echo "::set-output name=ts::$TS"
+
+          docker build -t $IMAGE -t $LATEST .
+          docker push $IMAGE
+          docker push $LATEST
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    env:
+      VPS_HOST: ${{ secrets.VPS_HOST }}
+      VPS_USER: ${{ secrets.VPS_USER }}
+      VPS_PORT: ${{ secrets.VPS_PORT }}
+      VPS_SSH_KEY_B64: ${{ secrets.VPS_SSH_KEY_B64 }}
+      IMAGE: ${{ needs.build-and-push.outputs.image }}
+      TS: ${{ needs.build-and-push.outputs.ts }}
+    steps:
+      - name: Install private key
+        run: |
+          mkdir -p ~/.ssh
+          echo "$VPS_SSH_KEY_B64" | base64 -d > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
+      - name: Deploy to VPS
+        run: |
+          IMAGE_B64=$(echo -n "$IMAGE" | base64)
+          TS_B64=$(echo -n "$TS" | base64)
+
+          ssh -i ~/.ssh/id_ed25519 \
+              -o StrictHostKeyChecking=no \
+              -p "$VPS_PORT" \
+              "$VPS_USER@$VPS_HOST" 'bash -s' << 'EOF'
+            set -e
+
+            # Decode vars inside VPS
+            IMAGE=$(echo "$IMAGE_B64" | base64 -d)
+            TS=$(echo "$TS_B64" | base64 -d)
+
+            BASE_NAME="moosematrix-app"
+            NEW_NAME="moosematrix-app-${TS}"
+
+            echo "📥 Pulling latest image..."
+            docker pull $IMAGE
+
+            echo "🚀 Starting new container: $NEW_NAME"
+            docker run -d \
+              --name $NEW_NAME \
+              --network moose-prod-net \
+              $IMAGE
+
+            echo "🩺 Health check (5 attempts)..."
+            for i in {1..5}; do
+              if curl -sf http://$NEW_NAME:3000 > /dev/null; then
+                echo "✅ $NEW_NAME is healthy"
+                break
+              fi
+              echo "⏳ Waiting for app... ($i/5)"
+              sleep 5
+            done
+
+            if ! curl -sf http://$NEW_NAME:3000 > /dev/null; then
+              echo "❌ $NEW_NAME failed health check. Keeping old container."
+              docker logs $NEW_NAME
+              docker rm -f $NEW_NAME
+              exit 1
+            fi
+
+            echo "♻️ Switching alias..."
+            docker rm -f $BASE_NAME || true
+            docker stop $NEW_NAME
+            docker rename $NEW_NAME $BASE_NAME
+            docker start $BASE_NAME
+
+            echo "🧹 Cleaning up old containers..."
+            docker ps -a --filter "name=moosematrix-app-" --format "{{.Names}}" \
+              | grep -v $BASE_NAME | xargs -r docker rm -f
+
+            echo "🧹 Keeping only last 5 images..."
+            docker images "ghcr.io/the-moose-man/moosematrix" --format "{{.Repository}}:{{.Tag}}" \
+              | grep -v latest | sort -r \
+              | tail -n +6 | xargs -r docker rmi
+
+            echo "✅ Prod deployment complete → https://moosematrix.com"
+          EOF
