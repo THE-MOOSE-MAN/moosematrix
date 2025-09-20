@@ -60,51 +60,53 @@ jobs:
           ssh -i ~/.ssh/id_ed25519 \
               -o StrictHostKeyChecking=no \
               -p "$VPS_PORT" \
-              "$VPS_USER@$VPS_HOST" 'bash -s' << 'EOF'
+              "$VPS_USER@$VPS_HOST" 'bash -s' << EOF
             set -e
 
             # Decode vars inside VPS
-            IMAGE=$(echo "$IMAGE_B64" | base64 -d)
-            TS=$(echo "$TS_B64" | base64 -d)
+            IMAGE=\$(echo "$IMAGE_B64" | base64 -d)
+            TS=\$(echo "$TS_B64" | base64 -d)
 
             BASE_NAME="moosematrix-app"
-            NEW_NAME="moosematrix-app-${TS}"
+            NEW_NAME="moosematrix-app-\${TS}"
 
             echo "📥 Pulling latest image..."
-            docker pull $IMAGE
+            docker pull \$IMAGE
 
-            echo "🚀 Starting new container: $NEW_NAME"
+            echo "🚀 Starting new container: \$NEW_NAME"
             docker run -d \
-              --name $NEW_NAME \
+              --name \$NEW_NAME \
               --network moose-prod-net \
-              $IMAGE
+              \$IMAGE
 
             echo "🩺 Health check (5 attempts)..."
             for i in {1..5}; do
-              if curl -sf http://$NEW_NAME:3000 > /dev/null; then
-                echo "✅ $NEW_NAME is healthy"
+              if docker run --rm --network moose-prod-net curlimages/curl:8.8.0 \
+                curl -sf http://\$NEW_NAME:3000 > /dev/null; then
+                echo "✅ \$NEW_NAME is healthy"
                 break
               fi
-              echo "⏳ Waiting for app... ($i/5)"
+              echo "⏳ Waiting for app... (\$i/5)"
               sleep 5
             done
 
-            if ! curl -sf http://$NEW_NAME:3000 > /dev/null; then
-              echo "❌ $NEW_NAME failed health check. Keeping old container."
-              docker logs $NEW_NAME
-              docker rm -f $NEW_NAME
+            if ! docker run --rm --network moose-prod-net curlimages/curl:8.8.0 \
+              curl -sf http://\$NEW_NAME:3000 > /dev/null; then
+              echo "❌ \$NEW_NAME failed health check. Keeping old container."
+              docker logs \$NEW_NAME
+              docker rm -f \$NEW_NAME
               exit 1
             fi
 
             echo "♻️ Switching alias..."
-            docker rm -f $BASE_NAME || true
-            docker stop $NEW_NAME
-            docker rename $NEW_NAME $BASE_NAME
-            docker start $BASE_NAME
+            docker rm -f \$BASE_NAME || true
+            docker stop \$NEW_NAME
+            docker rename \$NEW_NAME \$BASE_NAME
+            docker start \$BASE_NAME
 
             echo "🧹 Cleaning up old containers..."
             docker ps -a --filter "name=moosematrix-app-" --format "{{.Names}}" \
-              | grep -v $BASE_NAME | xargs -r docker rm -f
+              | grep -v \$BASE_NAME | xargs -r docker rm -f
 
             echo "🧹 Keeping only last 5 images..."
             docker images "ghcr.io/the-moose-man/moosematrix" --format "{{.Repository}}:{{.Tag}}" \
