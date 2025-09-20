@@ -8,6 +8,9 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.build.outputs.image }}
+      ts: ${{ steps.build.outputs.ts }}
     steps:
       - uses: actions/checkout@v3
 
@@ -19,12 +22,18 @@ jobs:
           password: ${{ secrets.GHCR_TOKEN }}
 
       - name: Build and push image
+        id: build
         run: |
           TS=$(date +%Y%m%d-%H%M%S)
-          echo "TS=$TS" >> $GITHUB_ENV
           IMAGE=ghcr.io/the-moose-man/moosematrix:$TS
           LATEST=ghcr.io/the-moose-man/moosematrix:dev-latest
+
           echo "IMAGE=$IMAGE" >> $GITHUB_ENV
+          echo "TS=$TS" >> $GITHUB_ENV
+
+          echo "::set-output name=image::$IMAGE"
+          echo "::set-output name=ts::$TS"
+
           docker build -t $IMAGE -t $LATEST .
           docker push $IMAGE
           docker push $LATEST
@@ -37,6 +46,8 @@ jobs:
       VPS_USER: ${{ secrets.VPS_USER }}
       VPS_PORT: ${{ secrets.VPS_PORT }}
       VPS_SSH_KEY_B64: ${{ secrets.VPS_SSH_KEY_B64 }}
+      IMAGE: ${{ needs.build-and-push.outputs.image }}
+      TS: ${{ needs.build-and-push.outputs.ts }}
     steps:
       - name: Install private key
         run: |
@@ -49,8 +60,7 @@ jobs:
           ssh -i ~/.ssh/id_ed25519 \
               -o StrictHostKeyChecking=no \
               -p "$VPS_PORT" \
-              "$VPS_USER@$VPS_HOST" \
-              IMAGE="$IMAGE" TS="$TS" 'bash -s' << 'EOF'
+              "$VPS_USER@$VPS_HOST" 'bash -s' << 'EOF'
             set -e
             BASE_NAME="moosematrix-app-dev"
             NEW_NAME="moosematrix-app-dev-${TS}"
