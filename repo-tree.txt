@@ -1,0 +1,42 @@
+.
+├── .dockerignore
+├── .github
+│   └── workflows
+│       ├── ci.yml
+│       ├── dev.yml
+│       └── prod.yml
+├── .gitignore
+├── Dockerfile
+├── README.md
+├── apps
+│   └── moosematrix
+│       ├── .env.example
+│       ├── deploy
+│       ├── ecosystem.config.js
+│       ├── next-env.d.ts
+│       ├── next.config.mjs
+│       ├── package.json
+│       ├── postcss.config.js
+│       ├── public
+│       ├── src
+│       ├── tailwind.config.js
+│       └── tsconfig.json
+├── package-lock.json
+├── package.json
+├── packages
+│   └── ui
+│       ├── package.json
+│       ├── postcss.config.js
+│       ├── src
+│       ├── tailwind.config.js
+│       └── tsconfig.json
+├── project-structure.txt
+├── repo-tree.txt
+├── scripts
+│   ├── FETCH_HEAD
+│   └── dev-rebuild.sh
+├── trigger.txt
+├── tsconfig.json
+└── turbo.json
+
+11 directories, 28 files
