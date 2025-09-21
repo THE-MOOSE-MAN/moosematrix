@@ -1,7 +1,8 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+// src/app/api/healthz/route.ts
+import { NextResponse } from "next/server";
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  res.status(200).json({
+export async function GET() {
+  return NextResponse.json({
     status: "ok",
     env: process.env.NODE_ENV,
     siteUrl: process.env.NEXT_PUBLIC_SITE_URL,

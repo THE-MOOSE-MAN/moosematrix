@@ -1,24 +1,23 @@
 .
-├── .dockerignore
-├── .github
-│   └── workflows
-│       ├── ci.yml
-│       ├── dev.yml
-│       └── prod.yml
-├── .gitignore
 ├── Dockerfile
 ├── README.md
 ├── apps
 │   └── moosematrix
-│       ├── .env.example
 │       ├── deploy
+│       │   └── nginx
 │       ├── ecosystem.config.js
 │       ├── next-env.d.ts
 │       ├── next.config.mjs
 │       ├── package.json
 │       ├── postcss.config.js
 │       ├── public
+│       │   ├── The Moose Man.png
+│       │   ├── moose.png
+│       │   ├── moose_merch_logo.png
+│       │   └── moose_money_logo.png
+│       ├── server.js
 │       ├── src
+│       │   └── app
 │       ├── tailwind.config.js
 │       └── tsconfig.json
 ├── package-lock.json
@@ -28,15 +27,16 @@
 │       ├── package.json
 │       ├── postcss.config.js
 │       ├── src
+│       │   ├── components
+│       │   ├── index.ts
+│       │   └── styles.css
 │       ├── tailwind.config.js
 │       └── tsconfig.json
-├── project-structure.txt
 ├── repo-tree.txt
 ├── scripts
 │   ├── FETCH_HEAD
 │   └── dev-rebuild.sh
-├── trigger.txt
 ├── tsconfig.json
 └── turbo.json
 
-11 directories, 28 files
+12 directories, 27 files
