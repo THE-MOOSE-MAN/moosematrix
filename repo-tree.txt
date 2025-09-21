@@ -5,6 +5,7 @@
 │   └── moosematrix
 │       ├── deploy
 │       │   └── nginx
+│       │       └── moosematrix.conf.example
 │       ├── ecosystem.config.js
 │       ├── next-env.d.ts
 │       ├── next.config.mjs
@@ -18,6 +19,16 @@
 │       ├── server.js
 │       ├── src
 │       │   └── app
+│       │       ├── about
+│       │       ├── api
+│       │       ├── contact
+│       │       ├── globals.css
+│       │       ├── layout.tsx
+│       │       ├── not-found.tsx
+│       │       ├── page.tsx
+│       │       ├── robots.ts
+│       │       ├── sitemap.ts
+│       │       └── subsidiaries
 │       ├── tailwind.config.js
 │       └── tsconfig.json
 ├── package-lock.json
@@ -28,6 +39,11 @@
 │       ├── postcss.config.js
 │       ├── src
 │       │   ├── components
+│       │   │   ├── Badge.tsx
+│       │   │   ├── Button.tsx
+│       │   │   ├── Card.tsx
+│       │   │   ├── Footer.tsx
+│       │   │   └── Navbar.tsx
 │       │   ├── index.ts
 │       │   └── styles.css
 │       ├── tailwind.config.js
@@ -36,7 +52,8 @@
 ├── scripts
 │   ├── FETCH_HEAD
 │   └── dev-rebuild.sh
+├── test.txt
 ├── tsconfig.json
 └── turbo.json
 
-12 directories, 27 files
+16 directories, 40 files

@@ -11,13 +11,7 @@ const handle = app.getRequestHandler();
 app.prepare().then(() => {
   const server = express();
 
-  // Rewrite /health to /api/health
-  server.get("/health", (req, res) => {
-    req.url = "/api/health";
-    handle(req, res);
-  });
-
-  // Default handler
+  // Default handler — forward all routes (pages + API) to Next.js
   server.all("*", (req, res) => handle(req, res));
 
   server.listen(port, () => {
