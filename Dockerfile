@@ -48,7 +48,38 @@ COPY --from=build /app/packages /app/packages
 # Install production-only deps for this app
 RUN npm install --omit=dev
 
+# --- Custom entrypoint to rewrite /health -> /api/health ---
+# We'll create a tiny Node server that proxies /health to Next.js /api/health
+RUN echo 'import { createProxyMiddleware } from "http-proxy-middleware";\n\
+import express from "express";\n\
+import next from "next";\n\
+\n\
+const port = process.env.PORT || 3000;\n\
+const dev = process.env.NODE_ENV !== "production";\n\
+const app = next({ dev, dir: "." });\n\
+const handle = app.getRequestHandler();\n\
+\n\
+app.prepare().then(() => {\n\
+  const server = express();\n\
+\n\
+  // Rewrite /health to /api/health\n\
+  server.get("/health", (req, res) => {\n\
+    req.url = "/api/health";\n\
+    handle(req, res);\n\
+  });\n\
+\n\
+  // Default handler\n\
+  server.all("*", (req, res) => handle(req, res));\n\
+\n\
+  server.listen(port, () => {\n\
+    console.log(`🚀 MooseMatrix running on http://localhost:${port}`);\n\
+  });\n\
+});' > server.js
+
+# Add required deps for express
+RUN npm install express http-proxy-middleware
+
 EXPOSE 3000
 
-# Start inside apps/moosematrix
-CMD ["dumb-init", "npm", "start"]
+# Use custom server instead of plain next start
+CMD ["dumb-init", "node", "server.js"]
