@@ -82,7 +82,7 @@ jobs:
             echo "🩺 Health check (5 attempts)..."
             for i in {1..5}; do
               if docker run --rm --network moose-prod-net curlimages/curl:8.8.0 \
-                curl -sf http://\$NEW_NAME:3000 > /dev/null; then
+                curl -sf http://\$NEW_NAME:3000/health > /dev/null; then
                 echo "✅ \$NEW_NAME is healthy"
                 break
               fi
@@ -91,7 +91,7 @@ jobs:
             done
 
             if ! docker run --rm --network moose-prod-net curlimages/curl:8.8.0 \
-              curl -sf http://\$NEW_NAME:3000 > /dev/null; then
+              curl -sf http://\$NEW_NAME:3000/health > /dev/null; then
               echo "❌ \$NEW_NAME failed health check. Keeping old container."
               docker logs \$NEW_NAME
               docker rm -f \$NEW_NAME
