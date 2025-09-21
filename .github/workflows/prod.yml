@@ -73,10 +73,9 @@ jobs:
             echo "📥 Pulling latest image..."
             docker pull \$IMAGE
 
-            echo "🚀 Starting new container: \$NEW_NAME (no alias yet)"
+            echo "🚀 Starting new container: \$NEW_NAME (no network yet)"
             docker run -d \
               --name \$NEW_NAME \
-              --network moose-prod-net \
               \$IMAGE
 
             echo "🩺 INTERNAL container health check..."
@@ -96,7 +95,7 @@ jobs:
             done
 
             echo "🔗 Attaching alias '\$BASE_ALIAS' to \$NEW_NAME (after health check)"
-            docker network connect --alias "\$BASE_ALIAS" moose-prod-net "\$NEW_NAME" || true
+            docker network connect --alias "\$BASE_ALIAS" moose-prod-net "\$NEW_NAME"
 
             echo "🌍 EXTERNAL health check via NGINX..."
             for i in {1..12}; do
