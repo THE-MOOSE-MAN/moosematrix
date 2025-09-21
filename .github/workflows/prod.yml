@@ -95,12 +95,12 @@ jobs:
               sleep 5
             done
 
-            echo "🔗 Attaching alias '\$BASE_ALIAS' to \$NEW_NAME"
+            echo "🔗 Attaching alias '\$BASE_ALIAS' to \$NEW_NAME (after health check)"
             docker network connect --alias "\$BASE_ALIAS" moose-prod-net "\$NEW_NAME" || true
 
             echo "🌍 EXTERNAL health check via NGINX..."
             for i in {1..12}; do
-              if curl -fsS https://moosematrix.com/api/healthz > /dev/null; then
+              if curl -fsS https://moosematrix.com/healthz > /dev/null; then
                 echo "✅ EXTERNAL check success: NGINX routed to \$NEW_NAME via \$BASE_ALIAS"
                 break
               fi
@@ -108,7 +108,7 @@ jobs:
               sleep 5
             done
 
-            if ! curl -fsS https://moosematrix.com/api/healthz > /dev/null; then
+            if ! curl -fsS https://moosematrix.com/healthz > /dev/null; then
               echo "❌ EXTERNAL check FAILED"
               docker logs "\$NEW_NAME"
               docker rm -f "\$NEW_NAME"
