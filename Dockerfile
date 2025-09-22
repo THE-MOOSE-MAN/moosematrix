@@ -53,7 +53,7 @@ EXPOSE 3000
 
 # --- NEW: Healthcheck for /api/healthz ---
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD curl -f http://localhost:3000/api/healthz || exit 1
+  CMD curl -f http://localhost:3000/healthz || exit 1
 
 # Use custom server instead of plain next start
 CMD ["dumb-init", "node", "server.js"]

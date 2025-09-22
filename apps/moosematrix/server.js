@@ -11,11 +11,28 @@ const handle = app.getRequestHandler();
 app.prepare().then(() => {
   const server = express();
 
-  // Default handler — forward all routes (pages + API) to Next.js
+  // ----------------------------
+  // 1. Lightweight container health check (fast, no Next.js)
+  // ----------------------------
+  server.get("/healthz", (req, res) => {
+    res.status(200).json({ status: "ok" });
+  });
+
+  // ----------------------------
+  // 2. Application health check (delegates to Next.js route)
+  //    Will hit src/app/api/healthz/route.ts if you define it
+  // ----------------------------
+  server.get("/api/healthz", (req, res) => {
+    req.url = "/api/healthz";
+    handle(req, res);
+  });
+
+  // ----------------------------
+  // 3. Default Next.js handler
+  // ----------------------------
   server.all("*", (req, res) => handle(req, res));
 
   server.listen(port, () => {
     console.log(`🚀 MooseMatrix running on http://localhost:${port}`);
   });
 });
-
