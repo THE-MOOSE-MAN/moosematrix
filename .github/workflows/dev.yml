@@ -57,54 +57,53 @@ jobs:
           ssh -i ~/.ssh/id_ed25519 \
               -o StrictHostKeyChecking=no \
               -p "$VPS_PORT" \
-              "$VPS_USER@$VPS_HOST" 'bash -s' << 'EOF'
+              "$VPS_USER@$VPS_HOST" bash -s << EOF
             set -e
 
-            IMAGE="${IMAGE}"
-            TS="${TS}"
+            IMAGE="$IMAGE"
+            NEW_NAME="moosematrix-app-dev-\$TS"
             BASE_NAME="moosematrix-app-dev"
-            NEW_NAME="moosematrix-app-dev-${TS}"
 
             echo "📥 Pulling latest image..."
-            docker pull $IMAGE
+            docker pull \$IMAGE
 
-            echo "🚀 Starting new container: $NEW_NAME"
+            echo "🚀 Starting new container: \$NEW_NAME"
             docker run -d \
-              --name $NEW_NAME \
+              --name \$NEW_NAME \
               --network moose-dev-net \
-              $IMAGE
+              \$IMAGE
 
-            echo "🩺 Health check (5 attempts)..."
-            for i in {1..5}; do
-              if docker exec $NEW_NAME curl -sf http://localhost:3000 > /dev/null; then
-                echo "✅ $NEW_NAME is healthy"
+            echo "🩺 INTERNAL health check..."
+            for i in {1..30}; do
+              STATUS=\$(docker inspect --format='{{.State.Health.Status}}' "\$NEW_NAME" 2>/dev/null || true)
+              if [ "\$STATUS" = "healthy" ]; then
+                echo "✅ INTERNAL check success: \$NEW_NAME is healthy"
                 break
+              elif [ "\$STATUS" = "unhealthy" ]; then
+                echo "❌ INTERNAL check FAILED"
+                docker logs "\$NEW_NAME"
+                docker rm -f "\$NEW_NAME"
+                exit 1
               fi
-              echo "⏳ Waiting for app... ($i/5)"
+              echo "⏳ Waiting... status=\${STATUS:-starting} (\$i/30)"
               sleep 5
             done
 
-            if ! docker exec $NEW_NAME curl -sf http://localhost:3000 > /dev/null; then
-              echo "❌ $NEW_NAME failed health check. Keeping old container."
-              docker logs $NEW_NAME
-              docker rm -f $NEW_NAME
-              exit 1
-            fi
-
-            echo "♻️ Switching alias..."
-            docker rm -f $BASE_NAME || true
-            docker stop $NEW_NAME
-            docker rename $NEW_NAME $BASE_NAME
-            docker start $BASE_NAME
+            echo "♻️ Promoting \$NEW_NAME to \$BASE_NAME..."
+            docker rm -f \$BASE_NAME || true
+            docker rename \$NEW_NAME \$BASE_NAME
 
             echo "🧹 Cleaning up old containers..."
             docker ps -a --filter "name=moosematrix-app-dev-" --format "{{.Names}}" \
-              | grep -v $BASE_NAME | xargs -r docker rm -f
+              | grep -v \$BASE_NAME | xargs -r docker rm -f
 
             echo "🧹 Keeping only last 5 images..."
             docker images "ghcr.io/the-moose-man/moosematrix" --format "{{.Repository}}:{{.Tag}}" \
               | grep -v latest | sort -r \
               | tail -n +6 | xargs -r docker rmi
 
-            echo "✅ Dev deployment complete → https://dev.moosematrix.com"
+            echo "🔄 Reloading nginx..."
+            docker exec moose-nginx nginx -s reload
+
+            echo "✅ Dev deployment complete → https://moosematrix-dev.moosematrix.com"
           EOF
