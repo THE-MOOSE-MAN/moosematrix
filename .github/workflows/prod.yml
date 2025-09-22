@@ -54,73 +54,70 @@ jobs:
 
       - name: Deploy to VPS
         run: |
-          IMAGE_B64=$(echo -n "$IMAGE" | base64)
-          TS_B64=$(echo -n "$TS" | base64)
-
           ssh -i ~/.ssh/id_ed25519 \
               -o StrictHostKeyChecking=no \
               -p "$VPS_PORT" \
               "$VPS_USER@$VPS_HOST" bash -s << EOF
             set -e
 
-            IMAGE=$(echo "$IMAGE_B64" | base64 -d)
-            TS=$(echo "$TS_B64" | base64 -d)
+            IMAGE="$IMAGE"
+            TS="$TS"
 
             BASE_ALIAS="moosematrix-external-health-check"
             BASE_NAME="moosematrix-app"
-            NEW_NAME="moosematrix-app-${TS}"
+            NEW_NAME="moosematrix-app-\${TS}"
 
             echo "📥 Pulling latest image..."
-            docker pull $IMAGE
+            docker pull \$IMAGE
 
-            echo "🚀 Starting new container: $NEW_NAME (no network yet)"
+            echo "🚀 Starting new container: \$NEW_NAME (no network yet)"
             docker run -d \
-              --name $NEW_NAME \
-              $IMAGE
+              --name \$NEW_NAME \
+              \$IMAGE
 
             echo "🩺 INTERNAL container health check..."
             for i in {1..30}; do
-              STATUS=$(docker inspect --format='{{.State.Health.Status}}' "$NEW_NAME" 2>/dev/null || true)
-              if [ "$STATUS" = "healthy" ]; then
-                echo "✅ INTERNAL check success: $NEW_NAME passed /healthz"
+              STATUS=\$(docker inspect --format='{{.State.Health.Status}}' "\$NEW_NAME" 2>/dev/null || true)
+              if [ "\$STATUS" = "healthy" ]; then
+                echo "✅ INTERNAL check success: \$NEW_NAME passed /api/healthz"
                 break
-              elif [ "$STATUS" = "unhealthy" ]; then
+              elif [ "\$STATUS" = "unhealthy" ]; then
                 echo "❌ INTERNAL check FAILED"
-                docker logs "$NEW_NAME"
-                docker rm -f "$NEW_NAME"
+                docker logs "\$NEW_NAME"
+                docker rm -f "\$NEW_NAME"
                 exit 1
               fi
-              echo "⏳ Waiting... status=${STATUS:-starting} ($i/30)"
+              echo "⏳ Waiting... status=\${STATUS:-starting} (\$i/30)"
               sleep 5
             done
 
-            echo "🔗 Attaching alias '$BASE_ALIAS' to $NEW_NAME (after health check)"
-            docker network connect --alias "$BASE_ALIAS" moose-prod-net "$NEW_NAME" 2>/dev/null || true
+            echo "🔗 Attaching alias '\$BASE_ALIAS' to \$NEW_NAME (after health check)"
+            docker network connect --alias "\$BASE_ALIAS" moose-prod-net "\$NEW_NAME" || true
 
             echo "🌍 EXTERNAL health check via NGINX..."
             for i in {1..12}; do
               if curl -fsS https://moosematrix.com/healthz > /dev/null; then
-                echo "✅ EXTERNAL check success: NGINX routed to $NEW_NAME via $BASE_ALIAS"
+                echo "✅ EXTERNAL check success: NGINX routed to \$NEW_NAME via \$BASE_ALIAS"
                 break
               fi
-              echo "⏳ External check failed (retry $i/12)"
+              echo "⏳ External check failed (retry \$i/12)"
               sleep 5
             done
 
             if ! curl -fsS https://moosematrix.com/healthz > /dev/null; then
               echo "❌ EXTERNAL check FAILED"
-              docker logs "$NEW_NAME"
-              docker rm -f "$NEW_NAME"
+              docker logs "\$NEW_NAME"
+              docker rm -f "\$NEW_NAME"
               exit 1
             fi
 
-            echo "♻️ Promoting $NEW_NAME as current..."
-            docker rm -f $BASE_NAME || true
-            docker rename $NEW_NAME $BASE_NAME
+            echo "♻️ Promoting \$NEW_NAME as current..."
+            docker rm -f \$BASE_NAME || true
+            docker rename \$NEW_NAME \$BASE_NAME
 
             echo "🧹 Cleaning up old containers..."
             docker ps -a --filter "name=moosematrix-app-" --format "{{.Names}}" \
-              | grep -v $BASE_NAME | xargs -r docker rm -f
+              | grep -v \$BASE_NAME | xargs -r docker rm -f
 
             echo "🧹 Keeping only last 5 images..."
             docker images "ghcr.io/the-moose-man/moosematrix" --format "{{.Repository}}:{{.Tag}}" \
