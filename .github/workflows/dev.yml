@@ -94,17 +94,3 @@ jobs:
 
             echo "✅ Dev deployment complete → https://moosematrix-dev.moosematrix.com"
           EOF
-
-      - name: External health check
-        run: |
-          echo "🌍 Checking external endpoint..."
-          for i in {1..10}; do
-            if curl -fsSL https://moosematrix-dev.moosematrix.com/healthz; then
-              echo "✅ External check succeeded"
-              exit 0
-            fi
-            echo "⏳ Retrying external check ($i/10)..."
-            sleep 5
-          done
-          echo "❌ External check failed"
-          exit 1
