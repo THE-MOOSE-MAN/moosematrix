@@ -33,7 +33,7 @@ RUN npx turbo run build --filter=moosematrix...
 FROM node:20-alpine AS runner
 WORKDIR /app/apps/moosematrix
 
-RUN apk add --no-cache dumb-init
+RUN apk add --no-cache dumb-init curl
 
 ENV NODE_ENV=production
 ENV PORT=3000
@@ -45,10 +45,16 @@ COPY --from=build /app/apps/moosematrix/package.json ./package.json
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=build /app/packages /app/packages
 
-# Install production-only deps for this app
-RUN npm install --omit=dev
+# Copy your custom server
+COPY apps/moosematrix/server.js ./server.js
 
+# Expose Next.js server port
 EXPOSE 3000
 
-# Start inside apps/moosematrix
-CMD ["dumb-init", "npm", "start"]
+# --- NEW: Healthcheck for /api/healthz ---
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD curl -f http://localhost:3000/healthz || exit 1
+
+# Use custom server instead of plain next start
+CMD ["dumb-init", "node", "server.js"]
+

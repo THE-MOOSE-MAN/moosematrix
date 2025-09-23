@@ -1,24 +1,34 @@
 .
-├── .dockerignore
-├── .github
-│   └── workflows
-│       ├── ci.yml
-│       ├── dev.yml
-│       └── prod.yml
-├── .gitignore
 ├── Dockerfile
 ├── README.md
 ├── apps
 │   └── moosematrix
-│       ├── .env.example
 │       ├── deploy
+│       │   └── nginx
+│       │       └── moosematrix.conf.example
 │       ├── ecosystem.config.js
 │       ├── next-env.d.ts
 │       ├── next.config.mjs
 │       ├── package.json
 │       ├── postcss.config.js
 │       ├── public
+│       │   ├── The Moose Man.png
+│       │   ├── moose.png
+│       │   ├── moose_merch_logo.png
+│       │   └── moose_money_logo.png
+│       ├── server.js
 │       ├── src
+│       │   └── app
+│       │       ├── about
+│       │       ├── api
+│       │       ├── contact
+│       │       ├── globals.css
+│       │       ├── layout.tsx
+│       │       ├── not-found.tsx
+│       │       ├── page.tsx
+│       │       ├── robots.ts
+│       │       ├── sitemap.ts
+│       │       └── subsidiaries
 │       ├── tailwind.config.js
 │       └── tsconfig.json
 ├── package-lock.json
@@ -28,15 +38,22 @@
 │       ├── package.json
 │       ├── postcss.config.js
 │       ├── src
+│       │   ├── components
+│       │   │   ├── Badge.tsx
+│       │   │   ├── Button.tsx
+│       │   │   ├── Card.tsx
+│       │   │   ├── Footer.tsx
+│       │   │   └── Navbar.tsx
+│       │   ├── index.ts
+│       │   └── styles.css
 │       ├── tailwind.config.js
 │       └── tsconfig.json
-├── project-structure.txt
 ├── repo-tree.txt
 ├── scripts
 │   ├── FETCH_HEAD
 │   └── dev-rebuild.sh
-├── trigger.txt
+├── test.txt
 ├── tsconfig.json
 └── turbo.json
 
-11 directories, 28 files
+16 directories, 40 files

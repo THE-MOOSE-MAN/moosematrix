@@ -10,7 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       image: ${{ steps.build.outputs.image }}
-      ts: ${{ steps.build.outputs.ts }}
     steps:
       - uses: actions/checkout@v3
 
@@ -24,16 +23,11 @@ jobs:
       - name: Build and push image
         id: build
         run: |
-          TS=$(date +%Y%m%d-%H%M%S)
-          IMAGE=ghcr.io/the-moose-man/moosematrix:$TS
-          LATEST=ghcr.io/the-moose-man/moosematrix:latest
+          IMAGE=ghcr.io/the-moose-man/moosematrix:latest
+          echo "image=$IMAGE" >> $GITHUB_OUTPUT
 
-          echo "::set-output name=image::$IMAGE"
-          echo "::set-output name=ts::$TS"
-
-          docker build -t $IMAGE -t $LATEST .
+          docker build -t $IMAGE .
           docker push $IMAGE
-          docker push $LATEST
 
   deploy:
     needs: build-and-push
@@ -44,7 +38,6 @@ jobs:
       VPS_PORT: ${{ secrets.VPS_PORT }}
       VPS_SSH_KEY_B64: ${{ secrets.VPS_SSH_KEY_B64 }}
       IMAGE: ${{ needs.build-and-push.outputs.image }}
-      TS: ${{ needs.build-and-push.outputs.ts }}
     steps:
       - name: Install private key
         run: |
@@ -54,62 +47,50 @@ jobs:
 
       - name: Deploy to VPS
         run: |
-          IMAGE_B64=$(echo -n "$IMAGE" | base64)
-          TS_B64=$(echo -n "$TS" | base64)
-
           ssh -i ~/.ssh/id_ed25519 \
               -o StrictHostKeyChecking=no \
               -p "$VPS_PORT" \
-              "$VPS_USER@$VPS_HOST" 'bash -s' << 'EOF'
+              "$VPS_USER@$VPS_HOST" bash -s << EOF
             set -e
 
-            # Decode vars inside VPS
-            IMAGE=$(echo "$IMAGE_B64" | base64 -d)
-            TS=$(echo "$TS_B64" | base64 -d)
-
-            BASE_NAME="moosematrix-app"
-            NEW_NAME="moosematrix-app-${TS}"
+            IMAGE="$IMAGE"
+            NAME="moosematrix-app"
 
             echo "📥 Pulling latest image..."
-            docker pull $IMAGE
+            docker pull \$IMAGE
 
-            echo "🚀 Starting new container: $NEW_NAME"
+            echo "🛑 Stopping old container..."
+            docker rm -f \$NAME || true
+
+            echo "🚀 Starting new container..."
             docker run -d \
-              --name $NEW_NAME \
+              --name \$NAME \
               --network moose-prod-net \
-              $IMAGE
+              --restart unless-stopped \
+              \$IMAGE
 
-            echo "🩺 Health check (5 attempts)..."
-            for i in {1..5}; do
-              if curl -sf http://$NEW_NAME:3000 > /dev/null; then
-                echo "✅ $NEW_NAME is healthy"
+            echo "🩺 Waiting for internal health check..."
+            for i in {1..30}; do
+              STATUS=\$(docker inspect --format='{{.State.Health.Status}}' "\$NAME" 2>/dev/null || true)
+              if [ "\$STATUS" = "healthy" ]; then
+                echo "✅ Healthy"
                 break
+              elif [ "\$STATUS" = "unhealthy" ]; then
+                echo "❌ FAILED health check"
+                docker logs "\$NAME"
+                exit 1
               fi
-              echo "⏳ Waiting for app... ($i/5)"
+              echo "⏳ Waiting... status=\${STATUS:-starting} (\$i/30)"
               sleep 5
             done
 
-            if ! curl -sf http://$NEW_NAME:3000 > /dev/null; then
-              echo "❌ $NEW_NAME failed health check. Keeping old container."
-              docker logs $NEW_NAME
-              docker rm -f $NEW_NAME
-              exit 1
-            fi
-
-            echo "♻️ Switching alias..."
-            docker rm -f $BASE_NAME || true
-            docker stop $NEW_NAME
-            docker rename $NEW_NAME $BASE_NAME
-            docker start $BASE_NAME
-
-            echo "🧹 Cleaning up old containers..."
-            docker ps -a --filter "name=moosematrix-app-" --format "{{.Names}}" \
-              | grep -v $BASE_NAME | xargs -r docker rm -f
-
-            echo "🧹 Keeping only last 5 images..."
+            echo "🧹 Pruning old images (keep last 5)..."
             docker images "ghcr.io/the-moose-man/moosematrix" --format "{{.Repository}}:{{.Tag}}" \
               | grep -v latest | sort -r \
               | tail -n +6 | xargs -r docker rmi
+
+            echo "🔄 Reloading nginx..."
+            docker exec moose-nginx nginx -s reload
 
             echo "✅ Prod deployment complete → https://moosematrix.com"
           EOF
