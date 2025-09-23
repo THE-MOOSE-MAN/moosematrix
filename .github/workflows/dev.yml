@@ -61,41 +61,36 @@ jobs:
             set -e
 
             IMAGE="$IMAGE"
-            NEW_NAME="moosematrix-app-dev-\$TS"
             BASE_NAME="moosematrix-app-dev"
 
             echo "📥 Pulling latest image..."
             docker pull \$IMAGE
 
-            echo "🚀 Starting new container: \$NEW_NAME"
+            echo "♻️ Removing old container (if exists)..."
+            docker rm -f \$BASE_NAME || true
+
+            echo "🚀 Starting new container: \$BASE_NAME"
             docker run -d \
-              --name \$NEW_NAME \
+              --name \$BASE_NAME \
               --network moose-dev-net \
+              --restart unless-stopped \
               \$IMAGE
 
             echo "🩺 INTERNAL health check..."
             for i in {1..30}; do
-              STATUS=\$(docker inspect --format='{{.State.Health.Status}}' "\$NEW_NAME" 2>/dev/null || true)
+              STATUS=\$(docker inspect --format='{{.State.Health.Status}}' "\$BASE_NAME" 2>/dev/null || true)
               if [ "\$STATUS" = "healthy" ]; then
-                echo "✅ INTERNAL check success: \$NEW_NAME is healthy"
+                echo "✅ INTERNAL check success: \$BASE_NAME is healthy"
                 break
               elif [ "\$STATUS" = "unhealthy" ]; then
                 echo "❌ INTERNAL check FAILED"
-                docker logs "\$NEW_NAME"
-                docker rm -f "\$NEW_NAME"
+                docker logs "\$BASE_NAME"
+                docker rm -f "\$BASE_NAME"
                 exit 1
               fi
               echo "⏳ Waiting... status=\${STATUS:-starting} (\$i/30)"
               sleep 5
             done
-
-            echo "♻️ Promoting \$NEW_NAME to \$BASE_NAME..."
-            docker rm -f \$BASE_NAME || true
-            docker rename \$NEW_NAME \$BASE_NAME
-
-            echo "🧹 Cleaning up old containers..."
-            docker ps -a --filter "name=moosematrix-app-dev-" --format "{{.Names}}" \
-              | grep -v \$BASE_NAME | xargs -r docker rm -f
 
             echo "🧹 Keeping only last 5 images..."
             docker images "ghcr.io/the-moose-man/moosematrix" --format "{{.Repository}}:{{.Tag}}" \
