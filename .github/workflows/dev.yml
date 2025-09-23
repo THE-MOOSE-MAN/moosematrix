@@ -57,38 +57,38 @@ jobs:
           ssh -i ~/.ssh/id_ed25519 \
               -o StrictHostKeyChecking=no \
               -p "$VPS_PORT" \
-              "$VPS_USER@$VPS_HOST" bash -s << EOF
+              "$VPS_USER@$VPS_HOST" 'bash -s' << 'EOF'
             set -e
 
-            IMAGE="$IMAGE"
+            IMAGE="${IMAGE}"
             BASE_NAME="moosematrix-app-dev"
 
             echo "📥 Pulling latest image..."
-            docker pull \$IMAGE
+            docker pull $IMAGE
 
             echo "♻️ Removing old container (if exists)..."
-            docker rm -f \$BASE_NAME || true
+            docker rm -f $BASE_NAME || true
 
-            echo "🚀 Starting new container: \$BASE_NAME"
+            echo "🚀 Starting new container: $BASE_NAME"
             docker run -d \
-              --name \$BASE_NAME \
+              --name $BASE_NAME \
               --network moose-dev-net \
               --restart unless-stopped \
-              \$IMAGE
+              $IMAGE
 
             echo "🩺 INTERNAL health check..."
             for i in {1..30}; do
-              STATUS=\$(docker inspect --format='{{.State.Health.Status}}' "\$BASE_NAME" 2>/dev/null || true)
-              if [ "\$STATUS" = "healthy" ]; then
-                echo "✅ INTERNAL check success: \$BASE_NAME is healthy"
+              STATUS=$(docker inspect --format='{{.State.Health.Status}}' "$BASE_NAME" 2>/dev/null || true)
+              if [ "$STATUS" = "healthy" ]; then
+                echo "✅ INTERNAL check success: $BASE_NAME is healthy"
                 break
-              elif [ "\$STATUS" = "unhealthy" ]; then
+              elif [ "$STATUS" = "unhealthy" ]; then
                 echo "❌ INTERNAL check FAILED"
-                docker logs "\$BASE_NAME"
-                docker rm -f "\$BASE_NAME"
+                docker logs "$BASE_NAME"
+                docker rm -f "$BASE_NAME"
                 exit 1
               fi
-              echo "⏳ Waiting... status=\${STATUS:-starting} (\$i/30)"
+              echo "⏳ Waiting... status=${STATUS:-starting} ($i/30)"
               sleep 5
             done
 
@@ -102,3 +102,17 @@ jobs:
 
             echo "✅ Dev deployment complete → https://moosematrix-dev.moosematrix.com"
           EOF
+
+      - name: External health check
+        run: |
+          echo "🌍 Checking external endpoint..."
+          for i in {1..10}; do
+            if curl -fsSL https://moosematrix-dev.moosematrix.com/healthz; then
+              echo "✅ External check succeeded"
+              exit 0
+            fi
+            echo "⏳ Retrying external check ($i/10)..."
+            sleep 5
+          done
+          echo "❌ External check failed"
+          exit 1
