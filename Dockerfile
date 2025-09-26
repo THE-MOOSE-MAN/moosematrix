@@ -1,60 +1,57 @@
 # -------------------------------
-# 1. Base deps (install all deps for workspaces)
+# 1. Install deps for all workspaces
 # -------------------------------
 FROM node:20-alpine AS deps
 WORKDIR /app
-
 RUN apk add --no-cache libc6-compat
 
 # Copy root configs
 COPY package*.json turbo.json tsconfig.json ./
 
-# Copy workspaces
-COPY apps ./apps
+# Copy workspaces (only lock + config for install step)
+COPY apps/moosematrix/package*.json ./apps/moosematrix/
 COPY packages ./packages
 
-# Install all dependencies (including workspaces)
+# Install all deps (root + workspaces)
 RUN npm install --workspaces
 
 # -------------------------------
-# 2. Build the app
+# 2. Build Moosematrix app only
 # -------------------------------
 FROM node:20-alpine AS build
 WORKDIR /app
-
 COPY --from=deps /app ./
-
-# Run build only for the moosematrix app
+COPY apps ./apps
 RUN npx turbo run build --filter=moosematrix...
 
 # -------------------------------
-# 3. Production runtime
+# 3. Runtime
 # -------------------------------
 FROM node:20-alpine AS runner
-WORKDIR /app/apps/moosematrix
+WORKDIR /app
 
 RUN apk add --no-cache dumb-init curl
 
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Copy built app and only what's needed at runtime
-COPY --from=build /app/apps/moosematrix/.next ./.next
-COPY --from=build /app/apps/moosematrix/public ./public
-COPY --from=build /app/apps/moosematrix/package.json ./package.json
+# Copy only what Moosematrix app needs
+COPY --from=build /app/apps/moosematrix/.next ./apps/moosematrix/.next
+COPY --from=build /app/apps/moosematrix/public ./apps/moosematrix/public
+COPY --from=build /app/apps/moosematrix/package.json ./apps/moosematrix/package.json
+COPY --from=build /app/apps/moosematrix/next.config.js ./apps/moosematrix/next.config.js
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=build /app/packages /app/packages
+COPY --from=build /app/packages ./packages
 
-# Copy your custom server
-COPY apps/moosematrix/server.js ./server.js
+# If using a custom server
+COPY apps/moosematrix/server.js ./apps/moosematrix/server.js
 
-# Expose Next.js server port
+WORKDIR /app/apps/moosematrix
+
 EXPOSE 3000
 
-# --- NEW: Healthcheck for /api/healthz ---
+# Healthcheck
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD curl -f http://localhost:3000/healthz || exit 1
 
-# Use custom server instead of plain next start
 CMD ["dumb-init", "node", "server.js"]
-
