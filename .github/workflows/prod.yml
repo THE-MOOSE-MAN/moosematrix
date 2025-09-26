@@ -56,7 +56,10 @@ jobs:
             for i in {1..30}; do
               status=\$(docker inspect --format='{{.State.Health.Status}}' moosematrix-app-prod 2>/dev/null || echo "unknown")
               echo "⏳ Waiting... status=\$status (\$i/30)"
-              [ "\$status" = "healthy" ] && break
+              if [ "\$status" = "healthy" ]; then
+                echo "✅ Container moosematrix-app-prod is healthy!"
+                break
+              fi
               sleep 2
             done
 
