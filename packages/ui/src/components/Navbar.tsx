@@ -17,6 +17,9 @@ type Props = {
   logoClassName?: string;
 };
 
+// ------------------
+// Default Links
+// ------------------
 const defaultLinks: NavLink[] = [
   { label: "Home", href: "/" },
   { label: "About", href: "/about" },
@@ -29,6 +32,19 @@ const defaultSubsidiaries: NavLink[] = [
   { label: "Moo$e Money", href: "https://m2.moosematrix.com", external: true },
   { label: "Store", href: "https://moosemerch.moosematrix.com", external: true },
 ];
+
+// ------------------
+// Helper: treat as external?
+// ------------------
+function isInternalLink(href: string): boolean {
+  try {
+    const url = new URL(href, "https://moosematrix.com"); // base fallback
+    return url.hostname.endsWith("moosematrix.com");
+  } catch {
+    // relative paths = internal
+    return href.startsWith("/") || href.startsWith("#");
+  }
+}
 
 export function Navbar({
   title = "The Moose Matrix",
@@ -111,6 +127,31 @@ export function Navbar({
     hoverTimer.current = window.setTimeout(() => setSubsOpen(false), 120);
   };
 
+  // ------------------
+  // Link Renderer
+  // ------------------
+  const renderLink = ({ label, href, external }: NavLink, className: string, onClick?: () => void) => {
+    const treatAsExternal = external && !isInternalLink(href);
+
+    return (
+      <a
+        key={label}
+        href={href}
+        target={treatAsExternal ? "_blank" : undefined}
+        rel={treatAsExternal ? "noopener noreferrer" : undefined}
+        className={className + " inline-flex items-center gap-1"}
+        onClick={onClick}
+      >
+        {label}
+        {treatAsExternal && (
+          <span className="ml-0.5 opacity-60 group-hover:opacity-100 transition">
+            ↗
+          </span>
+        )}
+      </a>
+    );
+  };
+
   return (
     <header className={"sticky top-0 z-40 border-b border-white/10 bg-black/60 backdrop-blur " + className}>
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
@@ -170,35 +211,24 @@ export function Navbar({
                   View all portals →
                 </a>
                 <div className="my-1 h-px bg-white/10" />
-                {subsidiaries.map(({ label, href, external }) => (
-                  <a
-                    key={label}
-                    href={href}
-                    target={external ? "_blank" : undefined}
-                    rel={external ? "noopener noreferrer" : undefined}
-                    className="block rounded-xl px-3 py-2 text-sm text-white/90 hover:bg-white/10 focus:outline-none"
-                    role="menuitem"
-                    onClick={() => setSubsOpen(false)}
-                  >
-                    {label}
-                  </a>
-                ))}
+                {subsidiaries.map((link) =>
+                  renderLink(
+                    link,
+                    "block rounded-xl px-3 py-2 text-sm text-white/90 hover:bg-white/10 focus:outline-none",
+                    () => setSubsOpen(false)
+                  )
+                )}
               </div>
             )}
           </div>
 
           {/* Primary inline links */}
-          {links.map(({ label, href, external }) => (
-            <a
-              key={label}
-              href={href}
-              target={external ? "_blank" : undefined}
-              rel={external ? "noopener noreferrer" : undefined}
-              className="inline-flex items-center rounded px-3 py-2 transition hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 font-sans"
-            >
-              {label}
-            </a>
-          ))}
+          {links.map((link) =>
+            renderLink(
+              link,
+              "inline-flex items-center rounded px-3 py-2 transition hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 font-sans"
+            )
+          )}
         </nav>
 
         {/* Mobile hamburger */}
@@ -270,19 +300,15 @@ export function Navbar({
                       View all portals →
                     </a>
                   </li>
-                  {subsidiaries.map(({ label, href, external }) => (
-                    <li key={label}>
-                      <a
-                        href={href}
-                        target={external ? "_blank" : undefined}
-                        rel={external ? "noopener noreferrer" : undefined}
-                        className="block rounded-lg px-3 py-2 text-white/90 hover:bg-white/10"
-                        onClick={() => setMobileOpen(false)}
-                      >
-                        {label}
-                      </a>
+                  {subsidiaries.map((link) =>
+                    <li key={link.label}>
+                      {renderLink(
+                        link,
+                        "block rounded-lg px-3 py-2 text-white/90 hover:bg-white/10",
+                        () => setMobileOpen(false)
+                      )}
                     </li>
-                  ))}
+                  )}
                 </ul>
               )}
             </div>
@@ -290,19 +316,15 @@ export function Navbar({
             {/* Primary links */}
             <nav className="px-5 py-3">
               <ul className="flex flex-col gap-1">
-                {links.map(({ label, href, external }) => (
-                  <li key={label}>
-                    <a
-                      href={href}
-                      target={external ? "_blank" : undefined}
-                      rel={external ? "noopener noreferrer" : undefined}
-                      className="block rounded-lg px-3 py-3 text-base text-white/90 hover:bg-white/10 font-sans"
-                      onClick={() => setMobileOpen(false)}
-                    >
-                      {label}
-                    </a>
+                {links.map((link) =>
+                  <li key={link.label}>
+                    {renderLink(
+                      link,
+                      "block rounded-lg px-3 py-3 text-base text-white/90 hover:bg-white/10 font-sans",
+                      () => setMobileOpen(false)
+                    )}
                   </li>
-                ))}
+                )}
               </ul>
             </nav>
           </div>
@@ -311,3 +333,4 @@ export function Navbar({
     </header>
   );
 }
+

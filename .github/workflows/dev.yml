@@ -1,4 +1,4 @@
-name: Deploy MooseMatrix (Dev)
+name: Deploy Moosematrix (Dev)
 
 on:
   push:
@@ -8,8 +8,6 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    outputs:
-      image: ${{ steps.build.outputs.image }}
     steps:
       - uses: actions/checkout@v3
 
@@ -21,76 +19,37 @@ jobs:
           password: ${{ secrets.GHCR_TOKEN }}
 
       - name: Build and push image
-        id: build
         run: |
-          IMAGE=ghcr.io/the-moose-man/moosematrix:dev-latest
-          echo "image=$IMAGE" >> $GITHUB_OUTPUT
-
-          docker build -t $IMAGE .
-          docker push $IMAGE
+          docker build -t ghcr.io/the-moose-man/moosematrix:dev-latest .
+          docker push ghcr.io/the-moose-man/moosematrix:dev-latest
 
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
-    env:
-      VPS_HOST: ${{ secrets.VPS_HOST }}
-      VPS_USER: ${{ secrets.VPS_USER }}
-      VPS_PORT: ${{ secrets.VPS_PORT }}
-      VPS_SSH_KEY_B64: ${{ secrets.VPS_SSH_KEY_B64 }}
-      IMAGE: ${{ needs.build-and-push.outputs.image }}
     steps:
       - name: Install private key
         run: |
           mkdir -p ~/.ssh
-          echo "$VPS_SSH_KEY_B64" | base64 -d > ~/.ssh/id_ed25519
+          echo "${{ secrets.VPS_SSH_KEY_B64 }}" | base64 -d > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
 
-      - name: Deploy to VPS
+      - name: Deploy Moosematrix Dev
         run: |
           ssh -i ~/.ssh/id_ed25519 \
               -o StrictHostKeyChecking=no \
-              -p "$VPS_PORT" \
-              "$VPS_USER@$VPS_HOST" bash -s << EOF
+              -p "${{ secrets.VPS_PORT }}" \
+              "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" <<EOF
             set -e
+            cd /projects/infra
 
-            IMAGE="$IMAGE"
-            NAME="moosematrix-app-dev"
-
-            echo "📥 Pulling latest image..."
-            docker pull \$IMAGE
-
-            echo "🛑 Stopping old container..."
-            docker rm -f \$NAME || true
-
-            echo "🚀 Starting new container..."
-            docker run -d \
-              --name \$NAME \
-              --network moose-dev-net \
-              --restart unless-stopped \
-              \$IMAGE
-
-            echo "🩺 Waiting for internal health check..."
-            for i in {1..30}; do
-              STATUS=\$(docker inspect --format='{{.State.Health.Status}}' "\$NAME" 2>/dev/null || true)
-              if [ "\$STATUS" = "healthy" ]; then
-                echo "✅ Healthy"
-                break
-              elif [ "\$STATUS" = "unhealthy" ]; then
-                echo "❌ FAILED health check"
-                docker logs "\$NAME"
-                exit 1
-              fi
-              echo "⏳ Waiting... status=\${STATUS:-starting} (\$i/30)"
-              sleep 5
-            done
+            echo "📥 Pulling latest dev image..."
+            docker compose -f docker-compose.yml pull moosematrix-app-dev
+            docker compose -f docker-compose.yml up -d moosematrix-app-dev
 
             echo "🧹 Pruning old images (keep last 5)..."
             docker images "ghcr.io/the-moose-man/moosematrix" --format "{{.Repository}}:{{.Tag}}" \
               | grep -v latest | sort -r \
-              | tail -n +6 | xargs -r docker rmi
+              | tail -n +6 | xargs -r docker rmi || true
 
-            echo "🔄 Reloading nginx..."
-            docker exec moose-nginx nginx -s reload
-
-            echo "✅ Dev deployment complete → https://moosematrix-dev.moosematrix.com"
+            echo "✅ Dev deployment complete → https://dev-moosematrix.moosematrix.com"
           EOF
