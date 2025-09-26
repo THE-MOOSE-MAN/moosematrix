@@ -39,7 +39,7 @@ ENV PORT=3000
 COPY --from=build /app/apps/moosematrix/.next ./apps/moosematrix/.next
 COPY --from=build /app/apps/moosematrix/public ./apps/moosematrix/public
 COPY --from=build /app/apps/moosematrix/package.json ./apps/moosematrix/package.json
-COPY --from=build /app/apps/moosematrix/next.config.js ./apps/moosematrix/next.config.js
+COPY --from=build /app/apps/moosematrix/next.config.mjs ./apps/moosematrix/next.config.mjs
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=build /app/packages ./packages
 
