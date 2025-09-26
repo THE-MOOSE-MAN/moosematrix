@@ -42,6 +42,7 @@ ENV PORT=3000
 
 # Copy MooseMatrix build output
 COPY --from=build /app/apps/moosematrix ./
+COPY --from=build /app/tsconfig.json /app/tsconfig.json
 
 # Copy shared packages (if needed by runtime)
 COPY --from=build /app/packages /app/packages
