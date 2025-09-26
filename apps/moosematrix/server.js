@@ -2,6 +2,7 @@
 
 const express = require("express");
 const next = require("next");
+const path = require("path");
 
 const port = process.env.PORT || 3000;
 const dev = process.env.NODE_ENV !== "production";
