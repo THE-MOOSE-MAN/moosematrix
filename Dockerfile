@@ -1,57 +1,51 @@
 # -------------------------------
-# 1. Install deps for all workspaces
+# 1. Base deps (install all deps for workspaces)
 # -------------------------------
 FROM node:20-alpine AS deps
 WORKDIR /app
+
 RUN apk add --no-cache libc6-compat
 
 # Copy root configs
 COPY package*.json turbo.json tsconfig.json ./
 
-# Copy workspaces (only lock + config for install step)
-COPY apps/moosematrix/package*.json ./apps/moosematrix/
+# Copy workspaces (full source — safer for now)
+COPY apps ./apps
 COPY packages ./packages
 
-# Install all deps (root + workspaces)
+# Install all dependencies (including workspaces)
 RUN npm install --workspaces
 
 # -------------------------------
-# 2. Build Moosematrix app only
+# 2. Build the MooseMatrix app
 # -------------------------------
 FROM node:20-alpine AS build
 WORKDIR /app
+
 COPY --from=deps /app ./
-COPY apps ./apps
+
+# Run build only for MooseMatrix app
 RUN npx turbo run build --filter=moosematrix...
 
 # -------------------------------
 # 3. Runtime
 # -------------------------------
 FROM node:20-alpine AS runner
-WORKDIR /app
+WORKDIR /app/apps/moosematrix
 
 RUN apk add --no-cache dumb-init curl
 
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Copy only what Moosematrix app needs
-COPY --from=build /app/apps/moosematrix/.next ./apps/moosematrix/.next
-COPY --from=build /app/apps/moosematrix/public ./apps/moosematrix/public
-COPY --from=build /app/apps/moosematrix/package.json ./apps/moosematrix/package.json
-COPY --from=build /app/apps/moosematrix/next.config.mjs ./apps/moosematrix/next.config.mjs
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=build /app/packages ./packages
+# Copy ENTIRE MooseMatrix app (not cherry-picked anymore)
+COPY --from=build /app/apps/moosematrix ./ 
+COPY --from=deps /app/node_modules /app/node_modules
+COPY --from=build /app/packages /app/packages
 
-# If using a custom server
-COPY apps/moosematrix/server.js ./apps/moosematrix/server.js
-
-WORKDIR /app/apps/moosematrix
-
-EXPOSE 3000
-
-# Healthcheck
+# Healthcheck for container status
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD curl -f http://localhost:3000/healthz || exit 1
 
+# Run using custom server.js
 CMD ["dumb-init", "node", "server.js"]
