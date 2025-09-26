@@ -40,12 +40,12 @@ ENV NODE_ENV=production
 ENV PORT=3000
 
 # Copy built app and only what's needed at runtime
-COPY --from=build /app/apps/moosematrix/.next ./.next
-COPY --from=build /app/apps/moosematrix/public ./public
-COPY --from=build /app/apps/moosematrix/package.json ./package.json
-COPY --from=build /app/apps/moosematrix/next.config.mjs ./next.config.mjs
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=build /app/packages /app/packages
+COPY --from=build /app/apps/moosematrix/.next ./apps/moosematrix/.next
+COPY --from=build /app/apps/moosematrix/public ./apps/moosematrix/public
+COPY --from=build /app/apps/moosematrix/package.json ./apps/moosematrix/
+COPY --from=build /app/apps/moosematrix/next.config.mjs ./apps/moosematrix/
+COPY --from=build /app/apps/moosematrix/src ./apps/moosematrix/src
+
 
 # ✅ NEW: copy tsconfig files so Next.js doesn’t crash at runtime
 COPY --from=build /app/tsconfig*.json /app/
