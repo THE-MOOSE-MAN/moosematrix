@@ -5,7 +5,7 @@ const next = require("next");
 
 const port = process.env.PORT || 3000;
 const dev = process.env.NODE_ENV !== "production";
-const app = next({ dev, dir: "." });
+const app = next({ dev, dir: path.join(__dirname) });
 const handle = app.getRequestHandler();
 
 app.prepare().then(() => {
