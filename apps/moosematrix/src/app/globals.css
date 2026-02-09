@@ -1,9 +1,25 @@
-@import "@moosematrix/ui/src/styles.css";
+@import "@moosematrix/ui/styles.css";
 
-:root { --bg: #0b0c10; --fg: #e5e7eb; }
-html, body { background: var(--bg); color: var(--fg); }
+/* Light-first, trust-forward default */
+:root {
+  --bg: #f8fafc; /* slate-50 */
+  --fg: #0f172a; /* slate-900 */
+}
 
+html { color-scheme: light; }
 
+html, body {
+  background: var(--bg);
+  color: var(--fg);
+}
+
+/* Accessibility: visible focus without looking “old” */
+:focus-visible {
+  outline: 2px solid rgba(15, 23, 42, 0.35);
+  outline-offset: 2px;
+}
+
+/* Animated gradient (light version — subtle) */
 @keyframes gradient-shift {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
@@ -11,7 +27,21 @@ html, body { background: var(--bg); color: var(--fg); }
 }
 
 .bg-animated-gradient {
-  background: linear-gradient(-45deg, #0a0f1f, #111827, #1e3a8a, #0f172a);
-  background-size: 400% 400%;
-  animation: gradient-shift 20s ease infinite;
+  background: linear-gradient(
+    -45deg,
+    #f8fafc,  /* slate-50 */
+    #f1f5f9,  /* slate-100 */
+    #e2e8f0,  /* slate-200 */
+    #eef2ff   /* indigo-50 */
+  );
+  background-size: 300% 300%;
+  animation: gradient-shift 22s ease infinite;
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .bg-animated-gradient {
+    animation: none;
+    background-size: auto;
+  }
 }

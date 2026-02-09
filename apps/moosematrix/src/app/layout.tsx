@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import "./globals.css";
-import { Navbar, Footer } from "@moosematrix/ui";
-
+import { NavbarStatic, FooterStatic } from "@moosematrix/ui";
+import type { Viewport } from "next";
 
 
 export const metadata: Metadata = {
@@ -19,16 +18,28 @@ export const metadata: Metadata = {
     locale: "en_US",
     type: "website",
   },
-  twitter: { card: "summary_large_image", title: "The Moose Matrix", description: "A hub for projects, writing, and products.", images: ["/og.png"] },
+  twitter: {
+    card: "summary_large_image",
+    title: "The Moose Matrix",
+    description: "A hub for projects, writing, and products.",
+    images: ["/og.png"],
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#ffffff",
+  colorScheme: "light",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="min-h-screen antialiased">
-        <Navbar />
-          {children}
-        <Footer />
+      <body className="min-h-screen antialiased bg-[var(--bg)] text-[var(--fg)]">
+        <NavbarStatic />
+        {children}
+        <FooterStatic since={2020} />
       </body>
     </html>
   );
