@@ -17,48 +17,64 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ github.repository_owner }}
+          # keep lowercase to avoid surprises
+          username: the-moose-man
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push image
+        shell: bash
         run: |
-          IMAGE=ghcr.io/${{ github.repository_owner }}/moosematrix
+          set -euo pipefail
+
+          OWNER_LC="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
+          IMAGE="ghcr.io/${OWNER_LC}/moosematrix"
+
+          echo "IMAGE=$IMAGE"
+
           docker build \
-            --label org.opencontainers.image.revision=${{ github.sha }} \
-            --label org.opencontainers.image.source=${{ github.repository }} \
-            -t $IMAGE:dev-latest \
-            -t $IMAGE:dev-${{ github.sha }} \
+            --label org.opencontainers.image.revision='${{ github.sha }}' \
+            --label org.opencontainers.image.source='${{ github.repository }}' \
+            -t "${IMAGE}:dev-latest" \
+            -t "${IMAGE}:dev-${{ github.sha }}" \
             .
-          docker push $IMAGE:dev-latest
-          docker push $IMAGE:dev-${{ github.sha }}
+
+          docker push "${IMAGE}:dev-latest"
+          docker push "${IMAGE}:dev-${{ github.sha }}"
 
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
       - name: Install private key
+        shell: bash
         run: |
+          set -euo pipefail
           mkdir -p ~/.ssh
           echo "${{ secrets.VPS_SSH_KEY_B64 }}" | base64 -d > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
 
       - name: Add VPS host key
+        shell: bash
         run: |
+          set -euo pipefail
           mkdir -p ~/.ssh
           ssh-keyscan -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
 
       - name: Deploy Moosematrix Dev
+        shell: bash
         run: |
+          set -euo pipefail
           ssh -i ~/.ssh/id_ed25519 \
               -p "${{ secrets.VPS_PORT }}" \
-              "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" <<'EOF'
+              "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" << EOF
             set -euo pipefail
             cd /home/moose/projects/infra
 
@@ -68,8 +84,9 @@ jobs:
             echo "🚀 Recreating container..."
             docker compose -f docker-compose.yml up -d --force-recreate moosematrix-app-dev
 
-            echo "🔎 Running image ID:"
-            docker inspect --format='{{.Image}}' moosematrix-app-dev
+            echo "🔎 Running container + image:"
+            docker ps --filter "name=moosematrix-app-dev" --format "table {{.Names}}\t{{.Image}}\t{{.Status}}"
+            docker inspect --format='ContainerImageID={{.Image}}' moosematrix-app-dev
 
             echo "🧹 Pruning images older than 7 days..."
             docker image prune -af --filter "until=168h" || true
