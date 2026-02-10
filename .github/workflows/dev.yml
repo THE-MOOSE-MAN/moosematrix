@@ -16,13 +16,13 @@ permissions:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: moosematrix
+  SERVICE_NAME: moosematrix-app-dev
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
     outputs:
       image: ${{ steps.meta.outputs.image }}
-      sha_tag: ${{ steps.meta.outputs.sha_tag }}
 
     steps:
       - name: Checkout
@@ -31,7 +31,7 @@ jobs:
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Compute image name
+      - name: Compute image name (lowercase)
         id: meta
         shell: bash
         run: |
@@ -39,7 +39,6 @@ jobs:
           OWNER_LC="$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')"
           IMAGE="${{ env.REGISTRY }}/${OWNER_LC}/${{ env.IMAGE_NAME }}"
           echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
-          echo "sha_tag=dev-${{ github.sha }}" >> "$GITHUB_OUTPUT"
           echo "Using IMAGE=$IMAGE"
 
       - name: Log in to GHCR (GITHUB_TOKEN)
@@ -47,7 +46,7 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ github.token }}
 
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -56,7 +55,7 @@ jobs:
           push: true
           tags: |
             ${{ steps.meta.outputs.image }}:dev-latest
-            ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.sha_tag }}
+            ${{ steps.meta.outputs.image }}:dev-${{ github.sha }}
           labels: |
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.source=${{ github.repository }}
@@ -76,15 +75,15 @@ jobs:
           echo "${{ secrets.VPS_SSH_KEY_B64 }}" | base64 -d > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
 
-      - name: Trust VPS host key
+      - name: Trust VPS host key (custom port)
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p ~/.ssh
-          ssh-keyscan -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts
+          ssh-keyscan -p "${{ secrets.VPS_PORT }}" -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
 
-      - name: Deploy Moosematrix Dev
+      - name: Deploy Moosematrix Dev (ephemeral GHCR login on VPS)
         shell: bash
         run: |
           set -euo pipefail
@@ -92,30 +91,36 @@ jobs:
           ssh -T -i ~/.ssh/id_ed25519 \
             -p "${{ secrets.VPS_PORT }}" \
             "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" <<'EOF'
-          set -euo pipefail
+              set -euo pipefail
 
-          echo "Remote user: $(whoami)"
-          echo "Remote home: $HOME"
+              SERVICE_NAME="moosematrix-app-dev"
+              IMAGE_REPO="ghcr.io/the-moose-man/moosematrix"
+              GHCR_USER="$(echo "${{ github.actor }}" | tr '[:upper:]' '[:lower:]')"
+              GHCR_TOKEN="${{ github.token }}"
 
-          echo "🔐 Logging into GHCR using ephemeral GITHUB_TOKEN..."
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+              # Use a temporary docker config so nothing is written to ~/.docker
+              export DOCKER_CONFIG="$(mktemp -d)"
+              trap 'rm -rf "$DOCKER_CONFIG"' EXIT
 
-          cd /home/moose/projects/infra
+              printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin >/dev/null
 
-          echo "📥 Pulling latest dev image..."
-          docker compose -f docker-compose.yml pull moosematrix-app-dev
+              cd /home/moose/projects/infra
 
-          echo "🚀 Recreating container..."
-          docker compose -f docker-compose.yml up -d --force-recreate --pull always moosematrix-app-dev
+              echo "📥 Pulling latest dev image..."
+              docker compose -f docker-compose.yml pull "$SERVICE_NAME"
 
-          echo "🔎 Running container + image:"
-          docker ps --filter "name=moosematrix-app-dev" --format "table {{.Names}}\t{{.Image}}\t{{.Status}}"
+              echo "🚀 Recreating container..."
+              docker compose -f docker-compose.yml up -d --force-recreate "$SERVICE_NAME"
 
-          IMG_ID="$(docker inspect --format '{{.Image}}' moosematrix-app-dev)"
-          docker image inspect "$IMG_ID" --format 'revision={{index .Config.Labels "org.opencontainers.image.revision"}} source={{index .Config.Labels "org.opencontainers.image.source"}}' 2>/dev/null || true
+              echo "🔎 Running container:"
+              docker ps --filter "name=$SERVICE_NAME" --format "table {{.Names}}\t{{.Image}}\t{{.Status}}"
 
-          echo "🧹 Pruning images older than 7 days..."
-          docker image prune -af --filter "until=168h" || true
+              echo "🔎 Image revision label:"
+              docker image inspect "${IMAGE_REPO}:dev-latest" \
+                --format 'revision={{ index .Config.Labels "org.opencontainers.image.revision" }}' 2>/dev/null || true
 
-          echo "✅ Dev deployment complete → https://dev-moosematrix.moosematrix.com"
-          EOF
+              echo "🧹 Pruning images older than 7 days..."
+              docker image prune -af --filter "until=168h" || true
+
+              echo "✅ Dev deployment complete: https://dev-moosematrix.moosematrix.com"
+              EOF
