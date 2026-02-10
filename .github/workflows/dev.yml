@@ -90,12 +90,29 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ssh -i ~/.ssh/id_ed25519 \
-              -o BatchMode=yes \
-              -o StrictHostKeyChecking=yes \
-              -p "${{ secrets.VPS_PORT }}" \
-              "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" <<'EOF'
+
+          ssh -T -i ~/.ssh/id_ed25519 \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            -p "${{ secrets.VPS_PORT }}" \
+            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" <<'EOF'
             set -euo pipefail
+
+            echo "Remote user: $(whoami)"
+            echo "Remote home: $HOME"
+
+            # --- Ensure GHCR auth exists for THIS user session ---
+            GHCR_USER="the-moose-man"
+            TOKEN_FILE="/home/moose/.secrets/ghcr_pat_read"
+
+            if [ ! -s "$TOKEN_FILE" ]; then
+              echo "ERROR: Missing or empty $TOKEN_FILE (needed to pull from GHCR)"
+              exit 18
+            fi
+
+            # Idempotent; refreshes docker auth
+            cat "$TOKEN_FILE" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+
             cd /home/moose/projects/infra
 
             echo "📥 Pulling latest dev image..."
@@ -106,10 +123,6 @@ jobs:
 
             echo "🔎 Running container:"
             docker ps --filter "name=moosematrix-app-dev" --format "table {{.Names}}\t{{.Image}}\t{{.Status}}"
-
-            echo "🔎 Image revision label (inspect IMAGE, not container labels):"
-            IMG_ID="$(docker inspect -f '{{.Image}}' moosematrix-app-dev)"
-            docker image inspect "$IMG_ID" --format 'revision={{index .Config.Labels "org.opencontainers.image.revision"}}' || true
 
             echo "🧹 Pruning images older than 7 days..."
             docker image prune -af --filter "until=168h" || true
