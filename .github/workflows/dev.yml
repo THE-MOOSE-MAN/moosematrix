@@ -26,7 +26,7 @@ jobs:
           registry: ghcr.io
           # keep lowercase to avoid surprises
           username: the-moose-man
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.GHCR_TOKEN }}
 
       - name: Build and push image
         shell: bash
