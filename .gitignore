@@ -20,3 +20,9 @@ tsc/
 
 # If declaration files ever get emitted into src by mistake
 packages/**/src/**/*.d.ts
+
+
+# accidental local artifacts
+next
+start
+tree.txt
