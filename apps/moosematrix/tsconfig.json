@@ -7,6 +7,7 @@
     "moduleResolution": "Bundler",
     "baseUrl": ".",
     "paths": {
+      "@/*": ["./src/*"],
       "@moosematrix/ui": [
         "../../packages/ui/src"
       ]

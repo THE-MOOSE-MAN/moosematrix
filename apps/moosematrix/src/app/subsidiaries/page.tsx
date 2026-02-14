@@ -1,152 +1,153 @@
-// apps/moosematrix/src/app/subsidiaries/page.tsx
-import type { Metadata } from "next";
+export const dynamic = "force-static";
+export const revalidate = false;
+export const fetchCache = "force-cache";
+
 import Link from "next/link";
 
-export const metadata: Metadata = {
-  title: "Subsidiaries | The Moose Matrix",
-  description:
-    "Overview of Moose Matrix (studio), Moo$e Money, and Moose Merch — the brands under The Moose Matrix.",
+type Door = {
+  name: string;
+  href: string;
+  subdomain: string;
+  desc: string;
+  status: "Live" | "Beta" | "Coming soon";
+  focus: string[];
 };
+
+const DOORS: Door[] = [
+  {
+    name: "Moose Matrix",
+    href: "https://matrix.moosematrix.com",
+    subdomain: "matrix.moosematrix.com",
+    desc: "Tech hub for security engineering, builds, and studio output.",
+    status: "Live",
+    focus: ["Engineering", "Security", "Builds"],
+  },
+  {
+    name: "Moo$e Money",
+    href: "https://m2.moosematrix.com",
+    subdomain: "m2.moosematrix.com",
+    desc: "Tools, dashboards, and systems for wealth clarity.",
+    status: "Beta",
+    focus: ["Dashboards", "Automation", "Wealth systems"],
+  },
+  {
+    name: "Moose Mumbles",
+    href: "https://mooseman.moosematrix.com",
+    subdomain: "mooseman.moosematrix.com",
+    desc: "Writing, videos, reviews, and notes in public.",
+    status: "Live",
+    focus: ["Writing", "Reviews", "Research notes"],
+  },
+  {
+    name: "Moose Merch",
+    href: "https://moosemerch.moosematrix.com",
+    subdomain: "moosemerch.moosematrix.com",
+    desc: "Physical + digital goods that support the ecosystem.",
+    status: "Coming soon",
+    focus: ["Drops", "Goods", "Digital"],
+  },
+];
+
+function statusPill(status: Door["status"]) {
+  const base =
+    "mm-mono inline-flex items-center rounded-full border border-[var(--border)] " +
+    "bg-[var(--surface)] px-2.5 py-1 text-[10px] uppercase tracking-[0.18em]";
+
+  if (status === "Live") return `${base} text-[var(--fg)]`;
+  if (status === "Beta") return `${base} text-[var(--muted)]`;
+  return `${base} text-[var(--muted)]`;
+}
 
 export default function SubsidiariesPage() {
   return (
-    <main className="mx-auto max-w-6xl px-6 py-12">
-      {/* Hero */}
-      <header className="text-center">
-        <h1 className="text-4xl font-semibold tracking-tight text-white">Subsidiaries</h1>
-        <p className="mx-auto mt-3 max-w-2xl text-white/75">
-          The Moose Matrix is a small umbrella studio. Below are our focused ventures with a
-          one-liner on what each does and where to learn more.
-        </p>
-      </header>
-
-      {/* Cards — ORDERED: Moose Matrix, Moo$e Money, Moose Merch */}
-      <section className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {/* Moose Matrix (studio) — LEFT */}
-        <a
-          href="https://matrix.moosematrix.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="no-underline"
-        >
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 transition hover:bg-white/10">
-            <div className="flex items-center gap-3">
-              <img
-                src="/moose_matrix_logo.png"
-                alt="The Moose Matrix"
-                width={40}
-                height={40}
-                className="h-10 w-10 rounded-lg border border-white/10"
-              />
-              <h2 className="text-xl font-semibold text-white">Moose Matrix</h2>
-            </div>
-            <p className="mt-2 text-white/75">
-              Our corporate/studio hub: mission, principles, services, and case studies.
-            </p>
-            <ul className="mt-3 list-disc space-y-1 pl-5 text-white/70">
-              <li>What we build and why</li>
-              <li>Selected work & press kit</li>
-              <li>Partnership details</li>
-            </ul>
-            <div className="mt-4">
-              <span className="inline-block rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/90">
-                Visit site →
-              </span>
-            </div>
+    <main id="content" className="mm-shell">
+      <div className="mx-auto max-w-6xl px-6 py-14">
+        {/* Header */}
+        <div className="flex flex-col gap-3">
+          <div className="mm-mono text-[12px] uppercase tracking-[0.22em] text-[var(--muted)]">
+            Directory
           </div>
-        </a>
 
-        {/* Moo$e Money — MIDDLE */}
-        <a
-          href="https://m2.moosematrix.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="no-underline"
-        >
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 transition hover:bg-white/10">
-            <div className="flex items-center gap-3">
-              <img
-                src="/moose_money_logo.png"
-                alt="Moo$e Money"
-                width={40}
-                height={40}
-                className="h-10 w-10 rounded-lg border border-white/10"
-              />
-              <h2 className="text-xl font-semibold text-white">Moo$e Money</h2>
-            </div>
-            <p className="mt-2 text-white/75">
-              Clear, practical tools and playbooks for personal finance and solo operators.
-            </p>
-            <ul className="mt-3 list-disc space-y-1 pl-5 text-white/70">
-              <li>Budget & cashflow templates</li>
-              <li>Automation guides for money ops</li>
-              <li>Short, visual explainers</li>
-            </ul>
-            <div className="mt-4">
-              <span className="inline-block rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/90">
-                Visit site →
-              </span>
-            </div>
-          </div>
-        </a>
+          <h1 className="text-balance text-4xl md:text-5xl font-semibold tracking-tight text-[var(--fg)]">
+            Subsidiaries & subdomains
+          </h1>
 
-        {/* Moose Merch — RIGHT */}
-        <a
-          href="https://moosemerch.moosematrix.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="no-underline"
-        >
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 transition hover:bg-white/10">
-            <div className="flex items-center gap-3">
-              <img
-                src="/moose_merch_logo.png"
-                alt="Store"
-                width={40}
-                height={40}
-                className="h-10 w-10 rounded-lg border border-white/10"
-              />
-              <h2 className="text-xl font-semibold text-white">Moose Merch</h2>
-            </div>
-            <p className="mt-2 text-white/75">
-              Physical & digital goods that support the projects and community.
-            </p>
-            <ul className="mt-3 list-disc space-y-1 pl-5 text-white/70">
-              <li>Limited-run apparel</li>
-              <li>Printable toolkits & PDFs</li>
-              <li>Member discounts</li>
-            </ul>
-            <div className="mt-4">
-              <span className="inline-block rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/90">
-                Visit site →
-              </span>
-            </div>
-          </div>
-        </a>
-      </section>
-
-      {/* Tie-in / philosophy */}
-      <section className="mt-12">
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-          <h3 className="text-lg font-semibold text-white">How these fit together</h3>
-          <p className="mt-2 text-white/75">
-            Each brand is small by design and focused on useful outcomes. Moose Matrix (the studio)
-            underpins everything—from the tooling and infrastructure to the design language and
-            quality bar across the portfolio.
+          <p className="max-w-2xl text-[15px] md:text-lg leading-relaxed text-[var(--muted)]">
+            Each part of the Moose ecosystem lives on its own subdomain—clear boundaries, less clutter, easier navigation.
           </p>
-        </div>
-      </section>
 
-      {/* CTA */}
-      <section className="mt-10 text-center">
-        <p className="text-white/70">
-          Not sure where to start?{" "}
-          <Link href="/contact" className="text-white hover:underline">
-            Get in touch
-          </Link>{" "}
-          and we’ll point you to the right place.
-        </p>
-      </section>
+          <div className="mt-2">
+            <Link
+              href="/"
+              className="mm-underline mm-mono inline-flex items-center text-[12px] uppercase tracking-[0.18em] text-[var(--muted)] hover:text-[var(--fg)]"
+            >
+              ← Back to home
+            </Link>
+          </div>
+        </div>
+
+        {/* Grid (cards, but calm) */}
+        <div className="mt-10 grid gap-6 md:grid-cols-2">
+          {DOORS.map((d) => (
+            <a
+              key={d.name}
+              href={d.href}
+              rel="noopener noreferrer"
+              className={[
+                "group mm-card relative overflow-hidden p-6",
+                "focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]",
+              ].join(" ")}
+              aria-label={`${d.name} — ${d.desc}`}
+            >
+              {/* subtle “premium” sheen without loud gradients */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100
+                           bg-[radial-gradient(circle_at_20%_15%,rgba(255,255,255,0.10),transparent_55%)]"
+              />
+
+              <div className="relative">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div className="text-xl font-semibold text-[var(--fg)]">{d.name}</div>
+                      <span className={statusPill(d.status)}>{d.status}</span>
+                    </div>
+
+                    <div className="mt-2 mm-mono text-[11px] uppercase tracking-[0.18em] text-[var(--muted)]">
+                      {d.subdomain}
+                    </div>
+                  </div>
+
+                  <div className="mm-mono text-[12px] uppercase tracking-[0.18em] text-[var(--muted)] group-hover:text-[var(--fg)]">
+                    Open →
+                  </div>
+                </div>
+
+                <p className="mt-4 text-[14px] leading-relaxed text-[var(--muted)]">
+                  {d.desc}
+                </p>
+
+                <div className="mt-6 flex flex-wrap gap-2">
+                  {d.focus.map((t) => (
+                    <span
+                      key={t}
+                      className="mm-topbar mm-mono px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-[var(--muted)]"
+                    >
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </a>
+          ))}
+        </div>
+
+        {/* Minimal note */}
+        <div className="mt-10 text-center mm-mono text-[12px] uppercase tracking-[0.18em] text-[var(--muted)]">
+          Tip: bookmark the subdomain you use most.
+        </div>
+      </div>
     </main>
   );
 }

@@ -1,18 +1,33 @@
 {
   "name": "@moosematrix/ui",
   "version": "0.1.0",
-  "main": "src/index.ts",
-  "module": "src/index.ts",
-  "types": "src/index.ts",
-  "sideEffects": ["src/styles.css"],
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./src/index.ts"
+    },
+    "./styles.css": "./styles.css"
+  },
+  "types": "./dist/index.d.ts",
+  "sideEffects": [
+    "./styles.css"
+  ],
   "peerDependencies": {
     "react": ">=18",
     "react-dom": ">=18"
   },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf dist"
+  },
   "devDependencies": {
-    "typescript": "^5.5.4",
-    "tailwindcss": "^3.4.10",
+    "@types/connect": "^3.4.38",
+    "autoprefixer": "^10.4.20",
     "postcss": "^8.4.47",
-    "autoprefixer": "^10.4.20"
+    "tailwindcss": "^3.4.10",
+    "typescript": "^5.5.4"
   }
 }

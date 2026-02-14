@@ -11,3 +11,18 @@ out/
 .DS_Store
 *.local
 coverage/
+
+# Local build artifacts (accidentally created)
+Build/
+build/
+tsc/
+*.tsbuildinfo
+
+# If declaration files ever get emitted into src by mistake
+packages/**/src/**/*.d.ts
+
+
+# accidental local artifacts
+next
+start
+tree.txt
