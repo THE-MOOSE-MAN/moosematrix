@@ -2,7 +2,8 @@
   "name": "moosematrix",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "predev": "bash ./scripts/free-port.sh 3001",
+    "dev": "next dev -p 3001",
     "build": "next build",
     "start": "node server.js",
     "lint": "next lint"
@@ -11,14 +12,15 @@
     "@moosematrix/ui": "file:../../packages/ui",
     "express": "^4.19.2",
     "framer-motion": "^11.0.0",
-    "next": "^14.2.32",
+    "next": "^16.1.6",
     "react": "18.3.1",
     "react-dom": "18.3.1"
   },
   "devDependencies": {
+    "@types/connect": "^3.4.38",
+    "@types/express": "^4.17.21",
     "@types/node": "24.4.0",
     "@types/react": "19.1.13",
-    "@types/express": "^4.17.21",
     "autoprefixer": "^10.4.20",
     "eslint": "^8.57.0",
     "postcss": "^8.4.47",

@@ -1,0 +1,5 @@
+Contact: https://moosematrix.com/security
+Contact: mailto:security@moosematrix.com
+Policy: https://moosematrix.com/security
+Preferred-Languages: en
+Expires: 2027-02-13T00:00:00Z

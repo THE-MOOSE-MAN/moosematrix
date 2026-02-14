@@ -1,17 +1,5 @@
-@import "@moosematrix/ui/src/styles.css";
+@import "@moosematrix/ui/styles.css";
 
-:root { --bg: #0b0c10; --fg: #e5e7eb; }
-html, body { background: var(--bg); color: var(--fg); }
-
-
-@keyframes gradient-shift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-.bg-animated-gradient {
-  background: linear-gradient(-45deg, #0a0f1f, #111827, #1e3a8a, #0f172a);
-  background-size: 400% 400%;
-  animation: gradient-shift 20s ease infinite;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
