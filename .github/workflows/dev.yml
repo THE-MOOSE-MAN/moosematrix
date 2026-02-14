@@ -99,36 +99,38 @@ jobs:
           ssh -T -i ~/.ssh/id_ed25519 \
             -p "${{ secrets.VPS_PORT }}" \
             "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" <<'EOF'
-              set -euo pipefail
+          set -euo pipefail
 
-              SERVICE_NAME="moosematrix-app-dev"
-              IMAGE_REPO="ghcr.io/the-moose-man/moosematrix"
-              GHCR_USER="$(echo "${{ github.actor }}" | tr '[:upper:]' '[:lower:]')"
-              GHCR_TOKEN="${{ github.token }}"
+          SERVICE_NAME="moosematrix-app-dev"
+          IMAGE_REPO="${{ needs.build-and-push.outputs.image }}"
+          GHCR_USER="$(echo "${{ github.actor }}" | tr '[:upper:]' '[:lower:]')"
+          GHCR_TOKEN="${{ github.token }}"
 
-              # Use a temporary docker config so nothing is written to ~/.docker
-              export DOCKER_CONFIG="$(mktemp -d)"
-              trap 'rm -rf "$DOCKER_CONFIG"' EXIT
+          # Use a temporary docker config so nothing is written to ~/.docker
+          export DOCKER_CONFIG="$(mktemp -d)"
+          trap 'rm -rf "$DOCKER_CONFIG"' EXIT
 
-              printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin >/dev/null
+          printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin >/dev/null
 
-              cd /home/moose/projects/infra
+          cd /home/moose/projects/infra
 
-              echo "📥 Pulling latest dev image..."
-              docker compose -f docker-compose.yml pull "$SERVICE_NAME"
+          echo "📥 Pulling latest dev image for $SERVICE_NAME..."
+          docker compose -f docker-compose.yml pull "$SERVICE_NAME"
 
-              echo "🚀 Recreating container..."
-              docker compose -f docker-compose.yml up -d --force-recreate "$SERVICE_NAME"
+          echo "🚀 Recreating container..."
+          docker compose -f docker-compose.yml up -d --force-recreate "$SERVICE_NAME"
 
-              echo "🔎 Running container:"
-              docker ps --filter "name=$SERVICE_NAME" --format "table {{.Names}}\t{{.Image}}\t{{.Status}}"
+          echo "🔎 Running container:"
+          docker ps --filter "name=$SERVICE_NAME" --format "table {{.Names}}\t{{.Image}}\t{{.Status}}"
 
-              echo "🔎 Image revision label:"
-              docker image inspect "${IMAGE_REPO}:dev-latest" \
-                --format 'revision={{ index .Config.Labels "org.opencontainers.image.revision" }}' 2>/dev/null || true
+          echo "🔎 Image revision label (dev-latest):"
+          docker image inspect "${IMAGE_REPO}:dev-latest" \
+            --format 'revision={{ index .Config.Labels "org.opencontainers.image.revision" }}' 2>/dev/null || true
 
-              echo "🧹 Pruning images older than 7 days..."
-              docker image prune -af --filter "until=168h" || true
+          echo "🧹 Pruning images older than 7 days..."
+          docker image prune -af --filter "until=168h" || true
 
-              echo "✅ Dev deployment complete: https://dev-moosematrix.moosematrix.com"
-            EOF
+          echo "✅ Dev container updated (no public dev subdomain)."
+          echo "   View via SSH port-forward (example):"
+          echo "   ssh -p <VPS_PORT> -L 3001:127.0.0.1:3001 <VPS_USER>@<VPS_HOST>"
+          EOF
