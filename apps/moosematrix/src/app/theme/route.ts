@@ -1,52 +1,46 @@
 import { NextRequest, NextResponse } from "next/server";
 
+const COOKIE = "mm-theme";
 const ALLOWED = new Set(["system", "light", "dark"]);
-
-function firstHeaderValue(v: string | null): string | null {
-  if (!v) return null;
-  // handle "https, http" or "moosematrix.com, something"
-  return v.split(",")[0].trim() || null;
-}
 
 function safeNext(raw: string | null) {
   if (!raw) return "/";
-  if (raw.startsWith("/") && !raw.startsWith("//")) return raw;
+
+  const v = raw.trim();
+
+  // prevent header injection / weird chars
+  if (/[\u0000-\u001F\u007F]/.test(v)) return "/";
+
+  // only allow same-site relative paths (block //evil.com)
+  if (v.startsWith("/") && !v.startsWith("//")) return v;
+
   return "/";
 }
 
-function getOrigin(req: NextRequest) {
-  const proto =
-    firstHeaderValue(req.headers.get("x-forwarded-proto")) ||
-    "https";
-
-  const host =
-    firstHeaderValue(req.headers.get("x-forwarded-host")) ||
-    firstHeaderValue(req.headers.get("host")) ||
-    "moosematrix.com";
-
-  return `${proto}://${host}`;
-}
-
 export function GET(req: NextRequest) {
-  const set = req.nextUrl.searchParams.get("set") ?? "system";
+  const set = (req.nextUrl.searchParams.get("set") ?? "system").toLowerCase();
   const mode = ALLOWED.has(set) ? set : "system";
 
   const next = safeNext(req.nextUrl.searchParams.get("next"));
-  const origin = getOrigin(req);
 
-  const res = NextResponse.redirect(new URL(next, origin), 303);
+  // Relative redirect => no proxy/origin headaches
+  const res = new NextResponse(null, { status: 303 });
+  res.headers.set("Location", next);
   res.headers.set("Cache-Control", "no-store");
 
+  const proto =
+    req.headers.get("x-forwarded-proto")?.split(",")[0].trim() ||
+    req.nextUrl.protocol.replace(":", "") ||
+    "https";
+
   if (mode === "system") {
-    res.cookies.delete({ name: "mm-theme", path: "/" });
+    res.cookies.delete(COOKIE);
   } else {
-    // secure cookie if request is effectively https
-    const proto = firstHeaderValue(req.headers.get("x-forwarded-proto")) || "https";
-    res.cookies.set("mm-theme", mode, {
+    res.cookies.set(COOKIE, mode, {
       path: "/",
       maxAge: 60 * 60 * 24 * 365,
       sameSite: "lax",
-      httpOnly: false,
+      httpOnly: true,
       secure: proto === "https",
     });
   }
