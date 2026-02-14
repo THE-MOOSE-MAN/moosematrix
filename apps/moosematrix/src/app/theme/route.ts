@@ -14,7 +14,9 @@ export function GET(req: NextRequest) {
   const mode = ALLOWED.has(set) ? set : "system";
 
   const next = safeNext(url.searchParams.get("next"));
-  const res = NextResponse.redirect(new URL(next, url.origin), 303);
+
+  // ✅ Relative redirect avoids “localhost origin” issues behind proxies
+  const res = NextResponse.redirect(next, 303);
 
   res.headers.set("Cache-Control", "no-store");
 
