@@ -1,69 +1,63 @@
-import type { Metadata, Viewport } from "next";
-import Script from "next/script";
-import "./globals.css";
-import { NavbarStatic, FooterStatic } from "@moosematrix/ui";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { NextRequest, NextResponse } from "next/server";
 
-const inter = Inter({ subsets: ["latin"], display: "swap", variable: "--font-inter" });
-const jetbrains = JetBrains_Mono({ subsets: ["latin"], display: "swap", variable: "--font-jetbrains" });
+const COOKIE = "mm-theme";
+const ALLOWED = new Set(["system", "light", "dark"]);
 
-export const metadata: Metadata = {
-  title: "The Moose Matrix",
-  description: "A security-first ecosystem of tools, writing, and products.",
-  metadataBase: new URL("https://moosematrix.com"),
-  icons: { icon: "/moose.png" },
-};
+function safeNext(raw: string | null) {
+  if (!raw) return "/";
+  const v = raw.trim();
 
-export const viewport: Viewport = {
-  colorScheme: "light dark",
-  width: "device-width",
-  initialScale: 1,
-};
+  // Prevent header injection / control chars
+  if (/[\u0000-\u001F\u007F]/.test(v)) return "/";
 
-const BUILD_YEAR = (() => {
-  const raw = process.env.MOOSE_BUILD_YEAR || process.env.NEXT_PUBLIC_BUILD_YEAR || "";
-  const n = Number(raw);
-  return Number.isFinite(n) ? n : new Date().getFullYear();
-})();
+  // Only allow same-site relative paths (blocks //evil.com)
+  if (v.startsWith("/") && !v.startsWith("//")) return v;
 
-/**
- * Reads a non-HttpOnly cookie `mm-theme=light|dark` and sets:
- *   <html data-theme="light|dark">
- * If cookie missing or set=system, removes the attribute so system preference wins.
- */
-const THEME_INIT = `
-(() => {
-  try {
-    const m = document.cookie.match(/(?:^|; )mm-theme=([^;]+)/);
-    if (!m) return;
-    const v = decodeURIComponent(m[1]);
-    if (v === "light" || v === "dark") {
-      document.documentElement.dataset.theme = v;
-    } else {
-      document.documentElement.removeAttribute("data-theme");
-    }
-  } catch {}
-})();
-`;
+  return "/";
+}
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+function isLocalhostHost(host: string) {
+  const h = host.toLowerCase();
   return (
-    <html
-      lang="en"
-      className={`${inter.variable} ${jetbrains.variable}`}
-      suppressHydrationWarning
-    >
-      <head>
-        <Script id="mm-theme-init" strategy="beforeInteractive">
-          {THEME_INIT}
-        </Script>
-      </head>
-
-      <body className="min-h-screen antialiased">
-        <NavbarStatic />
-        <div id="content">{children}</div>
-        <FooterStatic year={BUILD_YEAR} />
-      </body>
-    </html>
+    h.startsWith("localhost") ||
+    h.startsWith("127.0.0.1") ||
+    h.startsWith("[::1]")
   );
+}
+
+export function GET(req: NextRequest) {
+  const set = (req.nextUrl.searchParams.get("set") ?? "system").toLowerCase();
+  const mode = ALLOWED.has(set) ? set : "system";
+  const next = safeNext(req.nextUrl.searchParams.get("next"));
+
+  const res = new NextResponse(null, { status: 303 });
+  res.headers.set("Location", next); // keep relative
+  res.headers.set("Cache-Control", "no-store");
+
+  const host =
+    (req.headers.get("x-forwarded-host") ?? req.headers.get("host") ?? "")
+      .split(",")[0]
+      .trim();
+
+  const proto =
+    (req.headers.get("x-forwarded-proto") ?? req.nextUrl.protocol.replace(":", "") ?? "http")
+      .split(",")[0]
+      .trim();
+
+  const isProd = process.env.NODE_ENV === "production";
+  const secure = isProd && proto === "https" && !isLocalhostHost(host);
+
+  if (mode === "system") {
+    res.cookies.delete({ name: COOKIE, path: "/" });
+  } else {
+    res.cookies.set(COOKIE, mode, {
+      path: "/",
+      maxAge: 60 * 60 * 24 * 365,
+      sameSite: "lax",
+      httpOnly: false, // ✅ REQUIRED because layout.tsx reads it via document.cookie
+      secure,
+    });
+  }
+
+  return res;
 }
