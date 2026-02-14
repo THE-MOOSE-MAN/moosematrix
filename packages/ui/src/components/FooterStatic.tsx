@@ -1,6 +1,7 @@
-type FooterLink = { label: string; href: string; external?: boolean };
+import type React from "react";
 import { ThemeLink } from "./ThemeLink";
 
+type FooterLink = { label: string; href: string; external?: boolean };
 
 const STUDIO: FooterLink[] = [
   { label: "Moose Matrix", href: "https://matrix.moosematrix.com", external: true },
@@ -14,7 +15,6 @@ const COMPANY: FooterLink[] = [
   { label: "Contact", href: "/contact" },
   { label: "Security", href: "/security" },
 
-  // ✅ add it here
   { label: "Directory", href: "/subsidiaries" },
 
   { label: "Privacy", href: "/privacy" },
@@ -52,11 +52,9 @@ function IconMoon(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
-
 export function FooterStatic({ year }: { year?: number }) {
   const current = new Date().getFullYear();
 
-  // If some parent passes `new Date().getYear()` (=> 126), normalize it.
   const normalized =
     typeof year === "number"
       ? year < 1000
@@ -66,18 +64,18 @@ export function FooterStatic({ year }: { year?: number }) {
 
   const y = normalized < 2000 || normalized > current + 1 ? current : normalized;
 
-  // Use the underline sweep class that exists in styles.css (.mm-underline).
-  // Avoid Tailwind `transition-*` here; your underline animation defines its own transition. 
   const footerLink =
     "mm-underline inline-flex items-center " +
     "text-[12px] font-mono uppercase tracking-[0.18em] " +
     "text-[var(--muted)] hover:text-[var(--fg)]";
 
   return (
-    <footer className="mt-16 border-t border-[var(--border)] bg-[var(--surface)]">
+    <footer
+      id="site-footer"
+      className="mt-16 border-t border-[var(--border)] bg-[var(--surface)]"
+    >
       <div className="mx-auto max-w-6xl px-6 py-12">
         <div className="grid gap-10 md:grid-cols-3">
-          {/* Brand + Appearance */}
           <div>
             <div className="mm-mono text-[12px] uppercase tracking-[0.22em] text-[var(--muted)]">
               The Moose Matrix
@@ -86,26 +84,39 @@ export function FooterStatic({ year }: { year?: number }) {
               A security-first ecosystem of tools, writing, and products.
             </div>
 
-            {/* No-JS appearance override */}
             <div className="mt-6 flex flex-wrap items-center gap-2">
-              <ThemeLink set="system" className="mm-chip mm-mono mm-chip-btn" containerId="mm-snap">
+              <ThemeLink
+                set="system"
+                className="mm-chip mm-mono mm-chip-btn"
+                containerId="mm-snap"
+                returnToId="site-footer"
+              >
                 <IconSystem className="h-4 w-4" aria-hidden="true" />
                 <span>System</span>
               </ThemeLink>
 
-              <ThemeLink set="light" className="mm-chip mm-mono mm-chip-btn" containerId="mm-snap">
+              <ThemeLink
+                set="light"
+                className="mm-chip mm-mono mm-chip-btn"
+                containerId="mm-snap"
+                returnToId="site-footer"
+              >
                 <IconSun className="h-4 w-4" aria-hidden="true" />
                 <span>Light</span>
               </ThemeLink>
 
-              <ThemeLink set="dark" className="mm-chip mm-mono mm-chip-btn" containerId="mm-snap">
+              <ThemeLink
+                set="dark"
+                className="mm-chip mm-mono mm-chip-btn"
+                containerId="mm-snap"
+                returnToId="site-footer"
+              >
                 <IconMoon className="h-4 w-4" aria-hidden="true" />
                 <span>Dark</span>
               </ThemeLink>
             </div>
           </div>
 
-          {/* Studio */}
           <div>
             <div className="mm-mono text-[12px] uppercase tracking-[0.22em] text-[var(--muted)]">
               Studio
@@ -121,7 +132,6 @@ export function FooterStatic({ year }: { year?: number }) {
             </ul>
           </div>
 
-          {/* Company */}
           <div>
             <div className="mm-mono text-[12px] uppercase tracking-[0.22em] text-[var(--muted)]">
               Company
@@ -138,7 +148,6 @@ export function FooterStatic({ year }: { year?: number }) {
           </div>
         </div>
 
-        {/* Bottom */}
         <div className="mt-10 border-t border-[var(--border)] pt-6 text-center">
           <div className="mm-mono text-[12px] uppercase tracking-[0.22em] text-[var(--muted)]">
             © {y} The Moose Matrix

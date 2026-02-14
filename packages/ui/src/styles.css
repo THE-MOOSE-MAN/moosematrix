@@ -1,6 +1,6 @@
 /* MooseMatrix UI — shared tokens + primitives */
 
-/* -------------------- Tokens (default = light) -------------------- */
+/* ---------- Tokens: default (light) ---------- */
 :root {
   --bg: #f7f6f3;
   --surface: #ffffff;
@@ -20,8 +20,13 @@
   --radius: 18px;
 }
 
-/* -------------------- Tokens (dark) -------------------- */
-/* Manual override (cookie-driven) */
+/* ---------- Manual override (cookie-driven) ---------- */
+/* Light is already default tokens; keep this for explicitness + color-scheme. */
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+/* Dark override */
 :root[data-theme="dark"] {
   --bg: #070b13;
   --surface: #0b1220;
@@ -37,9 +42,12 @@
   --accent: #60a5fa;
   --accent-2: #93c5fd;
   --ring: rgba(96, 165, 250, 0.35);
+
+  color-scheme: dark;
 }
 
-/* System preference (no JS required) — ONLY when no manual override */
+/* ---------- System preference (no JS required) ---------- */
+/* Only apply system preference when *no manual override* is present. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
     --bg: #070b13;
@@ -59,13 +67,15 @@
   }
 }
 
-/* -------------------- Base -------------------- */
+/* ---------- Base ---------- */
 html {
   background: var(--bg);
   color: var(--fg);
 }
 
-/* UA widgets match the active theme */
+/* Ensure UA widgets follow the active mode:
+   - If no override => allow both (system decides)
+   - If override => lock it */
 html:not([data-theme]) { color-scheme: light dark; }
 html[data-theme="light"] { color-scheme: light; }
 html[data-theme="dark"] { color-scheme: dark; }
@@ -88,7 +98,6 @@ body {
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
 }
-
 
 /* ---------- Primitives ---------- */
 .mm-mono {

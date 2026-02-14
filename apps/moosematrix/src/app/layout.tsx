@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import "./globals.css";
 import { NavbarStatic, FooterStatic } from "@moosematrix/ui";
 import { Inter, JetBrains_Mono } from "next/font/google";
-import { cookies } from "next/headers";
 
 const inter = Inter({ subsets: ["latin"], display: "swap", variable: "--font-inter" });
 const jetbrains = JetBrains_Mono({ subsets: ["latin"], display: "swap", variable: "--font-jetbrains" });
@@ -26,19 +26,39 @@ const BUILD_YEAR = (() => {
   return Number.isFinite(n) ? n : new Date().getFullYear();
 })();
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const cookieStore = await cookies();
-  const v = cookieStore.get("mm-theme")?.value; // <-- await fixed
+/**
+ * Reads a non-HttpOnly cookie `mm-theme=light|dark` and sets:
+ *   <html data-theme="light|dark">
+ * If cookie missing or set=system, removes the attribute so system preference wins.
+ */
+const THEME_INIT = `
+(() => {
+  try {
+    const m = document.cookie.match(/(?:^|; )mm-theme=([^;]+)/);
+    if (!m) return;
+    const v = decodeURIComponent(m[1]);
+    if (v === "light" || v === "dark") {
+      document.documentElement.dataset.theme = v;
+    } else {
+      document.documentElement.removeAttribute("data-theme");
+    }
+  } catch {}
+})();
+`;
 
-  const dataTheme = v === "light" || v === "dark" ? v : undefined;
-
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="en"
-      data-theme={dataTheme}
       className={`${inter.variable} ${jetbrains.variable}`}
       suppressHydrationWarning
     >
+      <head>
+        <Script id="mm-theme-init" strategy="beforeInteractive">
+          {THEME_INIT}
+        </Script>
+      </head>
+
       <body className="min-h-screen antialiased">
         <NavbarStatic />
         <div id="content">{children}</div>
