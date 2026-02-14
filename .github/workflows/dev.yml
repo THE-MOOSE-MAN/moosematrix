@@ -28,6 +28,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set build year (UTC)
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "MOOSE_BUILD_YEAR=$(date -u +%Y)" >> "$GITHUB_ENV"
+
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -59,6 +65,8 @@ jobs:
           labels: |
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.source=${{ github.repository }}
+          build-args: |
+            MOOSE_BUILD_YEAR=${{ env.MOOSE_BUILD_YEAR }}
           provenance: false
           sbom: false
 
@@ -123,4 +131,4 @@ jobs:
               docker image prune -af --filter "until=168h" || true
 
               echo "✅ Dev deployment complete: https://dev-moosematrix.moosematrix.com"
-              EOF
+            EOF

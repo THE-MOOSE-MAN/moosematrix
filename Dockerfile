@@ -25,6 +25,13 @@ WORKDIR /app
 
 COPY --from=deps /app ./
 
+# Build-time constant injected by GitHub Actions
+ARG MOOSE_BUILD_YEAR
+ENV MOOSE_BUILD_YEAR=$MOOSE_BUILD_YEAR
+
+# (Optional but good) disable Next telemetry during build
+ENV NEXT_TELEMETRY_DISABLED=1
+
 # Run build only for the MooseMatrix app
 RUN npx turbo run build --filter=moosematrix...
 
@@ -40,6 +47,15 @@ RUN apk add --no-cache dumb-init curl
 ENV NODE_ENV=production
 ENV PORT=3000
 
+# IMPORTANT:
+# Re-declare ARG in the final stage if you want it available at runtime,
+# then set it as ENV so process.env.MOOSE_BUILD_YEAR works in server code.
+ARG MOOSE_BUILD_YEAR
+ENV MOOSE_BUILD_YEAR=$MOOSE_BUILD_YEAR
+
+# (Optional but good) disable Next telemetry at runtime too
+ENV NEXT_TELEMETRY_DISABLED=1
+
 # Copy MooseMatrix build output
 COPY --from=build /app/apps/moosematrix ./
 COPY --from=build /app/tsconfig.json /app/tsconfig.json
@@ -48,7 +64,11 @@ COPY --from=build /app/tsconfig.json /app/tsconfig.json
 COPY --from=build /app/packages /app/packages
 
 # Install only production dependencies for this app
-RUN npm install --only=production
+RUN npm install --omit=dev
+
+# Drop privileges for runtime
+RUN chown -R node:node /app
+USER node
 
 # Expose Next.js server port
 EXPOSE 3000

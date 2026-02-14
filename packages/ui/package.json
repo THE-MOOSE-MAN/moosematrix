@@ -12,7 +12,7 @@
   },
   "types": "./dist/index.d.ts",
   "sideEffects": [
-    "./src/styles.css"
+    "./styles.css"
   ],
   "peerDependencies": {
     "react": ">=18",

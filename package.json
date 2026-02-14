@@ -18,6 +18,8 @@
     "turbo": "^2.0.6"
   },
   "dependencies": {
-    "framer-motion": "^12.23.13"
+    "@tailwindcss/cli": "^4.1.18",
+    "framer-motion": "^12.23.13",
+    "tailwindcss": "^4.1.18"
   }
 }

@@ -1,47 +1,5 @@
 @import "@moosematrix/ui/styles.css";
 
-/* Light-first, trust-forward default */
-:root {
-  --bg: #f8fafc; /* slate-50 */
-  --fg: #0f172a; /* slate-900 */
-}
-
-html { color-scheme: light; }
-
-html, body {
-  background: var(--bg);
-  color: var(--fg);
-}
-
-/* Accessibility: visible focus without looking “old” */
-:focus-visible {
-  outline: 2px solid rgba(15, 23, 42, 0.35);
-  outline-offset: 2px;
-}
-
-/* Animated gradient (light version — subtle) */
-@keyframes gradient-shift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-.bg-animated-gradient {
-  background: linear-gradient(
-    -45deg,
-    #f8fafc,  /* slate-50 */
-    #f1f5f9,  /* slate-100 */
-    #e2e8f0,  /* slate-200 */
-    #eef2ff   /* indigo-50 */
-  );
-  background-size: 300% 300%;
-  animation: gradient-shift 22s ease infinite;
-}
-
-/* Respect reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  .bg-animated-gradient {
-    animation: none;
-    background-size: auto;
-  }
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
