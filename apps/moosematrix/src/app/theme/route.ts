@@ -8,15 +8,26 @@ function safeNext(raw: string | null) {
   return "/";
 }
 
+function getPublicOrigin(req: NextRequest) {
+  const proto = req.headers.get("x-forwarded-proto") ?? "https";
+  const host =
+    req.headers.get("x-forwarded-host") ??
+    req.headers.get("host") ??
+    "localhost";
+  return `${proto}://${host}`;
+}
+
 export function GET(req: NextRequest) {
   const url = new URL(req.url);
+
   const set = url.searchParams.get("set") ?? "system";
   const mode = ALLOWED.has(set) ? set : "system";
 
   const next = safeNext(url.searchParams.get("next"));
 
-  // ✅ Relative redirect avoids “localhost origin” issues behind proxies
-  const res = NextResponse.redirect(next, 303);
+  // ✅ use public origin derived from headers
+  const origin = getPublicOrigin(req);
+  const res = NextResponse.redirect(new URL(next, origin), 303);
 
   res.headers.set("Cache-Control", "no-store");
 
