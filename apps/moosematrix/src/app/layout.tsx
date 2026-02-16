@@ -1,63 +1,19 @@
-import { NextRequest, NextResponse } from "next/server";
+import "./globals.css";
+import Script from "next/script";
+import { NavbarStatic, FooterStatic } from "@moosematrix/ui";
 
-const COOKIE = "mm-theme";
-const ALLOWED = new Set(["system", "light", "dark"]);
-
-function safeNext(raw: string | null) {
-  if (!raw) return "/";
-  const v = raw.trim();
-
-  // Prevent header injection / control chars
-  if (/[\u0000-\u001F\u007F]/.test(v)) return "/";
-
-  // Only allow same-site relative paths (blocks //evil.com)
-  if (v.startsWith("/") && !v.startsWith("//")) return v;
-
-  return "/";
-}
-
-function isLocalhostHost(host: string) {
-  const h = host.toLowerCase();
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    h.startsWith("localhost") ||
-    h.startsWith("127.0.0.1") ||
-    h.startsWith("[::1]")
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Early theme application (your untracked file) */}
+        <Script src="/mm-theme.js" strategy="beforeInteractive" />
+      </head>
+      <body className="min-h-screen antialiased flex flex-col">
+        <NavbarStatic />
+        <main className="flex-1">{children}</main>
+        <FooterStatic />
+      </body>
+    </html>
   );
-}
-
-export function GET(req: NextRequest) {
-  const set = (req.nextUrl.searchParams.get("set") ?? "system").toLowerCase();
-  const mode = ALLOWED.has(set) ? set : "system";
-  const next = safeNext(req.nextUrl.searchParams.get("next"));
-
-  const res = new NextResponse(null, { status: 303 });
-  res.headers.set("Location", next); // keep relative
-  res.headers.set("Cache-Control", "no-store");
-
-  const host =
-    (req.headers.get("x-forwarded-host") ?? req.headers.get("host") ?? "")
-      .split(",")[0]
-      .trim();
-
-  const proto =
-    (req.headers.get("x-forwarded-proto") ?? req.nextUrl.protocol.replace(":", "") ?? "http")
-      .split(",")[0]
-      .trim();
-
-  const isProd = process.env.NODE_ENV === "production";
-  const secure = isProd && proto === "https" && !isLocalhostHost(host);
-
-  if (mode === "system") {
-    res.cookies.delete({ name: COOKIE, path: "/" });
-  } else {
-    res.cookies.set(COOKIE, mode, {
-      path: "/",
-      maxAge: 60 * 60 * 24 * 365,
-      sameSite: "lax",
-      httpOnly: false, // ✅ REQUIRED because layout.tsx reads it via document.cookie
-      secure,
-    });
-  }
-
-  return res;
 }
