@@ -1,5 +1,7 @@
+@import "tailwindcss";
+@source "../../../../packages/ui/**/*.{ts,tsx}";
 @import "@moosematrix/ui/styles.css";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Mobile scroll stability */
+html { height: 100%; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { min-height: 100%; overflow-x: hidden; }
