@@ -1,5 +1,6 @@
 // layout.tsx
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 import { NavbarStatic, FooterStatic } from "@moosematrix/ui";
 
@@ -25,13 +26,30 @@ export const metadata: Metadata = {
   },
 };
 
+const THEME_INIT = `(() => {
+  try {
+    const m = document.cookie.match(/(?:^|;\\s*)mm-theme=([^;]+)/);
+    const v = m ? decodeURIComponent(m[1]) : "system";
+    const r = document.documentElement;
+    if (v === "light" || v === "dark") r.dataset.theme = v;
+    else r.removeAttribute("data-theme");
+  } catch {}
+})();`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <Script
+          id="mm-theme-init"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{ __html: THEME_INIT }}
+        />
+      </head>
       <body className="min-h-svh antialiased flex flex-col overflow-x-hidden">
         <NavbarStatic />
-        {/* Keep the document as the primary scroll container (mobile-friendly). */}
-        <main className="flex-1 min-h-0">{children}</main>
+        {/* Desktop/tablet: allow nested scroll containers. Mobile: allow doc growth. */}
+        <main className="flex-1 md:min-h-0">{children}</main>
         <FooterStatic />
       </body>
     </html>

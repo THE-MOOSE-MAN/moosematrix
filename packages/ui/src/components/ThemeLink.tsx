@@ -20,8 +20,7 @@ function isLocalhost() {
 }
 
 function setThemeCookie(mode: ThemeMode) {
-  // Non-sensitive cookie; safe to be non-HttpOnly for dev toggling.
-  // SameSite=Lax prevents most CSRF contexts.
+  // Non-sensitive cookie; SameSite=Lax is appropriate for preference persistence.
   if (mode === "system") {
     document.cookie = `${COOKIE}=; Path=/; Max-Age=0; SameSite=Lax`;
     return;
@@ -53,6 +52,8 @@ function getReturnTo(containerId = "mm-snap", returnToId?: string) {
   const sections = Array.from(container.querySelectorAll<HTMLElement>("section[id]"));
   if (!sections.length) return base;
 
+  // If the container is not the actual scroll root (mobile doc-scroll),
+  // scrollTop will be 0 — returning to top is acceptable. Desktop uses inner scroll.
   const probe = container.scrollTop + container.clientHeight * 0.35;
   let active = sections[0];
   for (const s of sections) if (s.offsetTop <= probe) active = s;
@@ -84,21 +85,29 @@ export function ThemeLink({
         e.shiftKey ||
         e.altKey ||
         e.defaultPrevented
-      ) return;
+      )
+        return;
 
       e.preventDefault();
+
+      // Apply immediately to avoid any flash while navigating.
+      applyThemeToDom(set);
+
+      const next = getReturnTo(containerId, returnToId);
 
       // ✅ Local dev: avoid Express rewrite of /theme (wrong port + Secure cookie on HTTP)
       if (isLocalhost() && window.location.protocol === "http:") {
         setThemeCookie(set);
-        applyThemeToDom(set);
-        window.location.assign(getReturnTo(containerId, returnToId));
+        window.location.assign(next);
         return;
       }
 
-      // ✅ Non-local / HTTPS: keep server route behavior
+      // ✅ Non-local / HTTPS: keep server route behavior (still writes cookie server-side)
+      // Also set cookie client-side as a fast-path (harmless redundancy).
+      setThemeCookie(set);
+
       const url = new URL(href, window.location.origin);
-      url.searchParams.set("next", getReturnTo(containerId, returnToId));
+      url.searchParams.set("next", next);
       window.location.assign(url.toString());
     },
     [href, containerId, returnToId, set]

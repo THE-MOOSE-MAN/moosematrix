@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "predev": "bash ./scripts/free-port.sh 3001",
-    "dev": "next dev -p 3001",
+    "dev": "next dev --webpack -p 3001",
     "build": "next build",
     "start": "node server.js",
     "lint": "next lint"
