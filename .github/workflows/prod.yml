@@ -86,7 +86,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ssh-keyscan -p "${{ secrets.VPS_PORT }}" -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts
+          mkdir -p ~/.ssh
+
+          tmp="$(mktemp)"
+          ssh-keyscan -T 10 -p "${{ secrets.VPS_PORT }}" -H "${{ secrets.VPS_HOST }}" > "$tmp" 2>/dev/null || true
+
+          if [ ! -s "$tmp" ]; then
+            echo "ssh-keyscan returned no host keys."
+            echo "Check that VPS_HOST/VPS_PORT are reachable from GitHub runners (firewall/allowlist), and the port is correct."
+            exit 1
+          fi
+
+          cat "$tmp" >> ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
 
       - name: Deploy MooseMatrix Prod (compose-based)
@@ -96,40 +107,39 @@ jobs:
 
           ssh -T -i ~/.ssh/id_ed25519 \
             -p "${{ secrets.VPS_PORT }}" \
-            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" << EOF
+            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" <<'EOF'
           set -euo pipefail
 
-          SERVICE_NAME="${{ env.SERVICE_NAME }}"
-          OWNER_LC="$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')"
-          IMAGE_REPO="ghcr.io/\${OWNER_LC}/${{ env.IMAGE_NAME }}"
+          SERVICE_NAME="moosematrix-app-prod"
+          IMAGE_REPO="${{ needs.build-and-push.outputs.image }}"
           GHCR_USER="$(echo "${{ github.actor }}" | tr '[:upper:]' '[:lower:]')"
           GHCR_TOKEN="${{ github.token }}"
 
-          export DOCKER_CONFIG="\$(mktemp -d)"
-          trap 'rm -rf "\$DOCKER_CONFIG"' EXIT
+          export DOCKER_CONFIG="$(mktemp -d)"
+          trap 'rm -rf "$DOCKER_CONFIG"' EXIT
 
-          printf '%s' "\$GHCR_TOKEN" | docker login ghcr.io -u "\$GHCR_USER" --password-stdin >/dev/null
+          printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin >/dev/null
 
           cd /home/moose/projects/infra
 
           echo "📥 Pulling latest prod image..."
-          docker compose -f docker-compose.yml pull "\$SERVICE_NAME"
+          docker compose -f docker-compose.yml pull "$SERVICE_NAME"
 
           echo "🚀 Recreating container..."
-          docker compose -f docker-compose.yml up -d --force-recreate "\$SERVICE_NAME"
+          docker compose -f docker-compose.yml up -d --force-recreate "$SERVICE_NAME"
 
           echo "🩺 Waiting for health..."
-          for i in \$(seq 1 30); do
-            status="\$(docker inspect -f '{{.State.Health.Status}}' "\$SERVICE_NAME" 2>/dev/null || echo starting)"
-            [ "\$status" = "healthy" ] && break
+          for i in $(seq 1 30); do
+            status="$(docker inspect -f '{{.State.Health.Status}}' "$SERVICE_NAME" 2>/dev/null || echo starting)"
+            [ "$status" = "healthy" ] && break
             sleep 2
           done
 
           echo "🔎 Running container:"
-          docker ps --filter "name=\$SERVICE_NAME" --format "table {{.Names}}\t{{.Image}}\t{{.Status}}"
+          docker ps --filter "name=$SERVICE_NAME" --format "table {{.Names}}\t{{.Image}}\t{{.Status}}"
 
           echo "🔎 Image revision label:"
-          docker image inspect "\${IMAGE_REPO}:prod-latest" \
+          docker image inspect "${IMAGE_REPO}:prod-latest" \
             --format 'revision={{ index .Config.Labels "org.opencontainers.image.revision" }}' 2>/dev/null || true
 
           echo "🧹 Pruning images older than 7 days..."
