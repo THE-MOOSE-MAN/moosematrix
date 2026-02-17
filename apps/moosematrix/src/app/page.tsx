@@ -3,7 +3,6 @@ export const revalidate = false;
 export const fetchCache = "force-cache";
 
 import Image from "next/image";
-import Link from "next/link";
 import { ScrollDots } from "@moosematrix/ui";
 
 const SECTIONS = [
@@ -25,7 +24,7 @@ const SECTIONS = [
     tag: "Finance",
     bullets: ["Dashboards & trackers", "Wealth systems", "Simple workflows"],
   },
-   {
+  {
     id: "mumbles",
     label: "Moose Mumbles",
     href: "https://mooseman.moosematrix.com",
@@ -50,15 +49,22 @@ const DOTS = [{ id: "home", label: "Home" }, ...SECTIONS.map((s) => ({ id: s.id,
 export default function HomePage() {
   return (
     <main id="content" className="mm-shell">
-      <ScrollDots containerId="mm-snap" items={DOTS} />
+      {/* Keep Feb 14 desktop dots; hide on mobile (touch + no snap) */}
+      <div className="hidden md:block">
+        <ScrollDots containerId="mm-snap" items={DOTS} />
+      </div>
 
+      {/* Mobile: document scroll (footer reachable)
+          Desktop (md+): Feb 14 inner scroll + snap */}
       <div
         id="mm-snap"
-        className="h-[calc(100svh-76px)] overflow-y-auto snap-y snap-proximity scroll-smooth"
+        className={[
+          "min-h-[calc(100svh-76px)] overflow-visible snap-none",
+          "md:h-[calc(100svh-76px)] md:overflow-y-auto md:snap-y md:snap-proximity md:scroll-smooth",
+        ].join(" ")}
       >
-        {/* Intro */}
-        <section id="home" className="snap-start scroll-mt-24">
-          <div className="mx-auto max-w-6xl px-6 pt-14 pb-10 min-h-[calc(100svh-76px)] flex items-center">
+        <section id="home" className="md:snap-start scroll-mt-24">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-10 sm:pt-14 pb-10 md:min-h-[calc(100svh-76px)] md:flex md:items-center">
             <div className="mx-auto max-w-3xl text-center">
               <div className="flex flex-wrap items-center justify-center gap-2">
                 <span className="mm-chip mm-mono">Moose Matrix</span>
@@ -66,29 +72,30 @@ export default function HomePage() {
                 <span className="mm-chip mm-mono">Moose Mumbles</span>
                 <span className="mm-chip mm-mono">Moose Merch</span>
               </div>
-              <h1 className="mm-mono mt-7 text-4xl md:text-6xl font-semibold tracking-tight text-[var(--fg)]">
+
+              <h1 className="mm-mono mt-6 sm:mt-7 text-3xl sm:text-4xl md:text-6xl font-semibold tracking-tight text-[var(--fg)]">
                 A studio for the Moose ecosystem.
               </h1>
 
-              <p className="mt-5 text-[15px] md:text-lg leading-relaxed text-[var(--muted)]">
+              <p className="mt-4 sm:mt-5 text-sm sm:text-[15px] md:text-lg leading-relaxed text-[var(--muted)]">
                 MooseMatrix is the front door—four destinations, one consistent system. Scroll to pick a door.
               </p>
-              <div className="mt-10 flex flex-wrap items-center justify-center gap-3 text-[12px] text-[var(--muted)]">
-                  <span className="mm-topbar px-4 py-2 mm-mono">Build</span>
-                  <span className="mm-topbar px-4 py-2 mm-mono">Learn</span>
-                  <span className="mm-topbar px-4 py-2 mm-mono">Track</span>
-                  <span className="mm-topbar px-4 py-2 mm-mono">Support</span>
-            </div>        
+
+              <div className="mt-8 sm:mt-10 flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-[12px] text-[var(--muted)]">
+                <span className="mm-topbar px-4 py-2 mm-mono">Build</span>
+                <span className="mm-topbar px-4 py-2 mm-mono">Learn</span>
+                <span className="mm-topbar px-4 py-2 mm-mono">Track</span>
+                <span className="mm-topbar px-4 py-2 mm-mono">Support</span>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* Sections */}
         {SECTIONS.map((s, idx) => (
-          <section key={s.id} id={s.id} className="snap-start scroll-mt-24">
-            <div className="mx-auto max-w-6xl px-6 py-14 min-h-[calc(100svh-76px)] flex items-center">
-              <div className="grid w-full items-center gap-8 lg:grid-cols-12">
-                <div className="lg:col-span-6">
+          <section key={s.id} id={s.id} className="md:snap-start scroll-mt-24">
+            <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10 sm:py-14 md:min-h-[calc(100svh-76px)] md:flex md:items-center">
+              <div className="grid w-full items-start gap-8 md:grid-cols-12 md:items-center">
+                <div className="md:col-span-6">
                   <div className="flex items-center gap-2">
                     <span className="mm-chip mm-mono">{s.tag}</span>
                     <span className="mm-mono text-[12px] uppercase tracking-[0.18em] text-[var(--muted)]">
@@ -96,15 +103,15 @@ export default function HomePage() {
                     </span>
                   </div>
 
-                  <h2 className="mt-6 text-balance text-4xl md:text-5xl font-semibold tracking-tight text-[var(--fg)]">
+                  <h2 className="mt-5 sm:mt-6 text-balance text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight text-[var(--fg)]">
                     {s.label}
                   </h2>
 
-                  <p className="mt-4 text-[15px] md:text-lg leading-relaxed text-[var(--muted)]">
+                  <p className="mt-3 sm:mt-4 text-sm sm:text-[15px] md:text-lg leading-relaxed text-[var(--muted)]">
                     {s.desc}
                   </p>
 
-                  <ul className="mt-6 space-y-2 text-[13px] md:text-[14px] text-[var(--muted)]">
+                  <ul className="mt-5 sm:mt-6 space-y-2 text-[13px] md:text-[14px] text-[var(--muted)]">
                     {s.bullets.map((b) => (
                       <li key={b} className="flex items-start gap-3">
                         <span aria-hidden className="mt-[7px] h-1.5 w-1.5 rounded-full bg-[var(--muted)]" />
@@ -113,24 +120,26 @@ export default function HomePage() {
                     ))}
                   </ul>
 
-                  <div className="mt-8">
+                  <div className="mt-7 sm:mt-8">
                     <a
                       href={s.href}
+                      target="_blank"
                       rel="noopener noreferrer"
                       className="mm-underline mm-mono inline-flex items-center text-[12px] uppercase tracking-[0.18em] text-[var(--muted)] hover:text-[var(--fg)]"
+                      aria-label={`Open ${s.label} (opens in new tab)`}
                     >
                       Open {s.label} <span aria-hidden="true" className="ml-1">→</span>
                     </a>
                   </div>
                 </div>
 
-                <div className="lg:col-span-6">
-                  <div className="mm-card p-6 md:p-8">
+                <div className="md:col-span-6">
+                  <div className="mm-card p-5 sm:p-6 md:p-8">
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-4">
                         <Image
                           src={s.icon}
-                          alt=""
+                          alt={`${s.label} icon`}
                           width={52}
                           height={52}
                           className="rounded-2xl border border-[var(--border)] bg-[var(--surface)]"
@@ -140,28 +149,28 @@ export default function HomePage() {
                           <div className="mm-mono text-[12px] uppercase tracking-[0.18em] text-[var(--muted)]">
                             Destination
                           </div>
-                          <div className="mt-1 text-[20px] font-semibold text-[var(--fg)]">
+                          <div className="mt-1 text-[18px] sm:text-[20px] font-semibold text-[var(--fg)]">
                             {s.label}
                           </div>
                         </div>
                       </div>
+
                       <a
                         href={s.href}
+                        target="_blank"
                         rel="noopener noreferrer"
                         className="mm-underline mm-mono text-[12px] text-[var(--muted)] hover:text-[var(--fg)]"
-                        aria-label={`Open ${s.label}`}
+                        aria-label={`Open ${s.label} (opens in new tab)`}
                       >
                         ↗
                       </a>
                     </div>
 
-                    <div className="mt-6 h-px bg-[var(--border)]" />
+                    <div className="mt-5 sm:mt-6 h-px bg-[var(--border)]" />
 
-                    <p className="mt-6 text-[14px] leading-relaxed text-[var(--muted)]">
-                      {s.desc}
-                    </p>
+                    <p className="mt-5 sm:mt-6 text-[14px] leading-relaxed text-[var(--muted)]">{s.desc}</p>
 
-                    <div className="mt-7 flex flex-wrap gap-2">
+                    <div className="mt-6 sm:mt-7 flex flex-wrap gap-2">
                       {s.bullets.map((b) => (
                         <span key={b} className="mm-topbar px-3 py-2 mm-mono text-[12px] text-[var(--muted)]">
                           {b}
@@ -169,8 +178,13 @@ export default function HomePage() {
                       ))}
                     </div>
 
-                    <div className="mt-8">
-                      <a href={s.href} rel="noopener noreferrer" className="mm-btn-secondary">
+                    <div className="mt-7 sm:mt-8">
+                      <a
+                        href={s.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mm-btn-secondary w-full sm:w-auto justify-center inline-flex"
+                      >
                         Visit {s.label} <span aria-hidden="true">→</span>
                       </a>
                     </div>
@@ -180,6 +194,8 @@ export default function HomePage() {
             </div>
           </section>
         ))}
+
+        <div className="h-6 sm:h-10" />
       </div>
     </main>
   );

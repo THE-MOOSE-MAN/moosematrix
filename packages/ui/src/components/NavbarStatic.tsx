@@ -1,19 +1,3 @@
-export type NavLink = { label: string; href: string; desc?: string };
-
-export const STUDIO: NavLink[] = [
-  { label: "Matrix", href: "https://matrix.moosematrix.com", desc: "Tech hub · security engineering · builds" },
-  { label: "Moose Mumbles", href: "https://mooseman.moosematrix.com", desc: "Writing · videos · notes in public" },
-  { label: "Moo$e Money", href: "https://m2.moosematrix.com", desc: "Tools · dashboards · wealth systems" },
-  { label: "Store", href: "https://moosemerch.moosematrix.com", desc: "Merch · digital drops · goods" },
-];
-
-export const COMPANY: NavLink[] = [
-  { label: "About", href: "/about" },
-  // { label: "Contact", href: "/contact" }, // removed
-  { label: "Privacy", href: "/privacy" },
-  { label: "Terms", href: "/terms" },
-  { label: "Security", href: "/security" },
-];
 
 export function NavbarStatic({
   title = "The Moose Matrix",

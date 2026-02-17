@@ -1,5 +1,14 @@
-@import "@moosematrix/ui/styles.css";
+@import "tailwindcss";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Scan app source (src/**) */
+@source "../**/*.{ts,tsx,js,jsx,mdx}";
+
+/* Scan UI package source */
+@source "../../../../packages/ui/src/**/*.{ts,tsx,js,jsx,mdx}";
+
+/* Exclude heavy dirs */
+@source not "../../../../packages/ui/**/node_modules/**";
+@source not "../../../../packages/ui/**/dist/**";
+@source not "../../../../packages/ui/**/.next/**";
+
+@import "@moosematrix/ui/styles.css";

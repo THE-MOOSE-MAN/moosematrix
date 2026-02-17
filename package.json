@@ -15,11 +15,9 @@
   "devDependencies": {
     "@types/connect": "^3.4.38",
     "baseline-browser-mapping": "^2.9.19",
-    "turbo": "^2.0.6"
+    "turbo": "^2.8.9"
   },
   "dependencies": {
-    "@tailwindcss/cli": "^4.1.18",
-    "framer-motion": "^12.23.13",
-    "tailwindcss": "^4.1.18"
+    "framer-motion": "^12.23.13"
   }
 }

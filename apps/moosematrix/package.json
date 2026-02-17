@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "predev": "bash ./scripts/free-port.sh 3001",
-    "dev": "next dev -p 3001",
+    "dev": "next dev --webpack -p 3001",
     "build": "next build",
     "start": "node server.js",
     "lint": "next lint"
@@ -17,14 +17,14 @@
     "react-dom": "18.3.1"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.18",
     "@types/connect": "^3.4.38",
     "@types/express": "^4.17.21",
     "@types/node": "24.4.0",
     "@types/react": "19.1.13",
-    "autoprefixer": "^10.4.20",
     "eslint": "^8.57.0",
-    "postcss": "^8.4.47",
-    "tailwindcss": "^3.4.10",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18",
     "typescript": "^5.5.4"
   }
 }
