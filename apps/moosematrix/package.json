@@ -12,7 +12,7 @@
     "@moosematrix/ui": "file:../../packages/ui",
     "express": "^4.19.2",
     "framer-motion": "^11.0.0",
-    "next": "^16.1.6",
+    "next": "^16.4.2",
     "react": "18.3.1",
     "react-dom": "18.3.1"
   },
