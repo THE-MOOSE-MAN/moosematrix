@@ -287,3 +287,27 @@ body {
 @media (min-width: 1024px) {
   .mm-sep { height: 24px; }
 }
+
+/* ---------- Header theme toggle (same look as the m2 / merch header toggle) ---------- */
+.mm-theme-toggle { display: inline-flex; align-items: center; gap: 2px; padding: 3px; border: 1px solid var(--border); border-radius: 999px; background: color-mix(in srgb, var(--surface) 88%, transparent); }
+/* Invisible (not focusable) until hydrated, but its space is reserved so showing it causes no layout shift. */
+.mm-theme-toggle:not([data-ready]) { visibility: hidden; }
+.mm-theme-toggle button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 44px; min-height: 44px; padding: 0 0.7rem; border: 0; border-radius: 999px; background: transparent; color: var(--muted); font: inherit; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size: 12px; font-weight: 700; cursor: pointer; transition: background-color 140ms ease, color 140ms ease; }
+.mm-theme-toggle button:hover { color: var(--fg); background: var(--surface-2); }
+.mm-theme-toggle button[aria-pressed="true"] { color: var(--fg); background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--border); }
+.mm-theme-toggle svg { width: 16px; height: 16px; flex: none; }
+.mm-theme-toggle .mm-tt-label { display: none; }
+@media (min-width: 1100px) { .mm-theme-toggle .mm-tt-label { display: inline; } }
+
+/* ---------- Homepage "sections" scroll model ----------
+   ONE scroller: the document. Sections are at least one screen tall (min-height, never a fixed height, so
+   content can grow at 200% zoom) and softly snap on the root scroller with `proximity` (never `mandatory`,
+   which can trap the reader between sections). The footer is a snap target too, so End / Space / PageDown,
+   the scrollbar and anchor links all reach it. Snapping and smooth scrolling are off for reduced motion and
+   on small screens (touch flicks + tall sections). Scoped with :has() so other pages are untouched. */
+html:has(#mm-snap) { scroll-padding-top: 76px; }
+@media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+  html:has(#mm-snap) { scroll-snap-type: y proximity; scroll-behavior: smooth; }
+  html:has(#mm-snap) #mm-snap > section { scroll-snap-align: start; }
+  html:has(#mm-snap) #site-footer { scroll-snap-align: end; }
+}

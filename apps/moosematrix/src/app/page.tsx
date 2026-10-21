@@ -48,22 +48,20 @@ const DOTS = [{ id: "home", label: "Home" }, ...SECTIONS.map((s) => ({ id: s.id,
 
 export default function HomePage() {
   return (
-    <main id="content" className="mm-shell">
+    // Not a second <main>: layout.tsx already wraps every page in <main>. id="content" is the skip-link target.
+    <div id="content" className="mm-shell">
       {/* Keep Feb 14 desktop dots; hide on mobile (touch + no snap) */}
       <div className="hidden md:block">
         <ScrollDots containerId="mm-snap" items={DOTS} />
       </div>
 
-      {/* Mobile: document scroll (footer reachable)
-          Desktop (md+): Feb 14 inner scroll + snap */}
-      <div
-        id="mm-snap"
-        className={[
-          "min-h-[calc(100svh-76px)] overflow-visible snap-none",
-          "md:h-[calc(100svh-76px)] md:overflow-y-auto md:snap-y md:snap-proximity md:scroll-smooth",
-        ].join(" ")}
-      >
-        <section id="home" className="md:snap-start scroll-mt-24">
+      {/* One scroller (the document) at every size, so there is a single scrollbar and the footer is
+          always reachable. The full-screen "sections" look comes from min-h on each section; soft snapping
+          (y proximity) lives on <html> in packages/ui/src/styles.css, off for reduced motion and mobile.
+          Previously md+ used an inner h-[100svh-76px] overflow-y-auto box: a second scrollbar nested in the
+          page scroller, with the footer outside it. */}
+      <div id="mm-snap">
+        <section id="home">
           <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-10 sm:pt-14 pb-10 md:min-h-[calc(100svh-76px)] md:flex md:items-center">
             <div className="mx-auto max-w-3xl text-center">
               <div className="flex flex-wrap items-center justify-center gap-2">
@@ -92,7 +90,7 @@ export default function HomePage() {
         </section>
 
         {SECTIONS.map((s, idx) => (
-          <section key={s.id} id={s.id} className="md:snap-start scroll-mt-24">
+          <section key={s.id} id={s.id}>
             <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10 sm:py-14 md:min-h-[calc(100svh-76px)] md:flex md:items-center">
               <div className="grid w-full items-start gap-8 md:grid-cols-12 md:items-center">
                 <div className="md:col-span-6">
@@ -197,6 +195,6 @@ export default function HomePage() {
 
         <div className="h-6 sm:h-10" />
       </div>
-    </main>
+    </div>
   );
 }
