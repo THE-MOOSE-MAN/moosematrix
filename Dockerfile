@@ -1,7 +1,7 @@
 # -------------------------------
 # 1. Base deps (install all deps for workspaces)
 # -------------------------------
-FROM node:20-alpine AS deps
+FROM node:24.22.1-alpine@sha256:6a1c190e17215d844926b0677f4bf87273ff7d5e54db06d3b5b5863ab0b09a3d AS deps
 WORKDIR /app
 
 RUN apk add --no-cache libc6-compat
@@ -20,7 +20,7 @@ RUN npm install --workspaces
 # -------------------------------
 # 2. Build the app
 # -------------------------------
-FROM node:20-alpine AS build
+FROM node:24.22.1-alpine@sha256:6a1c190e17215d844926b0677f4bf87273ff7d5e54db06d3b5b5863ab0b09a3d AS build
 WORKDIR /app
 
 COPY --from=deps /app ./
@@ -39,7 +39,7 @@ RUN npx turbo run build --filter=moosematrix...
 # -------------------------------
 # 3. Production runtime
 # -------------------------------
-FROM node:20-alpine AS runner
+FROM node:24.22.1-alpine@sha256:6a1c190e17215d844926b0677f4bf87273ff7d5e54db06d3b5b5863ab0b09a3d AS runner
 WORKDIR /app/apps/moosematrix
 
 RUN apk add --no-cache dumb-init curl
