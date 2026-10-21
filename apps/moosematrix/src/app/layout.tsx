@@ -1,6 +1,5 @@
 // layout.tsx
 import type { Metadata, Viewport } from "next";
-import Script from "next/script";
 import "./globals.css";
 import { NavbarStatic, FooterStatic } from "@moosematrix/ui";
 
@@ -51,10 +50,13 @@ const THEME_INIT = `(() => {
         : "mm-theme=" + mode + "; Domain=.moosematrix.com; Path=/; Max-Age=31536000; SameSite=Lax; Secure";
     }
     if (mode !== "system") {
-      const c = mode === "dark" ? "#070b13" : "#f7f6f3";
-      document.addEventListener("DOMContentLoaded", () => {
-        document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute("content", c));
-      });
+      // Override the scheme-specific theme-color metas without touching React-managed tags (avoids a
+      // hydration mismatch): the first matching theme-color in document order wins.
+      const meta = document.createElement("meta");
+      meta.name = "theme-color";
+      meta.content = mode === "dark" ? "#070b13" : "#f7f6f3";
+      meta.id = "mm-theme-color";
+      document.head.prepend(meta);
     }
   } catch {}
 })();`;
@@ -63,11 +65,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <Script
-          id="mm-theme-init"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{ __html: THEME_INIT }}
-        />
+        {/* Plain inline script (not next/script): runs while <head> is parsed, before first paint, so the
+            saved theme never flashes. next/script "beforeInteractive" queues it until the runtime boots. */}
+        <script id="mm-theme-init" dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
       </head>
       <body className="min-h-svh antialiased flex flex-col overflow-x-hidden">
         <NavbarStatic />
