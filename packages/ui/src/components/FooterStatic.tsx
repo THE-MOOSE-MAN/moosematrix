@@ -7,7 +7,7 @@ const STUDIO: FooterLink[] = [
   { label: "Moose Matrix", href: "https://matrix.moosematrix.com", external: true },
   { label: "Moo$e Money", href: "https://m2.moosematrix.com", external: true },
   { label: "Moose Mumbles", href: "https://mooseman.moosematrix.com", external: true },
-  { label: "Store", href: "https://moosemerch.moosematrix.com", external: true },
+  { label: "Store", href: "https://merch.moosematrix.com", external: true },
 ];
 
 const COMPANY: FooterLink[] = [

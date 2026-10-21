@@ -40,8 +40,8 @@ const DOORS: Door[] = [
   },
   {
     name: "Moose Merch",
-    href: "https://moosemerch.moosematrix.com",
-    subdomain: "moosemerch.moosematrix.com",
+    href: "https://merch.moosematrix.com",
+    subdomain: "merch.moosematrix.com",
     desc: "Physical + digital goods that support the ecosystem.",
     status: "Coming soon",
     focus: ["Drops", "Goods", "Digital"],
