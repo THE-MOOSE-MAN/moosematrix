@@ -43,3 +43,12 @@ Dockerfile
 .git
 .gitignore
 *.md
+
+# Security hardening (2026-10): never ship env files, keys or VCS metadata in any workspace
+**/.env
+**/.env.*
+!**/.env.example
+**/*.pem
+**/*.key
+**/node_modules
+**/.git
