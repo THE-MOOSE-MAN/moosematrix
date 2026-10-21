@@ -325,7 +325,19 @@ html:has(#mm-snap) { scroll-padding-top: var(--mmx-header-h); }
 .mmx-bar { position: relative; display: flex; align-items: center; gap: 0.5rem; height: var(--mmx-bar-h); }
 .mmx-brand { display: inline-flex; flex: none; align-items: center; gap: 0.6rem; min-height: 44px; color: var(--fg); text-decoration: none; border-radius: 10px; }
 .mmx-brand:hover { color: var(--fg); }
-.mmx-brand img { display: block; width: 32px; height: 32px; border-radius: 9px; border: 1px solid var(--border); }
+/* Brand logo (final, 2026-10-21): the light and dark art are both in the HTML; this shows the active theme's copy.
+   Sizes come from the width/height attributes on each <img>/<source> (no fixed box), so space is reserved (CLS 0). */
+.mmx-brand img { display: block; width: auto; height: 34px; max-width: none; border: 0; border-radius: 0; background: none; }
+@media (min-width: 560px) { .mmx-brand img { height: 24px; } }
+@media (min-width: 1100px) { .mmx-brand img { height: 30px; } }
+.mmx-logo { display: block; }
+.mmx-only-dark { display: none; }
+:root[data-theme="dark"] .mmx-only-light { display: none; }
+:root[data-theme="dark"] .mmx-only-dark { display: block; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .mmx-only-light { display: none; }
+  :root:not([data-theme]) .mmx-only-dark { display: block; }
+}
 .mmx-word { font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace); font-size: 13px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; white-space: nowrap; }
 @media (max-width: 559px) { .mmx-word { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } }
 .mmx-list { display: flex; gap: 0.15rem; margin: 0; padding: 0; list-style: none; }
@@ -366,7 +378,6 @@ html:has(#mm-snap) { scroll-padding-top: var(--mmx-header-h); }
 @media (prefers-reduced-motion: reduce) { .mmx-link { transition: none; } }
 /* ===== end shared nav ===== */
 html { scroll-padding-top: calc(var(--mmx-header-h) + 16px); }
-.mmx-brand img { object-fit: cover; background: #000; }
 /* Skip link: off-screen until focused (the old one used mm-sr-only, whose !important rules a focus: utility
    could not undo, so it never became visible; its #content target also only existed on two pages). */
 .mm-skip-link { position: absolute; left: 1rem; top: -100px; z-index: 100; padding: 0.7rem 1rem; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--fg); box-shadow: var(--shadow); font-weight: 700; text-decoration: none; }
@@ -375,3 +386,55 @@ main:focus { outline: none; }
 /* Primary button text on the dark-theme accent (#60a5fa): white was 2.5:1; the dark --bg ink is 7.8:1 (matches m2/merch --on-accent). */
 :root[data-theme="dark"] .mm-btn-primary, :root[data-theme="dark"] .mm-btn-primary:hover { color: #070b13; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme]) .mm-btn-primary, :root:not([data-theme]) .mm-btn-primary:hover { color: #070b13; } }
+
+/* ── Typed accent word (shared Moose Matrix pattern) ───────────────────────────────────────────────
+   Markup (server-rendered, no JS):
+     <span class="mmx-tw"><span class="mmx-tw-sr">word</span><span class="mmx-tw-a" aria-hidden="true"><span>w</span><span>o</span>…</span></span>
+   - The full word is always in the DOM (visually-hidden copy) for screen readers, find-in-page, copy and no-JS.
+   - Every glyph is laid out from the first frame; only `visibility` animates, so the final width is reserved (CLS 0).
+   - Types once on load (75ms/char, like mooseman.moosematrix.com), caret rides the newest glyph, blinks twice, then goes. Caret animations have no fill: when one ends the caret falls back to opacity 0.
+   - prefers-reduced-motion: no animation, the word is simply there. Supports up to 32 characters. */
+.mmx-tw { color: var(--accent); }
+.mmx-tw-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0; }
+.mmx-tw-a { --mmx-tw-step: 75ms; --mmx-tw-start: 150ms; -webkit-user-select: none; user-select: none; }
+.mmx-tw-a > span { position: relative; animation: mmx-tw-in 1ms linear both; }
+.mmx-tw-a > span::after { content: ""; position: absolute; top: 0.12em; bottom: 0.08em; right: -0.07em; width: 0.08em; border-radius: 1px; background: currentColor; opacity: 0; pointer-events: none; animation: mmx-tw-caret var(--mmx-tw-step) linear; }
+.mmx-tw-a > span:nth-child(1), .mmx-tw-a > span:nth-child(1)::after { animation-delay: calc(var(--mmx-tw-start) + 0 * var(--mmx-tw-step)); }
+.mmx-tw-a > span:nth-child(2), .mmx-tw-a > span:nth-child(2)::after { animation-delay: calc(var(--mmx-tw-start) + 1 * var(--mmx-tw-step)); }
+.mmx-tw-a > span:nth-child(3), .mmx-tw-a > span:nth-child(3)::after { animation-delay: calc(var(--mmx-tw-start) + 2 * var(--mmx-tw-step)); }
+.mmx-tw-a > span:nth-child(4), .mmx-tw-a > span:nth-child(4)::after { animation-delay: calc(var(--mmx-tw-start) + 3 * var(--mmx-tw-step)); }
+.mmx-tw-a > span:nth-child(5), .mmx-tw-a > span:nth-child(5)::after { animation-delay: calc(var(--mmx-tw-start) + 4 * var(--mmx-tw-step)); }
+.mmx-tw-a > span:nth-child(6), .mmx-tw-a > span:nth-child(6)::after { animation-delay: calc(var(--mmx-tw-start) + 5 * var(--mmx-tw-step)); }
+.mmx-tw-a > span:nth-child(7), .mmx-tw-a > span:nth-child(7)::after { animation-delay: calc(var(--mmx-tw-start) + 6 * var(--mmx-tw-step)); }
+.mmx-tw-a > span:nth-child(8), .mmx-tw-a > span:nth-child(8)::after { animation-delay: calc(var(--mmx-tw-start) + 7 * var(--mmx-tw-step)); }
+.mmx-tw-a > span:nth-child(9), .mmx-tw-a > span:nth-child(9)::after { animation-delay: calc(var(--mmx-tw-start) + 8 * var(--mmx-tw-step)); }
+.mmx-tw-a > span:nth-child(10), .mmx-tw-a > span:nth-child(10)::after { animation-delay: calc(var(--mmx-tw-start) + 9 * var(--mmx-tw-step)); }
+.mmx-tw-a > span:nth-child(11), .mmx-tw-a > span:nth-child(11)::after { animation-delay: calc(var(--mmx-tw-start) + 10 * var(--mmx-tw-step)); }
+.mmx-tw-a > span:nth-child(12), .mmx-tw-a > span:nth-child(12)::after { animation-delay: calc(var(--mmx-tw-start) + 11 * var(--mmx-tw-step)); }
+.mmx-tw-a > span:nth-child(13), .mmx-tw-a > span:nth-child(13)::after { animation-delay: calc(var(--mmx-tw-start) + 12 * var(--mmx-tw-step)); }
+.mmx-tw-a > span:nth-child(14), .mmx-tw-a > span:nth-child(14)::after { animation-delay: calc(var(--mmx-tw-start) + 13 * var(--mmx-tw-step)); }
+.mmx-tw-a > span:nth-child(15), .mmx-tw-a > span:nth-child(15)::after { animation-delay: calc(var(--mmx-tw-start) + 14 * var(--mmx-tw-step)); }
+.mmx-tw-a > span:nth-child(16), .mmx-tw-a > span:nth-child(16)::after { animation-delay: calc(var(--mmx-tw-start) + 15 * var(--mmx-tw-step)); }
+.mmx-tw-a > span:nth-child(17), .mmx-tw-a > span:nth-child(17)::after { animation-delay: calc(var(--mmx-tw-start) + 16 * var(--mmx-tw-step)); }
+.mmx-tw-a > span:nth-child(18), .mmx-tw-a > span:nth-child(18)::after { animation-delay: calc(var(--mmx-tw-start) + 17 * var(--mmx-tw-step)); }
+.mmx-tw-a > span:nth-child(19), .mmx-tw-a > span:nth-child(19)::after { animation-delay: calc(var(--mmx-tw-start) + 18 * var(--mmx-tw-step)); }
+.mmx-tw-a > span:nth-child(20), .mmx-tw-a > span:nth-child(20)::after { animation-delay: calc(var(--mmx-tw-start) + 19 * var(--mmx-tw-step)); }
+.mmx-tw-a > span:nth-child(21), .mmx-tw-a > span:nth-child(21)::after { animation-delay: calc(var(--mmx-tw-start) + 20 * var(--mmx-tw-step)); }
+.mmx-tw-a > span:nth-child(22), .mmx-tw-a > span:nth-child(22)::after { animation-delay: calc(var(--mmx-tw-start) + 21 * var(--mmx-tw-step)); }
+.mmx-tw-a > span:nth-child(23), .mmx-tw-a > span:nth-child(23)::after { animation-delay: calc(var(--mmx-tw-start) + 22 * var(--mmx-tw-step)); }
+.mmx-tw-a > span:nth-child(24), .mmx-tw-a > span:nth-child(24)::after { animation-delay: calc(var(--mmx-tw-start) + 23 * var(--mmx-tw-step)); }
+.mmx-tw-a > span:nth-child(25), .mmx-tw-a > span:nth-child(25)::after { animation-delay: calc(var(--mmx-tw-start) + 24 * var(--mmx-tw-step)); }
+.mmx-tw-a > span:nth-child(26), .mmx-tw-a > span:nth-child(26)::after { animation-delay: calc(var(--mmx-tw-start) + 25 * var(--mmx-tw-step)); }
+.mmx-tw-a > span:nth-child(27), .mmx-tw-a > span:nth-child(27)::after { animation-delay: calc(var(--mmx-tw-start) + 26 * var(--mmx-tw-step)); }
+.mmx-tw-a > span:nth-child(28), .mmx-tw-a > span:nth-child(28)::after { animation-delay: calc(var(--mmx-tw-start) + 27 * var(--mmx-tw-step)); }
+.mmx-tw-a > span:nth-child(29), .mmx-tw-a > span:nth-child(29)::after { animation-delay: calc(var(--mmx-tw-start) + 28 * var(--mmx-tw-step)); }
+.mmx-tw-a > span:nth-child(30), .mmx-tw-a > span:nth-child(30)::after { animation-delay: calc(var(--mmx-tw-start) + 29 * var(--mmx-tw-step)); }
+.mmx-tw-a > span:nth-child(31), .mmx-tw-a > span:nth-child(31)::after { animation-delay: calc(var(--mmx-tw-start) + 30 * var(--mmx-tw-step)); }
+.mmx-tw-a > span:nth-child(32), .mmx-tw-a > span:nth-child(32)::after { animation-delay: calc(var(--mmx-tw-start) + 31 * var(--mmx-tw-step)); }
+.mmx-tw-a > span:last-child::after { animation-name: mmx-tw-blink; animation-duration: 0.9s; animation-iteration-count: 2; animation-timing-function: step-end; }
+@keyframes mmx-tw-in { from { visibility: hidden; } to { visibility: visible; } }
+@keyframes mmx-tw-caret { from, to { opacity: 1; } }
+@keyframes mmx-tw-blink { 0% { opacity: 1; } 50%, 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .mmx-tw-a > span, .mmx-tw-a > span::after { animation: none !important; }
+}

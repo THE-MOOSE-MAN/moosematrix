@@ -2,8 +2,8 @@ export const dynamic = "force-static";
 export const revalidate = false;
 export const fetchCache = "force-cache";
 
-import Image from "next/image";
 import { ScrollDots } from "@moosematrix/ui";
+import { TypedAccent } from "../components/TypedAccent";
 
 const SECTIONS = [
   {
@@ -11,7 +11,7 @@ const SECTIONS = [
     label: "Moose Matrix",
     href: "https://matrix.moosematrix.com",
     desc: "Tech hub · security engineering · builds",
-    icon: "/moose.png",
+    icon: "main",
     tag: "Engineering",
     bullets: ["Security-first builds", "Uniform systems", "Minimal surface area"],
   },
@@ -20,7 +20,7 @@ const SECTIONS = [
     label: "Moo$e Money",
     href: "https://m2.moosematrix.com",
     desc: "Tools · dashboards · wealth systems",
-    icon: "/moose_money_logo.png",
+    icon: "money",
     tag: "Finance",
     bullets: ["Dashboards & trackers", "Wealth systems", "Simple workflows"],
   },
@@ -29,7 +29,7 @@ const SECTIONS = [
     label: "Moose Mumbles",
     href: "https://mooseman.moosematrix.com",
     desc: "Writing · videos · notes in public",
-    icon: "/moose.png",
+    icon: "main",
     tag: "Writing",
     bullets: ["Writeups & reviews", "Notes-in-public", "Progress trail"],
   },
@@ -38,7 +38,7 @@ const SECTIONS = [
     label: "Store",
     href: "https://merch.moosematrix.com",
     desc: "Merch · digital drops · goods",
-    icon: "/moose_merch_logo.png",
+    icon: "store",
     tag: "Merch",
     bullets: ["Drops", "Digital goods", "Physical goods"],
   },
@@ -72,7 +72,7 @@ export default function HomePage() {
               </div>
 
               <h1 className="mm-mono mt-6 sm:mt-7 text-3xl sm:text-4xl md:text-6xl font-semibold tracking-tight text-[var(--fg)]">
-                A studio for the Moose ecosystem.
+                A studio for the Moose <TypedAccent>ecosystem</TypedAccent>.
               </h1>
 
               <p className="mt-4 sm:mt-5 text-sm sm:text-[15px] md:text-lg leading-relaxed text-[var(--muted)]">
@@ -135,14 +135,18 @@ export default function HomePage() {
                   <div className="mm-card p-5 sm:p-6 md:p-8">
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-4">
-                        <Image
-                          src={s.icon}
-                          alt={`${s.label} icon`}
-                          width={52}
-                          height={52}
-                          className="rounded-2xl border border-[var(--border)] bg-[var(--surface)]"
-                          priority={idx === 0}
-                        />
+                        {(["light", "dark"] as const).map((scheme) => (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            key={scheme}
+                            src={`/brand/${s.icon}-icon-${scheme}.svg`}
+                            alt={`${s.label} icon`}
+                            width={52}
+                            height={52}
+                            className={`mmx-only-${scheme} rounded-2xl`}
+                            decoding="async"
+                          />
+                        ))}
                         <div>
                           <div className="mm-mono text-[12px] uppercase tracking-[0.18em] text-[var(--muted)]">
                             Destination

@@ -3,6 +3,7 @@ export const revalidate = false;
 export const fetchCache = "force-cache";
 
 import Link from "next/link";
+import { TypedAccent } from "../../components/TypedAccent";
 
 type Door = {
   name: string;
@@ -69,7 +70,7 @@ export default function SubsidiariesPage() {
           </div>
 
           <h1 className="text-balance text-4xl md:text-5xl font-semibold tracking-tight text-[var(--fg)]">
-            Subsidiaries & subdomains
+            Subsidiaries &amp; <TypedAccent>subdomains</TypedAccent>
           </h1>
 
           <p className="max-w-2xl text-[15px] md:text-lg leading-relaxed text-[var(--muted)]">

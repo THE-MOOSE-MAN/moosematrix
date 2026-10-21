@@ -1,0 +1,13 @@
+{
+  "name": "Moose Matrix",
+  "short_name": "Moose Matrix",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#f7f6f3",
+  "theme_color": "#f7f6f3",
+  "icons": [
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
