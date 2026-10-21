@@ -8,13 +8,21 @@ export const metadata: Metadata = {
   title: "The Moose Matrix",
   description: "A hub for projects, writing, and products.",
   metadataBase: new URL("https://moosematrix.com"),
-  icons: { icon: "/moose.png" },
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "16x16 32x32" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+  },
+  manifest: "/site.webmanifest",
   openGraph: {
     title: "The Moose Matrix",
     description: "A hub for projects, writing, and products.",
     url: "https://moosematrix.com",
     siteName: "The Moose Matrix",
-    images: [{ url: "/og.png", width: 1200, height: 630 }],
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Moose Matrix" }],
     locale: "en_US",
     type: "website",
   },

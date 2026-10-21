@@ -6,7 +6,7 @@
 // Current page: aria-current ("page", or "true" for the current site while on one of its sub-pages) plus an
 // accent underline. usePathname() runs during static prerender, so aria-current is in the HTML.
 
-import Image from "next/image";
+import { BrandLogo } from "./BrandLogo";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@moosematrix/ui";
 
@@ -55,8 +55,7 @@ export function SiteNav() {
     <header className="mmx-header">
       <div className="mmx-bar">
         <a className="mmx-brand" href="/">
-          <Image src="/moose.png" alt="" width={32} height={32} priority />
-          <span className="mmx-word">Moose Matrix</span>
+          <BrandLogo />
         </a>
         <nav className="mmx-nav" aria-label="Moose Matrix sites">
           <ul className="mmx-list">

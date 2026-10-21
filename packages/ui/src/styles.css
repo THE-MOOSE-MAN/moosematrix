@@ -325,7 +325,19 @@ html:has(#mm-snap) { scroll-padding-top: var(--mmx-header-h); }
 .mmx-bar { position: relative; display: flex; align-items: center; gap: 0.5rem; height: var(--mmx-bar-h); }
 .mmx-brand { display: inline-flex; flex: none; align-items: center; gap: 0.6rem; min-height: 44px; color: var(--fg); text-decoration: none; border-radius: 10px; }
 .mmx-brand:hover { color: var(--fg); }
-.mmx-brand img { display: block; width: 32px; height: 32px; border-radius: 9px; border: 1px solid var(--border); }
+/* Brand logo (final, 2026-10-21): the light and dark art are both in the HTML; this shows the active theme's copy.
+   Sizes come from the width/height attributes on each <img>/<source> (no fixed box), so space is reserved (CLS 0). */
+.mmx-brand img { display: block; width: auto; height: 34px; max-width: none; border: 0; border-radius: 0; background: none; }
+@media (min-width: 560px) { .mmx-brand img { height: 24px; } }
+@media (min-width: 1100px) { .mmx-brand img { height: 30px; } }
+.mmx-logo { display: block; }
+.mmx-only-dark { display: none; }
+:root[data-theme="dark"] .mmx-only-light { display: none; }
+:root[data-theme="dark"] .mmx-only-dark { display: block; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .mmx-only-light { display: none; }
+  :root:not([data-theme]) .mmx-only-dark { display: block; }
+}
 .mmx-word { font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace); font-size: 13px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; white-space: nowrap; }
 @media (max-width: 559px) { .mmx-word { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } }
 .mmx-list { display: flex; gap: 0.15rem; margin: 0; padding: 0; list-style: none; }
@@ -366,7 +378,6 @@ html:has(#mm-snap) { scroll-padding-top: var(--mmx-header-h); }
 @media (prefers-reduced-motion: reduce) { .mmx-link { transition: none; } }
 /* ===== end shared nav ===== */
 html { scroll-padding-top: calc(var(--mmx-header-h) + 16px); }
-.mmx-brand img { object-fit: cover; background: #000; }
 /* Skip link: off-screen until focused (the old one used mm-sr-only, whose !important rules a focus: utility
    could not undo, so it never became visible; its #content target also only existed on two pages). */
 .mm-skip-link { position: absolute; left: 1rem; top: -100px; z-index: 100; padding: 0.7rem 1rem; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--fg); box-shadow: var(--shadow); font-weight: 700; text-decoration: none; }
