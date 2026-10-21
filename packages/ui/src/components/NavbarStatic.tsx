@@ -1,3 +1,4 @@
+import { ThemeToggle } from "./ThemeToggle";
 
 export function NavbarStatic({
   title = "The Moose Matrix",
@@ -23,6 +24,9 @@ export function NavbarStatic({
               {title}
             </span>
           </a>
+
+          {/* Same System / Light / Dark control as the m2 and merch headers (shared mm-theme cookie). */}
+          <ThemeToggle />
         </div>
       </div>
     </header>
