@@ -48,8 +48,8 @@ const DOTS = [{ id: "home", label: "Home" }, ...SECTIONS.map((s) => ({ id: s.id,
 
 export default function HomePage() {
   return (
-    // Not a second <main>: layout.tsx already wraps every page in <main>. id="content" is the skip-link target.
-    <div id="content" className="mm-shell">
+    // Not a second <main>: layout.tsx wraps every page in <main id="content"> (the skip-link target).
+    <div className="mm-shell">
       {/* Keep Feb 14 desktop dots; hide on mobile (touch + no snap) */}
       <div className="hidden md:block">
         <ScrollDots containerId="mm-snap" items={DOTS} />
@@ -62,7 +62,7 @@ export default function HomePage() {
           page scroller, with the footer outside it. */}
       <div id="mm-snap">
         <section id="home">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-10 sm:pt-14 pb-10 md:min-h-[calc(100svh-76px)] md:flex md:items-center">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-10 sm:pt-14 pb-10 md:min-h-[calc(100svh-var(--mmx-header-h))] md:flex md:items-center">
             <div className="mx-auto max-w-3xl text-center">
               <div className="flex flex-wrap items-center justify-center gap-2">
                 <span className="mm-chip mm-mono">Moose Matrix</span>
@@ -91,7 +91,7 @@ export default function HomePage() {
 
         {SECTIONS.map((s, idx) => (
           <section key={s.id} id={s.id}>
-            <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10 sm:py-14 md:min-h-[calc(100svh-76px)] md:flex md:items-center">
+            <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10 sm:py-14 md:min-h-[calc(100svh-var(--mmx-header-h))] md:flex md:items-center">
               <div className="grid w-full items-start gap-8 md:grid-cols-12 md:items-center">
                 <div className="md:col-span-6">
                   <div className="flex items-center gap-2">

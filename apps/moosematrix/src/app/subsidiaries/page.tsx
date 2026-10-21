@@ -60,7 +60,7 @@ function statusPill(status: Door["status"]) {
 
 export default function SubsidiariesPage() {
   return (
-    <main id="content" className="mm-shell">
+    <div className="mm-shell">
       <div className="mx-auto max-w-6xl px-6 py-14">
         {/* Header */}
         <div className="flex flex-col gap-3">
@@ -97,7 +97,6 @@ export default function SubsidiariesPage() {
                 "group mm-card relative overflow-hidden p-6",
                 "focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]",
               ].join(" ")}
-              aria-label={`${d.name} — ${d.desc}`}
             >
               {/* subtle “premium” sheen without loud gradients */}
               <div
@@ -148,6 +147,6 @@ export default function SubsidiariesPage() {
           Tip: bookmark the subdomain you use most.
         </div>
       </div>
-    </main>
+    </div>
   );
 }

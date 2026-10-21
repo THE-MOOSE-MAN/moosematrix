@@ -3,7 +3,7 @@ export const revalidate = false;
 
 export default function SecurityPage() {
   return (
-    <main className="mm-shell">
+    <div className="mm-shell">
       <section className="mx-auto max-w-4xl px-6 pt-14 pb-16">
         <h1 className="mm-mono text-4xl md:text-5xl font-semibold tracking-tight text-[var(--fg)]">
           Security
@@ -39,6 +39,6 @@ export default function SecurityPage() {
           </div>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

@@ -5,7 +5,7 @@ const LAST_UPDATED = "February 13, 2026";
 
 export default function TermsPage() {
   return (
-    <main className="mm-shell">
+    <div className="mm-shell">
       <section className="mx-auto max-w-4xl px-6 pt-14 pb-16">
         <h1 className="mm-mono text-4xl md:text-5xl font-semibold tracking-tight text-[var(--fg)]">
           Terms of Service
@@ -71,6 +71,6 @@ export default function TermsPage() {
           </div>
         </div>
       </section>
-    </main>
+    </div>
   );
 }
