@@ -36,7 +36,7 @@ const SECTIONS = [
   {
     id: "store",
     label: "Store",
-    href: "https://moosemerch.moosematrix.com",
+    href: "https://merch.moosematrix.com",
     desc: "Merch · digital drops · goods",
     icon: "/moose_merch_logo.png",
     tag: "Merch",

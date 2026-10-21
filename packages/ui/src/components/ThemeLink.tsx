@@ -19,17 +19,26 @@ function isLocalhost() {
   return h === "localhost" || h === "127.0.0.1" || h === "[::1]";
 }
 
+function isSharedHost() {
+  const h = window.location.hostname;
+  return h === "moosematrix.com" || h.endsWith(".moosematrix.com");
+}
+
+// Shared across all *.moosematrix.com sites (m2, merch read and write the same cookie).
 function setThemeCookie(mode: ThemeMode) {
   // Non-sensitive cookie; SameSite=Lax is appropriate for preference persistence.
+  const shared = isSharedHost();
+  const secure = window.location.protocol === "https:" && !isLocalhost();
+  const attrs = (shared ? "; Domain=.moosematrix.com" : "") + "; Path=/; SameSite=Lax" + (secure ? "; Secure" : "");
+
+  // Drop any legacy host-only cookie first so it can't shadow the shared one.
+  if (shared) document.cookie = `${COOKIE}=; Path=/; Max-Age=0; SameSite=Lax`;
+
   if (mode === "system") {
-    document.cookie = `${COOKIE}=; Path=/; Max-Age=0; SameSite=Lax`;
+    document.cookie = `${COOKIE}=${attrs}; Max-Age=0`;
     return;
   }
-
-  const secure = window.location.protocol === "https:" && !isLocalhost();
-  document.cookie =
-    `${COOKIE}=${encodeURIComponent(mode)}; Path=/; Max-Age=${ONE_YEAR}; SameSite=Lax` +
-    (secure ? "; Secure" : "");
+  document.cookie = `${COOKIE}=${encodeURIComponent(mode)}${attrs}; Max-Age=${ONE_YEAR}`;
 }
 
 function applyThemeToDom(mode: ThemeMode) {

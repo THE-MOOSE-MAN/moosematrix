@@ -18,7 +18,7 @@ export function NavbarStatic({
       <div className="mx-auto max-w-6xl px-6">
         <div className="flex h-[76px] items-center justify-between gap-3">
           {/* Title only (desktop + mobile) */}
-          <a href={logoHref} className="flex items-center" aria-label="Go to homepage">
+          <a href={logoHref} className="flex items-center" aria-label={`${title} home`}>
             <span className="text-[16px] font-mono font-semibold uppercase tracking-[0.30em] text-[var(--fg)] md:text-[16px] text-[14px]">
               {title}
             </span>

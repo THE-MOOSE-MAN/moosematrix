@@ -39,16 +39,18 @@ export function GET(req: NextRequest) {
   const isProd = process.env.NODE_ENV === "production";
   const secure = isProd && proto === "https" && !isLocalhostHost(host);
 
+  // Shared across *.moosematrix.com (m2, merch use the same cookie). Clear any legacy host-only cookie first.
+  const hostname = host.split(":")[0].toLowerCase();
+  const shared = hostname === "moosematrix.com" || hostname.endsWith(".moosematrix.com");
+  const attrs =
+    (shared ? "; Domain=.moosematrix.com" : "") + "; Path=/; SameSite=Lax" + (secure ? "; Secure" : "");
+
+  if (shared) res.headers.append("Set-Cookie", `${COOKIE}=; Path=/; Max-Age=0; SameSite=Lax`);
   if (mode === "system") {
-    res.cookies.delete({ name: COOKIE, path: "/" });
+    res.headers.append("Set-Cookie", `${COOKIE}=${attrs}; Max-Age=0`);
   } else {
-    res.cookies.set(COOKIE, mode, {
-      path: "/",
-      maxAge: 60 * 60 * 24 * 365,
-      sameSite: "lax",
-      httpOnly: false, // ✅ must be readable by mm-theme.js / layout inline script
-      secure,
-    });
+    // httpOnly must stay off: the layout's init script reads it before paint.
+    res.headers.append("Set-Cookie", `${COOKIE}=${mode}${attrs}; Max-Age=${60 * 60 * 24 * 365}`);
   }
 
   return res;
