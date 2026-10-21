@@ -1,3 +1,4 @@
+import { TypedAccent } from "../../components/TypedAccent";
 export const dynamic = "force-static";
 export const revalidate = false;
 
@@ -6,7 +7,7 @@ export default function ContactPage() {
     <div className="mm-shell">
       <section className="mx-auto max-w-4xl px-6 pt-14 pb-16">
         <h1 className="mm-mono text-4xl md:text-5xl font-semibold tracking-tight text-[var(--fg)]">
-          Contact
+          <TypedAccent>Contact</TypedAccent>
         </h1>
 
         <p className="mt-6 text-[15px] md:text-lg leading-relaxed text-[var(--muted)]">

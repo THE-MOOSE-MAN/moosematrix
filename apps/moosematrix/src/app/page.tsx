@@ -4,6 +4,7 @@ export const fetchCache = "force-cache";
 
 import Image from "next/image";
 import { ScrollDots } from "@moosematrix/ui";
+import { TypedAccent } from "../components/TypedAccent";
 
 const SECTIONS = [
   {
@@ -72,7 +73,7 @@ export default function HomePage() {
               </div>
 
               <h1 className="mm-mono mt-6 sm:mt-7 text-3xl sm:text-4xl md:text-6xl font-semibold tracking-tight text-[var(--fg)]">
-                A studio for the Moose ecosystem.
+                A studio for the Moose <TypedAccent>ecosystem</TypedAccent>.
               </h1>
 
               <p className="mt-4 sm:mt-5 text-sm sm:text-[15px] md:text-lg leading-relaxed text-[var(--muted)]">
