@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+# Minimal stateful docker mock for deploy-safe.sh tests. State lives in $MOCK_STATE.
+set -euo pipefail
+S="${MOCK_STATE:?}"
+echo "docker $*" >> "$S/calls"
+resolve() { # ref|id -> id
+  case "$1" in sha256:*) echo "$1" ;; *) awk -v r="$1" '$1==r{print $2; f=1} END{exit !f}' "$S/tags" ;; esac
+}
+img_field() { # id fieldno (2 created, 3 rev, 4 digest)
+  awk -v i="$1" -v n="$2" '$1==i{print $n; f=1} END{exit !f}' "$S/images"
+}
+ctr() { cat "$S/ctr_$1" 2>/dev/null; }   # files: ctr_image ctr_ref ctr_running ctr_restarting ctr_health
+case "$1" in
+  inspect)
+    fmt="$3"; name="$4"
+    [ -f "$S/ctr_image" ] && [ "$name" = "$(cat "$S/ctr_name")" ] || exit 1
+    case "$fmt" in
+      '{{.Image}}') ctr image ;;
+      '{{.Config.Image}}') ctr ref ;;
+      '{{if .State.Health}}yes{{end}}') [ "$(ctr health)" != none ] && echo yes || echo ;;
+      '{{.State.Running}}') ctr running ;;
+      '{{.State.Restarting}}') ctr restarting ;;
+      '{{.State.Health.Status}}') ctr health ;;
+      *) echo "mock: unknown inspect fmt $fmt" >&2; exit 2 ;;
+    esac ;;
+  image)
+    case "$2" in
+      inspect)
+        fmt="$4"; id="$(resolve "$5")" || exit 1
+        case "$fmt" in
+          *index\ .Config.Labels*) r="$(img_field "$id" 3)"; [ "$r" = - ] && echo '<no value>' || echo "$r" ;;
+          '{{.Created}}') img_field "$id" 2 ;;
+          '{{range .RepoDigests}}'*) d="$(img_field "$id" 4)"; [ "$d" = - ] || echo "$d" ;;
+          *) echo "mock: unknown image inspect fmt" >&2; exit 2 ;;
+        esac ;;
+      ls)
+        [ -f "$S/fail_ls" ] && exit 1
+        pat="${6#reference=}"; prefix="${pat%\*}"
+        awk -v p="$prefix" 'index($1,p)==1{print $1}' "$S/tags" ;;
+      prune) echo "Total reclaimed space: 0B" ;;
+    esac ;;
+  tag)
+    id="$(resolve "$2")" || exit 1
+    grep -v "^$3 " "$S/tags" > "$S/tags.new" || true; mv "$S/tags.new" "$S/tags"
+    echo "$3 $id" >> "$S/tags" ;;
+  rmi)
+    [ "$#" -eq 2 ] || { echo "mock: rmi expects exactly one tag, no flags" >&2; exit 2; }
+    grep -q "^$2 " "$S/tags" || exit 1
+    grep -v "^$2 " "$S/tags" > "$S/tags.new" || true; mv "$S/tags.new" "$S/tags" ;;
+  compose)
+    case " $* " in
+      *" run "*)
+        # Like the real `docker compose run` (stdin attached by default): reads whatever stdin it gets.
+        # With the main() wrapper + </dev/null that is nothing; without it, it eats the streamed script.
+        cat > /dev/null
+        [ ! -f "$S/run_fail" ] ;;
+      *)
+        # compose -f FILE up -d ... SERVICE: container now runs whatever its ref resolves to.
+        if [ -f "$S/compose_pin_file" ]; then   # pinned-tag repos: the ref comes from the compose file
+          sed -n 's/^ *image: //p' "$(cat "$S/compose_pin_file")" | grep -F "$(cat "$S/compose_pin_prefix")" | head -n1 > "$S/ctr_ref"
+        fi
+        [ -f "$S/up_fail" ] && exit 1
+        # one-shot failures of the NEXT up (VB N1): the old container was already removed, or the new one
+        # was created but never became healthy
+        if [ -f "$S/up_fail_gone_once" ]; then rm -f "$S/up_fail_gone_once" "$S/ctr_image"; exit 1; fi
+        if [ -f "$S/up_fail_partial_once" ]; then
+          rm -f "$S/up_fail_partial_once"; resolve "$(ctr ref)" > "$S/ctr_image"; echo unhealthy > "$S/ctr_health"; exit 1
+        fi
+        id="$(resolve "$(ctr ref)")"; echo "$id" > "$S/ctr_image"
+        cp "$S/health_after_up" "$S/ctr_health" 2>/dev/null || echo healthy > "$S/ctr_health" ;;
+    esac ;;
+  exec) [ -n "${MOCK_READ_STDIN:-}" ] && cat > /dev/null; [ -f "$S/exec_ok" ] ;;
+  logs) echo "mock logs" ;;
+  *) echo "mock: unhandled $*" >&2; exit 2 ;;
+esac
