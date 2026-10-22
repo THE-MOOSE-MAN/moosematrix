@@ -1,6 +1,6 @@
 // Nav brand: final Moose Matrix logo (shield + Chakra Petch wordmark, outlined SVG, no text/script inside).
 // Lockup at every width (A3: phones now show the Chakra Petch wordmark too): 30px tall from 1100px, 24px from
-// 560px, 22px below 560px. A light and a dark copy; CSS
+// 560px, 26px below 560px. A light and a dark copy; CSS
 // (.mmx-only-light / .mmx-only-dark in packages/ui styles) shows the one for the active theme. width/height on
 // every <source>/<img> reserve the box before the SVG loads (CLS 0). Plain <img>: SVGs need no optimizer.
 const LOCKUP_W = 238.91 / 36; // lockup viewBox width per unit height
