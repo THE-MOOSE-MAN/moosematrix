@@ -75,6 +75,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout deploy script
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+          sparse-checkout: scripts/deploy-safe.sh
+          sparse-checkout-cone-mode: false
+
       - name: Install SSH key
         shell: bash
         run: |
@@ -96,9 +103,9 @@ jobs:
         run: |
           set -euo pipefail
 
-          ssh -T -i ~/.ssh/id_ed25519 \
-            -p "${{ secrets.VPS_PORT }}" \
-            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" <<'EOF'
+          # scripts/deploy-safe.sh (rollback tag, verify, auto-rollback, deploy record) is streamed
+          # ahead of the remote script over the same SSH session; nothing is installed on the VPS.
+          { cat scripts/deploy-safe.sh; cat <<'EOF'
           set -euo pipefail
 
           SERVICE_NAME="moosematrix-app-dev"
@@ -106,13 +113,19 @@ jobs:
           GHCR_USER="$(echo "${{ github.actor }}" | tr '[:upper:]' '[:lower:]')"
           GHCR_TOKEN="${{ github.token }}"
 
+          export DS_APP="moosematrix-dev" DS_CONTAINER="$SERVICE_NAME" DS_SERVICE="$SERVICE_NAME"
+          export DS_SHA="${{ github.sha }}" DS_RUN_ID="${{ github.run_id }}"
+
           # Use a temporary docker config so nothing is written to ~/.docker
           export DOCKER_CONFIG="$(mktemp -d)"
-          trap 'rm -rf "$DOCKER_CONFIG"' EXIT
+          trap 'ds_on_exit; rm -rf "$DOCKER_CONFIG"' EXIT
 
           printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin >/dev/null
 
           cd /home/moose/projects/infra
+
+          echo "🏷️ Tagging the running image for rollback..."
+          ds_pre
 
           echo "📥 Pulling latest dev image for $SERVICE_NAME..."
           docker compose -f docker-compose.yml pull "$SERVICE_NAME"
@@ -120,17 +133,19 @@ jobs:
           echo "🚀 Recreating container..."
           docker compose -f docker-compose.yml up -d --force-recreate "$SERVICE_NAME"
 
+          echo "🩺 Waiting for health + revision == ${DS_SHA:0:7} (auto-rollback on failure)..."
+          ds_finish
+
           echo "🔎 Running container:"
           docker ps --filter "name=$SERVICE_NAME" --format "table {{.Names}}\t{{.Image}}\t{{.Status}}"
 
-          echo "🔎 Image revision label (dev-latest):"
-          docker image inspect "${IMAGE_REPO}:dev-latest" \
-            --format 'revision={{ index .Config.Labels "org.opencontainers.image.revision" }}' 2>/dev/null || true
-
           echo "🧹 Pruning dangling images only (keeps tagged and rollback-* images)..."
-          docker image prune -f || true
+          ds_prune
 
           echo "✅ Dev container updated (no public dev subdomain)."
           echo "   View via SSH port-forward (example):"
           echo "   ssh -p <VPS_PORT> -L 3001:127.0.0.1:3001 <VPS_USER>@<VPS_HOST>"
           EOF
+          } | ssh -T -i ~/.ssh/id_ed25519 \
+            -p "${{ secrets.VPS_PORT }}" \
+            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" bash -s
