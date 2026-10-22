@@ -48,10 +48,22 @@ case "$1" in
     grep -q "^$2 " "$S/tags" || exit 1
     grep -v "^$2 " "$S/tags" > "$S/tags.new" || true; mv "$S/tags.new" "$S/tags" ;;
   compose)
-    # compose -f FILE up -d --no-deps --force-recreate SERVICE: container now runs whatever its ref resolves to.
-    id="$(resolve "$(ctr ref)")"; echo "$id" > "$S/ctr_image"
-    cp "$S/health_after_up" "$S/ctr_health" 2>/dev/null || echo healthy > "$S/ctr_health" ;;
-  exec) [ -f "$S/exec_ok" ] ;;
+    case " $* " in
+      *" run "*)
+        # Like the real `docker compose run` (stdin attached by default): reads whatever stdin it gets.
+        # With the main() wrapper + </dev/null that is nothing; without it, it eats the streamed script.
+        cat > /dev/null
+        [ ! -f "$S/run_fail" ] ;;
+      *)
+        # compose -f FILE up -d ... SERVICE: container now runs whatever its ref resolves to.
+        if [ -f "$S/compose_pin_file" ]; then   # pinned-tag repos: the ref comes from the compose file
+          sed -n 's/^ *image: //p' "$(cat "$S/compose_pin_file")" | grep -F "$(cat "$S/compose_pin_prefix")" | head -n1 > "$S/ctr_ref"
+        fi
+        [ -f "$S/up_fail" ] && exit 1
+        id="$(resolve "$(ctr ref)")"; echo "$id" > "$S/ctr_image"
+        cp "$S/health_after_up" "$S/ctr_health" 2>/dev/null || echo healthy > "$S/ctr_health" ;;
+    esac ;;
+  exec) [ -n "${MOCK_READ_STDIN:-}" ] && cat > /dev/null; [ -f "$S/exec_ok" ] ;;
   logs) echo "mock logs" ;;
   *) echo "mock: unhandled $*" >&2; exit 2 ;;
 esac

@@ -13,6 +13,7 @@ setup() {
   export DS_RECORD_DIR="$BATS_TEST_TMPDIR/records"; mkdir -p "$DS_RECORD_DIR"
   export DS_APP=moosematrix DS_CONTAINER=moosematrix-app-prod DS_SERVICE=moosematrix-app-prod
   export DS_SHA=$NEWREV DS_RUN_ID=123456 DS_HEALTH_TIMEOUT=1
+  export DS_LOCK_FILE="$BATS_TEST_TMPDIR/moose-deploy.lock" DS_LOCK_WAIT=1
   cat > "$MOCK_STATE/images" <<EOF
 $OLD 2026-10-20T10:00:00Z $OLDREV ghcr.io/the-moose-man/moosematrix@sha256:$(printf 'c%.0s' {1..64})
 $NEW 2026-10-21T10:00:00Z $NEWREV ghcr.io/the-moose-man/moosematrix@sha256:$(printf 'd%.0s' {1..64})
@@ -144,7 +145,8 @@ EOF
   DS_SHA='abc"; rm -rf /'; run ds_pre; [ "$status" -ne 0 ]; DS_SHA=$good_sha
   DS_APP='Moose Matrix'; run ds_pre; [ "$status" -ne 0 ]; DS_APP=moosematrix
   DS_RUN_ID='12;id'; run ds_pre; [ "$status" -ne 0 ]; DS_RUN_ID=1
-  DS_CONTAINER='-c'; run ds_pre; [ "$status" -ne 0 ]
+  DS_CONTAINER='-c'; run ds_pre; [ "$status" -ne 0 ]; DS_CONTAINER=moosematrix-app-prod
+  DS_REVISION_LABEL='x" }}{{ .Config.Env'; run ds_pre; [ "$status" -ne 0 ]
   ! grep -q 'docker tag' "$MOCK_STATE/calls"
 }
 
@@ -181,13 +183,66 @@ EOF
   tail -n1 "$DS_RECORD_DIR/moosematrix.jsonl" | jq -e '.result=="failed" and .rollback_tag==""'
 }
 
-@test "finish: rollback restores the compose backup first (pinned-tag repos)" {
-  echo old > "$BATS_TEST_TMPDIR/compose.bak"; echo new > "$BATS_TEST_TMPDIR/compose.yml"
-  DS_COMPOSE_FILE="$BATS_TEST_TMPDIR/compose.yml" DS_COMPOSE_BACKUP="$BATS_TEST_TMPDIR/compose.bak"
-  ds_pre; simulate_deploy unhealthy
+# ---------- pinned-tag repos (m2, mooseman): rollback reverts only this service's image line ----------
+pinned_setup() { # compose file with two pinned services sharing the file (m2 + mooseman)
+  C="$BATS_TEST_TMPDIR/compose.yml"; DS_COMPOSE_FILE="$C"
+  PIN_OLD=ghcr.io/the-moose-man/moose-money-prod:prod-$OLDREV
+  PIN_NEW=ghcr.io/the-moose-man/moose-money-prod:prod-$NEWREV
+  printf '%s\n' "services:" "  m2-app-prod:" "    image: $PIN_OLD" "  mooseman-site-prod:" \
+    "    image: ghcr.io/the-moose-man/mooseman-site-prod:prod-aaaaaaa" > "$C"
+  printf '%s %s\n%s %s\n' "$PIN_OLD" "$OLD" "$PIN_NEW" "$NEW" >> "$MOCK_STATE/tags"
+  echo "$PIN_OLD" > "$MOCK_STATE/ctr_ref"
+  echo "$C" > "$MOCK_STATE/compose_pin_file"; echo moose-money-prod > "$MOCK_STATE/compose_pin_prefix"
+}
+pin_deploy() { # what the m2 workflow does: pin, record the pin, compose up
+  sed -i "s#^    image: $PIN_OLD\$#    image: $PIN_NEW#" "$C"
+  ds_pin_set "$PIN_OLD" "$PIN_NEW"
+  echo "${1:-healthy}" > "$MOCK_STATE/health_after_up"
+  docker compose -f "$C" up -d --no-deps m2-app-prod
+  echo healthy > "$MOCK_STATE/health_after_up"
+}
+
+@test "pinned: rollback reverts only this service's image line; another app's concurrent pin survives" {
+  pinned_setup; ds_pre; pin_deploy unhealthy
+  # another deploy re-pinned mooseman while this one was running (what a whole-file restore used to undo)
+  sed -i 's#mooseman-site-prod:prod-aaaaaaa#mooseman-site-prod:prod-bbbbbbb#' "$C"
   run ds_finish
   [ "$status" -eq 1 ]
-  [ "$(cat "$BATS_TEST_TMPDIR/compose.yml")" = old ]
+  grep -qx "    image: $PIN_OLD" "$C"
+  grep -qx '    image: ghcr.io/the-moose-man/mooseman-site-prod:prod-bbbbbbb' "$C"
+  [ "$(cat "$MOCK_STATE/ctr_image")" = "$OLD" ]
+  tail -n1 "$DS_RECORD_DIR/moosematrix.jsonl" | jq -e '.result=="rolled_back"'
+}
+
+@test "pinned: success leaves the new pin in place" {
+  pinned_setup; ds_pre; pin_deploy healthy
+  ds_finish
+  grep -qx "    image: $PIN_NEW" "$C"
+}
+
+@test "pinned: revert refuses when the pinned line is missing or duplicated (no blind edits)" {
+  pinned_setup; ds_pin_set "$PIN_OLD" "$PIN_NEW"
+  run ds_pin_revert; [ "$status" -eq 1 ]           # line not present
+  printf '    image: %s\n    image: %s\n' "$PIN_NEW" "$PIN_NEW" >> "$C"
+  before="$(sha256sum < "$C")"
+  run ds_pin_revert; [ "$status" -eq 1 ]           # duplicated
+  [ "$(sha256sum < "$C")" = "$before" ]
+  ! ls "$C".ds-revert.* 2>/dev/null
+}
+
+@test "pinned: hostile pin refs are rejected" {
+  run ds_pin_set 'x#y' "$NEWREV"; [ "$status" -ne 0 ]
+  run ds_pin_set 'ghcr.io/a:b' 'a b'; [ "$status" -ne 0 ]
+}
+
+@test "failed rollback prints the manual recovery command (L3)" {
+  pinned_setup; ds_pre; pin_deploy unhealthy
+  touch "$MOCK_STATE/up_fail"
+  run ds_finish
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"MANUAL RECOVERY"* ]]
+  [[ "$output" == *"docker tag moosematrix:rollback-$TODAY-1111111 $PIN_OLD"* ]]
+  tail -n1 "$DS_RECORD_DIR/moosematrix.jsonl" | jq -e '.result=="failed"'
 }
 
 @test "verify: container without HEALTHCHECK uses the in-container command" {
@@ -243,6 +298,14 @@ EOF
   tail -n1 "$DS_RECORD_DIR/moosematrix.jsonl" | jq -e '.result=="failed"'
 }
 
+@test "on_exit returns 0 so the rest of the trap (GHCR login dir cleanup) runs; exit code kept (L1)" {
+  d="$BATS_TEST_TMPDIR/ghcr-login"; mkdir -p "$d"
+  run bash -c "set -euo pipefail; export PATH='$PATH' MOCK_STATE='$MOCK_STATE'; source '$SCRIPT'; trap 'ds_on_exit; rm -rf \"$d\"' EXIT; ds_pre; exit 7"
+  [ "$status" -eq 7 ]
+  [ ! -e "$d" ]
+  tail -n1 "$DS_RECORD_DIR/moosematrix.jsonl" | jq -e '.result=="failed"'
+}
+
 @test "on_exit: no duplicate record after ds_finish" {
   run bash -c "export PATH='$PATH' MOCK_STATE='$MOCK_STATE'; source '$SCRIPT'; trap ds_on_exit EXIT; ds_pre; echo '$NEW' > '$MOCK_STATE/ctr_image'; ds_finish"
   [ "$status" -eq 0 ]
@@ -258,4 +321,65 @@ EOF
 @test "streamed over stdin (bash -s) loads the functions without running anything" {
   run bash -c "{ cat '$SCRIPT'; echo 'type ds_finish >/dev/null && echo LOADED'; } | bash -s"
   [ "$status" -eq 0 ] && [ "$output" = LOADED ]
+}
+
+# ---------- H1: stdin. The remote script is streamed over `ssh ... bash -s`. ----------
+# body BODY: deploy-safe.sh + a remote body shaped like the moose-brain one (migration via compose run).
+stream() { # stream WRAPPED(0|1)
+  local body='ds_lock
+export DS_APP=moosematrix DS_CONTAINER=moosematrix-app-prod DS_SERVICE=moosematrix-app-prod DS_SHA='"$NEWREV"' DS_RUN_ID=1
+trap "ds_on_exit || true" EXIT
+ds_pre
+docker tag '"$NEW"' ghcr.io/the-moose-man/moosematrix:prod-latest
+docker compose -f docker-compose.yml run --rm -T moosematrix-app-prod npx prisma migrate deploy </dev/null
+docker compose -f docker-compose.yml up -d --no-deps moosematrix-app-prod
+docker exec moosematrix-app-prod true
+ds_finish
+ds_prune
+echo POST_STEPS_DONE'
+  cat "$SCRIPT"
+  if [ "$1" = 1 ]; then printf 'main() {\n%s\n}\nmain </dev/null; exit $?\n' "$body"
+  else printf '%s\n' "$(printf '%s' "$body" | sed 's# </dev/null##')"; fi
+}
+
+@test "H1 control: without the wrapper, a stdin-reading compose run swallows the rest of the script" {
+  export MOCK_READ_STDIN=1
+  touch "$MOCK_STATE/exec_ok"
+  run bash -c "$(declare -f stream); SCRIPT='$SCRIPT' NEW='$NEW' NEWREV='$NEWREV' stream 0 | bash -s"
+  [ "$status" -eq 0 ]                              # the job would look green...
+  [[ "$output" != *POST_STEPS_DONE* ]]             # ...but verify/record/prune never ran
+  tail -n1 "$DS_RECORD_DIR/moosematrix.jsonl" | jq -e '.result=="failed"'   # only the EXIT trap wrote
+  ! grep -q 'image prune' "$MOCK_STATE/calls"
+}
+
+@test "H1: with main() </dev/null, compose run + exec read stdin and every post-step still runs" {
+  export MOCK_READ_STDIN=1
+  touch "$MOCK_STATE/exec_ok"
+  run bash -c "$(declare -f stream); SCRIPT='$SCRIPT' NEW='$NEW' NEWREV='$NEWREV' stream 1 | bash -s"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *POST_STEPS_DONE* ]]
+  [ "$(wc -l < "$DS_RECORD_DIR/moosematrix.jsonl")" -eq 1 ]
+  tail -n1 "$DS_RECORD_DIR/moosematrix.jsonl" | jq -e '.result=="deployed"'
+  grep -qx 'docker image prune -f' "$MOCK_STATE/calls"
+}
+
+# ---------- M1: host-wide deploy lock ----------
+@test "lock: a second deploy waits, then fails cleanly while the lock is held" {
+  flock "$DS_LOCK_FILE" /bin/sleep 3 & holder=$!
+  /bin/sleep 0.3
+  run ds_lock
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"deploy lock busy"* ]]
+  wait "$holder"
+}
+
+@test "lock: acquired when free, and held for the life of the shell" {
+  run bash -c "export PATH='$PATH'; source '$SCRIPT'; ds_lock; flock -n '$DS_LOCK_FILE' true && echo NOT_HELD || echo HELD"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *HELD* ]] && [[ "$output" != *NOT_HELD* ]]
+}
+
+@test "lock: bad DS_LOCK_WAIT rejected" {
+  DS_LOCK_WAIT='1;id' run ds_lock
+  [ "$status" -eq 1 ]
 }

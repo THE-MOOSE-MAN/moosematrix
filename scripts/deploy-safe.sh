@@ -6,18 +6,26 @@
 # (`{ cat scripts/deploy-safe.sh; cat <<'EOF' ... EOF; } | ssh ... bash -s`), so nothing is installed
 # on the host and the code that runs is the code reviewed in the PR.
 #
-# Usage (inside the remote deploy script, after this file is sourced):
-#   DS_APP=moosematrix DS_CONTAINER=moosematrix-app-prod DS_SERVICE=moosematrix-app-prod \
-#   DS_SHA=<40-hex GITHUB_SHA> DS_RUN_ID=<github.run_id>
-#   trap 'ds_on_exit' EXIT        # records result=failed if the script dies before a record is written
-#   ds_pre                        # tag the running image <app>:rollback-YYYYMMDD-<shortsha>, keep newest 3
-#   ...pull / pin / compose up (repo specific)...
-#   ds_finish [health cmd...]     # wait healthy + revision label == DS_SHA; else roll back; write the record
-#   ds_prune                      # docker image prune -f (dangling only)
+# v2 (R39, after Vulnerability Bot review): stdin-safe main() wrapper, host-wide flock, pin-line-only
+# rollback, EXIT trap that never blocks cleanup, label validation, manual recovery hint.
 #
-# Optional env: DS_COMPOSE_FILE (docker-compose.yml), DS_COMPOSE_BACKUP (restored before a rollback),
-#   DS_HEALTH_TIMEOUT (seconds, 90), DS_KEEP (3), DS_RECORD_DIR (/var/lib/moose-deploys),
-#   DS_REVISION_LABEL (org.opencontainers.image.revision).
+# Usage. The remote body MUST be wrapped in a function and run with stdin from /dev/null, so bash parses
+# the whole stream before anything runs and no child (docker compose run/exec) can eat the rest of it:
+#   main() {
+#     ds_lock                       # host-wide deploy lock (flock, waits up to DS_LOCK_WAIT s)
+#     export DS_APP=moosematrix DS_CONTAINER=moosematrix-app-prod DS_SERVICE=moosematrix-app-prod \
+#            DS_SHA=<40-hex GITHUB_SHA> DS_RUN_ID=<github.run_id>
+#     trap 'ds_on_exit || true; <cleanup>' EXIT   # records result=failed if the script dies first
+#     ds_pre                        # tag the running image <app>:rollback-YYYYMMDD-<shortsha>, keep newest 3
+#     ...pull / pin (ds_pin_set FROM TO for compose-pinned repos) / compose up (repo specific)...
+#     ds_finish [health cmd...]     # wait healthy + revision label == DS_SHA; else roll back; write the record
+#     ds_prune                      # docker image prune -f (dangling only)
+#   }
+#   main </dev/null; exit $?
+#
+# Optional env: DS_COMPOSE_FILE (docker-compose.yml), DS_HEALTH_TIMEOUT (seconds, 90), DS_KEEP (3),
+#   DS_RECORD_DIR (/var/lib/moose-deploys), DS_REVISION_LABEL (org.opencontainers.image.revision),
+#   DS_LOCK_FILE (/run/lock/moose-deploy.lock), DS_LOCK_WAIT (seconds, 600).
 #
 # Safety rules: only tags matching ^<app>:rollback-[0-9]{8}-[0-9a-f]{7}$ are ever removed, with a plain
 # `docker rmi <tag>` (untag; never -f). Hand-made tags like <app>:rollback-2026-10-21-r36 never match.
@@ -30,6 +38,10 @@ DS_KEEP="${DS_KEEP:-3}"
 DS_HEALTH_TIMEOUT="${DS_HEALTH_TIMEOUT:-90}"
 DS_COMPOSE_FILE="${DS_COMPOSE_FILE:-docker-compose.yml}"
 DS_REVISION_LABEL="${DS_REVISION_LABEL:-org.opencontainers.image.revision}"
+DS_LOCK_FILE="${DS_LOCK_FILE:-/run/lock/moose-deploy.lock}"
+DS_LOCK_WAIT="${DS_LOCK_WAIT:-600}"
+DS_PIN_FROM=""
+DS_PIN_TO=""
 DS_ROLLBACK_TAG=""
 DS_OLD_IMAGE_ID=""
 DS_OLD_REF=""
@@ -48,6 +60,49 @@ ds_require_env() {
   ds_match "${DS_RUN_ID:-}" '^[0-9]{1,20}$' || { ds_log "bad DS_RUN_ID"; return 1; }
   ds_match "$DS_KEEP" '^[1-9][0-9]?$' || { ds_log "bad DS_KEEP"; return 1; }
   ds_match "$DS_HEALTH_TIMEOUT" '^[0-9]{1,4}$' || { ds_log "bad DS_HEALTH_TIMEOUT"; return 1; }
+  ds_match "$DS_REVISION_LABEL" '^[a-z0-9][a-z0-9._-]{0,127}$' || { ds_log "bad DS_REVISION_LABEL"; return 1; }
+}
+
+# ds_lock: take the host-wide deploy lock on fd 9 (held until the remote shell exits). All deploys on the
+# VPS share one lock, so two deploys (same or different app) never run docker tag/pin/up at the same time.
+ds_lock() {
+  ds_match "$DS_LOCK_WAIT" '^[0-9]{1,4}$' || { ds_log "bad DS_LOCK_WAIT"; return 1; }
+  if [ -e "$DS_LOCK_FILE" ]; then
+    exec 9<"$DS_LOCK_FILE" || { ds_log "cannot open $DS_LOCK_FILE"; return 1; }
+  else
+    exec 9>>"$DS_LOCK_FILE" || { ds_log "cannot create $DS_LOCK_FILE"; return 1; }
+  fi
+  ds_log "waiting for deploy lock $DS_LOCK_FILE (max ${DS_LOCK_WAIT}s)"
+  flock -w "$DS_LOCK_WAIT" 9 || { ds_log "deploy lock busy after ${DS_LOCK_WAIT}s; another deploy is running"; return 1; }
+  ds_log "deploy lock acquired"
+}
+
+# ds_pin_set FROM TO: remember the single compose image line this deploy changed (FROM -> TO), so a
+# rollback reverts only that line instead of restoring a whole-file backup (which could undo another
+# app's pin). Call it right after the repo's own pin step.
+ds_pin_set() {
+  local re='^[a-z0-9][a-z0-9._/:@-]{0,255}$'
+  ds_match "${1:-}" "$re" || { ds_log "bad pin ref (from)"; return 1; }
+  ds_match "${2:-}" "$re" || { ds_log "bad pin ref (to)"; return 1; }
+  DS_PIN_FROM="$1"; DS_PIN_TO="$2"
+}
+
+# ds_pin_revert: in DS_COMPOSE_FILE, change the one "image: DS_PIN_TO" line back to DS_PIN_FROM.
+# Exact string match (no regex), indentation kept, every other line untouched. Fails unless exactly one
+# line matches.
+ds_pin_revert() {
+  local tmp
+  tmp="$(mktemp "${DS_COMPOSE_FILE}.ds-revert.XXXXXX")" || return 1
+  if awk -v from="$DS_PIN_FROM" -v to="$DS_PIN_TO" '
+      { line=$0; ind=line; sub(/[^ ].*$/, "", ind); body=substr(line, length(ind)+1)
+        if (body == "image: " to) { print ind "image: " from; n++ } else print line }
+      END { exit (n == 1 ? 0 : 1) }' "$DS_COMPOSE_FILE" > "$tmp"; then
+    cat "$tmp" > "$DS_COMPOSE_FILE"; rm -f "$tmp"
+    ds_log "compose pin reverted: $DS_PIN_TO -> $DS_PIN_FROM (other lines untouched)"
+  else
+    rm -f "$tmp"; ds_log "compose pin revert failed: expected exactly one 'image: $DS_PIN_TO' line"
+    return 1
+  fi
 }
 
 # ds_auto_tag_regex APP -> the strict ERE for auto rollback tags of APP (dots escaped).
@@ -168,8 +223,8 @@ ds_rollback() {
     ds_log "no rollback tag (nothing was running before); cannot roll back"
     return 1
   fi
-  if [ -n "${DS_COMPOSE_BACKUP:-}" ] && [ -f "$DS_COMPOSE_BACKUP" ]; then
-    cp -p "$DS_COMPOSE_BACKUP" "$DS_COMPOSE_FILE" || return 1
+  if [ -n "$DS_PIN_TO" ]; then
+    ds_pin_revert || return 1
   fi
   ds_log "rolling back $DS_SERVICE to $DS_ROLLBACK_TAG (as $DS_OLD_REF)"
   docker tag "$DS_ROLLBACK_TAG" "$DS_OLD_REF" || return 1
@@ -220,18 +275,28 @@ ds_finish() {
   ds_require_env || return 1
   if ds_verify "$@"; then ds_record deployed; return 0; fi
   docker logs --tail 50 "$DS_CONTAINER" 2>&1 | tail -n 50 || true
-  if ds_rollback "$@"; then ds_record rolled_back; else ds_record failed; fi
+  if ds_rollback "$@"; then ds_record rolled_back; else ds_record failed; ds_manual_hint; fi
   return 1
 }
 
+# ds_manual_hint: after a failed automatic rollback, print the copy-paste recovery commands.
+ds_manual_hint() {
+  [ -n "$DS_ROLLBACK_TAG" ] && [ -n "$DS_OLD_REF" ] || return 0
+  ds_log "MANUAL RECOVERY (run on the VPS in the compose dir):"
+  if [ -n "$DS_PIN_TO" ]; then
+    ds_log "  sed -i 's#image: ${DS_PIN_TO}\$#image: ${DS_PIN_FROM}#' ${DS_COMPOSE_FILE}"
+  fi
+  ds_log "  docker tag ${DS_ROLLBACK_TAG} ${DS_OLD_REF} && docker compose -f ${DS_COMPOSE_FILE} up -d --no-deps --force-recreate ${DS_SERVICE}"
+}
+
 # ds_on_exit: EXIT trap. If the script dies before ds_record (pull failed, pin failed, ...),
-# write result=failed. Preserves the original exit status.
+# write result=failed. Always returns 0 so the rest of the trap (temp login dir cleanup) still runs
+# under set -e; bash keeps the script's original exit status for the shell itself.
 ds_on_exit() {
-  local rc=$?
   if [ "$DS_RECORDED" -eq 0 ] && [ -n "${DS_APP:-}" ] && ds_require_env 2>/dev/null; then
     ds_record failed || true
   fi
-  return "$rc"
+  return 0
 }
 
 ds_prune() {

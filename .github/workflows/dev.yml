@@ -5,10 +5,6 @@ on:
     branches: ["dev"]
   workflow_dispatch:
 
-concurrency:
-  group: moosematrix-dev
-  cancel-in-progress: true
-
 permissions:
   contents: read
   packages: write
@@ -21,6 +17,10 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    # A newer push may cancel an older build...
+    concurrency:
+      group: moosematrix-dev-build
+      cancel-in-progress: true
     outputs:
       image: ${{ steps.meta.outputs.image }}
 
@@ -73,6 +73,10 @@ jobs:
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
+    # ...but never a running deploy: deploys queue (the VPS side also takes /run/lock/moose-deploy.lock).
+    concurrency:
+      group: moosematrix-dev-deploy
+      cancel-in-progress: false
 
     steps:
       - name: Checkout deploy script
@@ -90,13 +94,17 @@ jobs:
           echo "${{ secrets.VPS_SSH_KEY_B64 }}" | base64 -d > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
 
-      - name: Trust VPS host key (custom port)
+      - name: Pin VPS host key (VPS_KNOWN_HOSTS secret)
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p ~/.ssh
-          ssh-keyscan -p "${{ secrets.VPS_PORT }}" -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts
+          # The host key is pinned from a repo secret instead of trusting whatever ssh-keyscan returns on
+          # each run (same pattern as moose_money / mooseman-site). Pre-merge step: add VPS_KNOWN_HOSTS.
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "${{ secrets.VPS_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
+          grep -q '[^[:space:]]' ~/.ssh/known_hosts \
+            || { echo "::error::VPS_KNOWN_HOSTS secret is missing or empty; see docs/deploy-safety.md"; exit 1; }
 
       - name: Deploy Moosematrix Dev (ephemeral GHCR login on VPS)
         shell: bash
@@ -107,6 +115,10 @@ jobs:
           # ahead of the remote script over the same SSH session; nothing is installed on the VPS.
           { cat scripts/deploy-safe.sh; cat <<'EOF'
           set -euo pipefail
+          # Whole body in main() and run with stdin from /dev/null: bash reads the entire stream before
+          # anything runs, so no child process (docker compose run/exec) can swallow the rest (VB R39 H1).
+          main() {
+          ds_lock   # host-wide deploy lock: one deploy at a time on the VPS (VB R39 M1)
 
           SERVICE_NAME="moosematrix-app-dev"
           IMAGE_REPO="${{ needs.build-and-push.outputs.image }}"
@@ -118,7 +130,7 @@ jobs:
 
           # Use a temporary docker config so nothing is written to ~/.docker
           export DOCKER_CONFIG="$(mktemp -d)"
-          trap 'ds_on_exit; rm -rf "$DOCKER_CONFIG"' EXIT
+          trap 'ds_on_exit || true; rm -rf "$DOCKER_CONFIG"' EXIT
 
           printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin >/dev/null
 
@@ -145,7 +157,9 @@ jobs:
           echo "✅ Dev container updated (no public dev subdomain)."
           echo "   View via SSH port-forward (example):"
           echo "   ssh -p <VPS_PORT> -L 3001:127.0.0.1:3001 <VPS_USER>@<VPS_HOST>"
+          }
+          main </dev/null; exit $?
           EOF
-          } | ssh -T -i ~/.ssh/id_ed25519 \
+          } | ssh -4 -T -o StrictHostKeyChecking=yes -o ConnectTimeout=20 -i ~/.ssh/id_ed25519 \
             -p "${{ secrets.VPS_PORT }}" \
             "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" bash -s
