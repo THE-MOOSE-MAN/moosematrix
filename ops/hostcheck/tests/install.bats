@@ -45,13 +45,24 @@ snapshot() { (cd "$MOOSE_ROOT" && find . -printf '%p %m\n' | sort; find . -type 
   [ "$status" -eq 64 ]
 }
 
-@test "--cron installs cron file + state dir and removes the timer" {
-  "$D/install.sh"
+@test "--cron is not supported (timer only, VB R39 M4): rejected, nothing installed" {
   run "$D/install.sh" --cron
+  [ "$status" -eq 64 ]
+  [ -z "$(ls -A "$MOOSE_ROOT")" ]
+  [ ! -e "$MOOSE_ROOT/etc/cron.d" ]
+}
+
+@test "--run-now starts the sandboxed service (never runs the script outside systemd)" {
+  run "$D/install.sh" --run-now
   [ "$status" -eq 0 ]
-  [ -f "$MOOSE_ROOT/etc/cron.d/moose-hostcheck" ]
-  [ ! -e "$MOOSE_ROOT/etc/systemd/system/moose-hostcheck.timer" ]
-  grep -q 'systemctl disable --now moose-hostcheck.timer' "$FAKE_LOG"
+  grep -q '^systemctl start moose-hostcheck.service$' "$FAKE_LOG"
+  ! grep -q '^runuser' "$FAKE_LOG"
+}
+
+@test "service unit: syscall filter fails with EPERM, setrlimit re-allowed after the @resources deny" {
+  u="$D/systemd/moose-hostcheck.service"
+  grep -qx 'SystemCallErrorNumber=EPERM' "$u"
+  [ "$(grep -n '^SystemCallFilter=~@privileged @resources$' "$u" | cut -d: -f1)" -lt "$(grep -n '^SystemCallFilter=setrlimit$' "$u" | cut -d: -f1)" ]
 }
 
 @test "--dry-run changes nothing" {

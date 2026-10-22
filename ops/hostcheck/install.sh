@@ -2,7 +2,6 @@
 # Install (or update) moose-hostcheck on the VPS. Idempotent: safe to re-run; it converges to the same state.
 # Run as root from a checkout of this repo:  sudo ops/hostcheck/install.sh [options]
 #
-#   --cron                    install /etc/cron.d/moose-hostcheck instead of the systemd timer (less hardened)
 #   --prepare-deploy-records  create /var/lib/moose-deploys (root:root 0755) and pre-create one <app>.jsonl per app,
 #                             owned by $DEPLOY_USER (default: moose) mode 0644, so non-root CI deploys can append
 #                             but cannot create, rename or delete files there. Apps: $DEPLOY_APPS.
@@ -18,15 +17,13 @@ DEPLOY_APPS="${DEPLOY_APPS:-moosematrix moosematrix-dev moosebrain-api moose-mon
 HC_USER=moose-hostcheck
 LIB="$ROOT/usr/local/lib/moose-hostcheck"
 UNITS="$ROOT/etc/systemd/system"
-CRON="$ROOT/etc/cron.d/moose-hostcheck"
-STATE="$ROOT/var/lib/moose-hostcheck"
 RECORDS="$ROOT/var/lib/moose-deploys"
 SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-MODE=timer PREP=0 RUN_NOW=0 DRY=0
+# The systemd timer is the only supported scheduler: it carries the sandbox (VB R39 M4 removed --cron).
+PREP=0 RUN_NOW=0 DRY=0
 for a in "$@"; do
   case "$a" in
-    --cron) MODE=cron ;;
     --prepare-deploy-records) PREP=1 ;;
     --run-now) RUN_NOW=1 ;;
     --dry-run) DRY=1 ;;
@@ -55,25 +52,12 @@ fi
 do_ install -d -m 0755 "$LIB"
 do_ install -m 0755 "$SRC/moose_hostcheck.py" "$LIB/moose_hostcheck.py"
 
-# 3. scheduler
-if [ "$MODE" = timer ]; then
-  do_ install -d -m 0755 "$UNITS"
-  do_ install -m 0644 "$SRC/systemd/moose-hostcheck.service" "$UNITS/moose-hostcheck.service"
-  do_ install -m 0644 "$SRC/systemd/moose-hostcheck.timer" "$UNITS/moose-hostcheck.timer"
-  [ -e "$CRON" ] && do_ rm -f "$CRON"               # switching from cron -> timer
-  do_ systemctl daemon-reload
-  do_ systemctl enable --now moose-hostcheck.timer
-else
-  do_ install -d -m 0755 "$(dirname "$CRON")"
-  do_ install -m 0644 "$SRC/cron/moose-hostcheck" "$CRON"
-  do_ install -d -m 0755 "$STATE"
-  do_ chown "$HC_USER:$HC_USER" "$STATE"
-  if [ -e "$UNITS/moose-hostcheck.timer" ]; then   # switching from timer -> cron
-    do_ systemctl disable --now moose-hostcheck.timer || true
-    do_ rm -f "$UNITS/moose-hostcheck.timer" "$UNITS/moose-hostcheck.service"
-    do_ systemctl daemon-reload
-  fi
-fi
+# 3. scheduler: sandboxed systemd service + timer
+do_ install -d -m 0755 "$UNITS"
+do_ install -m 0644 "$SRC/systemd/moose-hostcheck.service" "$UNITS/moose-hostcheck.service"
+do_ install -m 0644 "$SRC/systemd/moose-hostcheck.timer" "$UNITS/moose-hostcheck.timer"
+do_ systemctl daemon-reload
+do_ systemctl enable --now moose-hostcheck.timer
 
 # 4. optional: deploy record files for non-root deploy users
 if [ "$PREP" -eq 1 ]; then
@@ -89,7 +73,6 @@ if [ "$PREP" -eq 1 ]; then
 fi
 
 if [ "$RUN_NOW" -eq 1 ]; then
-  if [ "$MODE" = timer ]; then do_ systemctl start moose-hostcheck.service
-  else do_ runuser -u "$HC_USER" -- /usr/bin/python3 -I "$LIB/moose_hostcheck.py"; fi
+  do_ systemctl start moose-hostcheck.service
 fi
-echo "moose-hostcheck installed ($MODE)."
+echo "moose-hostcheck installed (systemd timer)."

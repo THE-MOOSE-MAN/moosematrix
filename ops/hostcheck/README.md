@@ -31,7 +31,6 @@ docker unreachable, or a crash). Failures are counted in `state.json` either way
 
 ```bash
 sudo ops/hostcheck/install.sh --prepare-deploy-records --run-now   # systemd timer, daily 06:17 UTC ±10 min
-sudo ops/hostcheck/install.sh --cron                               # alternative: /etc/cron.d, no sandbox
 sudo ops/hostcheck/install.sh --dry-run --prepare-deploy-records   # show what would change
 ```
 
@@ -39,8 +38,13 @@ sudo ops/hostcheck/install.sh --dry-run --prepare-deploy-records   # show what w
 `<app>.jsonl` per app (0644, owned by `$DEPLOY_USER`, default `moose`). Non-root CI deploys can then append to their
 own file but cannot create, rename or delete files in the directory. Root deploys create the files themselves.
 
-**Rollback:** `sudo ops/hostcheck/uninstall.sh` removes the timer or cron entry, the units, the script and the user.
+**Rollback:** `sudo ops/hostcheck/uninstall.sh` removes the timer, the units, the script and the user.
 Reports stay unless you add `--purge`, and `/var/lib/moose-deploys` is never touched.
+
+The systemd timer is the only supported scheduler (there is no cron mode: cron would run the docker-group
+account without the sandbox below). After install, check that the sandbox does not break the docker CLI:
+`sudo systemctl start moose-hostcheck.service; journalctl -u moose-hostcheck -n 50 | grep -i -E 'SIGSYS|seccomp'`
+should print nothing, and `/var/lib/moose-hostcheck/latest.json` should show `"ok": true`.
 
 ## Privilege tradeoff
 
@@ -51,7 +55,8 @@ who can talk to the socket can start a privileged container. Options considered:
 2. **Chosen:** a dedicated system user `moose-hostcheck` (no shell, no home) with `SupplementaryGroups=docker`, plus a
    systemd sandbox: no capabilities, `NoNewPrivileges`, `ProtectSystem=strict` with only `/var/lib/moose-hostcheck`
    writable, `ProtectHome`, `PrivateTmp`, `PrivateDevices`, `PrivateNetwork` + `IPAddressDeny=any`, AF_UNIX only,
-   and a syscall filter. A bug in the script can't write files, reach the network or gain capabilities. The remaining
+   and a syscall filter (`@system-service` minus `@privileged @resources`, `setrlimit` re-allowed for the Go-based
+   docker CLI, and `SystemCallErrorNumber=EPERM` so a filtered call fails instead of killing the process). A bug in the script can't write files, reach the network or gain capabilities. The remaining
    risk is the Docker socket itself, which is the same as for any docker-group user.
 3. Later, if wanted: a read-only Docker socket proxy (GET-only on `/containers/json`, `/images/json`) would remove
    the root-equivalence. It adds a new container and image to maintain, so it was left out of this change.

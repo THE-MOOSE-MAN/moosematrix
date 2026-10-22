@@ -48,3 +48,9 @@ RemoveIPC=yes
 SystemCallArchitectures=native
 SystemCallFilter=@system-service
 SystemCallFilter=~@privileged @resources
+# Re-allow setrlimit: the docker CLI (Go runtime) raises its soft RLIMIT_NOFILE at startup. Without
+# CAP_SYS_RESOURCE it can only move the soft limit up to the existing hard limit, so this grants nothing.
+# (prlimit64, which newer Go uses first, is in @default and was never blocked.)
+SystemCallFilter=setrlimit
+# A filtered syscall fails with EPERM instead of killing the process with SIGSYS (VB R39 M5).
+SystemCallErrorNumber=EPERM

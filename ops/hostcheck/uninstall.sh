@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Remove moose-hostcheck (timer or cron). Idempotent. Keeps /var/lib/moose-hostcheck reports unless --purge.
+# Remove moose-hostcheck (systemd timer + service). Idempotent. Keeps /var/lib/moose-hostcheck reports unless --purge.
 # Never touches /var/lib/moose-deploys (the deploy records belong to the CI deploys).
 #   sudo ops/hostcheck/uninstall.sh [--purge] [--dry-run]
 set -euo pipefail
@@ -17,7 +17,6 @@ if [ -e "$ROOT/etc/systemd/system/moose-hostcheck.timer" ] || [ -e "$ROOT/etc/sy
   do_ rm -f "$ROOT/etc/systemd/system/moose-hostcheck.timer" "$ROOT/etc/systemd/system/moose-hostcheck.service"
   do_ systemctl daemon-reload
 fi
-[ -e "$ROOT/etc/cron.d/moose-hostcheck" ] && do_ rm -f "$ROOT/etc/cron.d/moose-hostcheck"
 [ -d "$ROOT/usr/local/lib/moose-hostcheck" ] && do_ rm -rf "$ROOT/usr/local/lib/moose-hostcheck"
 if id -u "$HC_USER" >/dev/null 2>&1; then do_ userdel "$HC_USER"; fi
 if [ "$PURGE" -eq 1 ] && [ -d "$ROOT/var/lib/moose-hostcheck" ]; then do_ rm -rf "$ROOT/var/lib/moose-hostcheck"; fi
