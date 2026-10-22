@@ -1,0 +1,11 @@
+#!/bin/sh
+# Fixture-driven fake: prints $FIX/<cmd>[_<subcmd>].out, exits with $FIX/<cmd>.rc if present.
+n=$(basename "$0"); f="$FIX/$n"
+case "$n $1" in
+  "docker image") f="$FIX/docker_images" ;;
+  "docker ps") f="$FIX/docker_ps" ;;
+  "docker inspect") f="$FIX/docker_inspect" ;;
+esac
+[ -f "$f.rc" ] && { echo "fake $n failed" >&2; exit "$(cat "$f.rc")"; }
+[ -f "$f.out" ] && cat "$f.out"
+exit 0

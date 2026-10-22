@@ -5,10 +5,6 @@ on:
     branches: ["main"]
   workflow_dispatch:
 
-concurrency:
-  group: moosematrix-prod
-  cancel-in-progress: true
-
 permissions:
   contents: read
   packages: write
@@ -21,6 +17,10 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    # A newer push may cancel an older build...
+    concurrency:
+      group: moosematrix-prod-build
+      cancel-in-progress: true
     outputs:
       image: ${{ steps.meta.outputs.image }}
 
@@ -72,78 +72,108 @@ jobs:
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
+    # ...but never a running deploy: deploys queue (the VPS side also takes /run/lock/moose-deploy.lock).
+    concurrency:
+      group: moosematrix-prod-deploy
+      cancel-in-progress: false
 
     steps:
+      - name: Checkout deploy script
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+          sparse-checkout: scripts/deploy-safe.sh
+          sparse-checkout-cone-mode: false
+
       - name: Install SSH key
         shell: bash
+        # L10 (VB R39): secrets reach the script through env:, never as ${{ }} text inside it
+        env:
+          VPS_SSH_KEY_B64: ${{ secrets.VPS_SSH_KEY_B64 }}
         run: |
           set -euo pipefail
           mkdir -p ~/.ssh
-          echo "${{ secrets.VPS_SSH_KEY_B64 }}" | base64 -d > ~/.ssh/id_ed25519
+          printf '%s' "$VPS_SSH_KEY_B64" | base64 -d > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
 
-      - name: Trust VPS host key (custom port)
+      - name: Pin VPS host key (VPS_KNOWN_HOSTS secret)
         shell: bash
+        env:
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
         run: |
           set -euo pipefail
-          mkdir -p ~/.ssh
-
-          tmp="$(mktemp)"
-          ssh-keyscan -T 10 -p "${{ secrets.VPS_PORT }}" -H "${{ secrets.VPS_HOST }}" > "$tmp" 2>/dev/null || true
-
-          if [ ! -s "$tmp" ]; then
-            echo "ssh-keyscan returned no host keys."
-            echo "Check that VPS_HOST/VPS_PORT are reachable from GitHub runners (firewall/allowlist), and the port is correct."
-            exit 1
-          fi
-
-          cat "$tmp" >> ~/.ssh/known_hosts
+          # The host key is pinned from a repo secret instead of trusting whatever ssh-keyscan returns on
+          # each run (same pattern as moose_money / mooseman-site). Pre-merge step: add VPS_KNOWN_HOSTS.
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          umask 077
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts.in
+          # Pin by KEY, not by host string: VPS_HOST may be an IP or a hostname, so ssh looks the key up
+          # under the fixed alias moose-vps (-o HostKeyAlias=moose-vps below) and the host field of each
+          # plain "<host> <type> <key>" line is rewritten to that alias. Hashed (|1|...) or @marker lines
+          # are rejected; blank and comment lines are skipped (L9). See docs/deploy-safety.md.
+          awk 'NF == 0 || $1 ~ /^#/ { next }
+               $1 ~ /^(\||@)/ || NF < 3 { bad = 1; next }
+               { print "moose-vps", $2, $3; n++ }
+               END { exit (bad || n == 0) }' ~/.ssh/known_hosts.in > ~/.ssh/known_hosts \
+            || { rm -f ~/.ssh/known_hosts ~/.ssh/known_hosts.in; echo "::error::VPS_KNOWN_HOSTS secret is missing, empty or not plain '<host> <type> <key>' lines; see docs/deploy-safety.md"; exit 1; }
+          rm -f ~/.ssh/known_hosts.in
           chmod 600 ~/.ssh/known_hosts
 
       - name: Deploy MooseMatrix Prod (compose-based)
         shell: bash
+        env:   # L10: ssh target from env, not ${{ secrets.* }} text in the script
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
         run: |
           set -euo pipefail
 
-          ssh -T -i ~/.ssh/id_ed25519 \
-            -p "${{ secrets.VPS_PORT }}" \
-            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" <<'EOF'
+          # scripts/deploy-safe.sh (rollback tag, verify, auto-rollback, deploy record) is streamed
+          # ahead of the remote script over the same SSH session; nothing is installed on the VPS.
+          { cat scripts/deploy-safe.sh; cat <<'EOF'
           set -euo pipefail
+          # Whole body in main() and run with stdin from /dev/null: bash reads the entire stream before
+          # anything runs, so no child process (docker compose run/exec) can swallow the rest (VB R39 H1).
+          main() {
+          ds_lock   # host-wide deploy lock: one deploy at a time on the VPS (VB R39 M1)
 
           SERVICE_NAME="moosematrix-app-prod"
           IMAGE_REPO="${{ needs.build-and-push.outputs.image }}"
           GHCR_USER="$(echo "${{ github.actor }}" | tr '[:upper:]' '[:lower:]')"
           GHCR_TOKEN="${{ github.token }}"
 
+          export DS_APP="moosematrix" DS_CONTAINER="$SERVICE_NAME" DS_SERVICE="$SERVICE_NAME"
+          export DS_SHA="${{ github.sha }}" DS_RUN_ID="${{ github.run_id }}"
+
           export DOCKER_CONFIG="$(mktemp -d)"
-          trap 'rm -rf "$DOCKER_CONFIG"' EXIT
+          trap 'ds_on_exit || true; rm -rf "$DOCKER_CONFIG"' EXIT
 
           printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin >/dev/null
 
           cd /home/moose/projects/infra
 
+          echo "🏷️ Tagging the running image for rollback..."
+          ds_pre
+
           echo "📥 Pulling latest prod image..."
           docker compose -f docker-compose.yml pull "$SERVICE_NAME"
 
           echo "🚀 Recreating container..."
-          docker compose -f docker-compose.yml up -d --force-recreate "$SERVICE_NAME"
+          ds_up -d --force-recreate "$SERVICE_NAME"   # a failed up is logged; ds_finish decides + rolls back (VB N1)
 
-          echo "🩺 Waiting for health..."
-          for i in $(seq 1 30); do
-            status="$(docker inspect -f '{{.State.Health.Status}}' "$SERVICE_NAME" 2>/dev/null || echo starting)"
-            [ "$status" = "healthy" ] && break
-            sleep 2
-          done
+          echo "🩺 Waiting for health + revision == ${DS_SHA:0:7} (auto-rollback on failure)..."
+          ds_finish
 
           echo "🔎 Running container:"
           docker ps --filter "name=$SERVICE_NAME" --format "table {{.Names}}\t{{.Image}}\t{{.Status}}"
 
-          echo "🔎 Image revision label:"
-          docker image inspect "${IMAGE_REPO}:prod-latest" \
-            --format 'revision={{ index .Config.Labels "org.opencontainers.image.revision" }}' 2>/dev/null || true
-
           echo "🧹 Pruning dangling images only (keeps tagged and rollback-* images)..."
-          docker image prune -f || true
+          ds_prune
 
           echo "✅ Prod deployment complete → https://moosematrix.com"
+          }
+          main </dev/null; exit $?
           EOF
+          } | ssh -4 -T -o StrictHostKeyChecking=yes -o HostKeyAlias=moose-vps -o ConnectTimeout=20 -i ~/.ssh/id_ed25519 \
+            -p "$VPS_PORT" \
+            "${VPS_USER}@${VPS_HOST}" bash -s

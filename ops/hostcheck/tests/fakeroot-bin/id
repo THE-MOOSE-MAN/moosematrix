@@ -1,0 +1,7 @@
+#!/bin/sh
+# fake id: knows only whether moose-hostcheck exists / is in docker
+case "$1 $2" in
+  "-u moose-hostcheck") [ -e "$FAKE_USERS/moose-hostcheck" ] && echo 999 || exit 1 ;;
+  "-nG moose-hostcheck") [ -e "$FAKE_USERS/moose-hostcheck.docker" ] && echo "moose-hostcheck docker" || echo moose-hostcheck ;;
+  *) exec /usr/bin/id "$@" ;;
+esac
