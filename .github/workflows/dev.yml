@@ -127,8 +127,8 @@ jobs:
           docker image inspect "${IMAGE_REPO}:dev-latest" \
             --format 'revision={{ index .Config.Labels "org.opencontainers.image.revision" }}' 2>/dev/null || true
 
-          echo "🧹 Pruning images older than 7 days..."
-          docker image prune -af --filter "until=168h" || true
+          echo "🧹 Pruning dangling images only (keeps tagged and rollback-* images)..."
+          docker image prune -f || true
 
           echo "✅ Dev container updated (no public dev subdomain)."
           echo "   View via SSH port-forward (example):"
