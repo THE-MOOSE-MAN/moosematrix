@@ -12,3 +12,98 @@
 @source not "../../../../packages/ui/**/.next/**";
 
 @import "@moosematrix/ui/styles.css";
+
+/* ===== Homepage: mobile-first layer =====================================
+   One DOM for every width. Below 768px the hero fills the first screen and the four sections become compact,
+   whole-card links. From 768px the A2 desktop layout is untouched (these rules only restyle it, see the
+   desktop block at the end). No inline styles, no JS. */
+.mm-home { --mm-gap: 0.75rem; }
+
+/* "Latest" line: desktop look (as A2). Phones restyle it as a pill below. */
+.mm-latest { margin-top: 1.25rem; font-size: 14px; color: var(--muted); }
+.mm-latest-link { display: inline-flex; align-items: center; gap: 0.375rem; min-height: 24px; color: inherit; text-decoration: none; text-underline-offset: 3px; }
+.mm-latest-link:hover { color: var(--fg); text-decoration: underline; }
+.mm-latest-tag { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.14em; color: var(--fg); }
+
+@media (max-width: 767.98px) {
+  /* Hero: fills the first screen (svh: no jump when the address bar collapses) minus a 2.75rem peek of the first
+     card ("there is more" cue); capped at 41rem so tall phones don't get an empty slab. Message on top, the one
+     primary action at the bottom of the hero (thumb zone). */
+  .mm-hero-in {
+    display: flex; flex-direction: column;
+    min-height: clamp(30rem, calc(100svh - var(--mmx-header-h) - 2.75rem), 41rem);
+    padding-top: clamp(1.25rem, 5svh, 2.75rem);
+    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+  }
+  .mm-hero-top { flex: 1; display: flex; flex-direction: column; justify-content: center; width: 100%; margin: 0; }
+  .mm-hero-icon { display: flex; margin-bottom: 1.5rem; }
+  .mm-hero-icon img { width: 72px; height: 72px; border-radius: 18px; }
+  .mm-hero-icon img { box-shadow: var(--shadow-sm); }
+  /* 38px at 360 -> 46px at 430 (also fits the monospace stack phones actually render: SF Mono / Droid Mono). */
+  .mm-hero-h1 { font-size: clamp(2.25rem, 11.43vw - 0.2rem, 3rem); line-height: 1.08; letter-spacing: -0.02em; }
+  .mm-hero-sub { margin-top: 1rem; font-size: 18px; }
+  .mm-hero-act { width: 100%; padding-top: 1.5rem; }
+  .mm-hero-cta { min-height: 56px; font-size: 17px; border-radius: 16px; }
+  .mm-hero-cta:active { transform: scale(0.98); }
+
+  /* Latest: a full-width pill, whole pill tappable (the link's ::after covers it), 48px tall. */
+  .mm-latest { position: relative; display: flex; align-items: center; justify-content: center; gap: 0.25rem; margin-top: 0.75rem;
+    min-height: 48px; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 999px;
+    background: color-mix(in srgb, var(--surface) 88%, transparent); font-size: 16px; }
+  .mm-latest-link { min-height: 24px; color: var(--fg); font-weight: 600; }
+  .mm-latest-link::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+  .mm-latest-link:hover { text-decoration: none; }
+  .mm-latest-link:focus-visible { outline: none; }
+  .mm-latest-link:focus-visible::after { outline: 3px solid var(--ring); outline-offset: 2px; }
+  .mm-latest:has(.mm-latest-link:active) { background: var(--surface-2); }
+  .mm-latest-tag { padding: 0.15rem 0.5rem; border-radius: 999px; background: var(--accent); color: #fff; font-size: 12px; letter-spacing: 0.12em; }
+  :root[data-theme="dark"] .mm-latest-tag { color: #070b13; }
+
+  /* Sections -> compact cards: icon | label + one line + outcome. Whole card is the one link (stretched). */
+  .mm-tiles { display: grid; gap: var(--mm-gap); padding: 0.5rem 0 1rem; }
+  .mm-sec-in { padding-top: 0; padding-bottom: 0; }
+  .mm-tile { position: relative; display: grid; grid-template-columns: 3rem 1fr; column-gap: 1rem; row-gap: 0.125rem; align-items: start;
+    padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow-sm);
+    transition: transform 120ms ease, background-color 120ms ease; }
+  .mm-tile-icon { grid-row: 1 / span 3; display: flex; }
+  .mm-tile-h { font-size: 20px; line-height: 1.3; letter-spacing: -0.01em; }
+  .mm-tile-p { font-size: 16px; line-height: 1.45; }
+  .mm-tile-act { margin-top: 0.375rem; }
+  .mm-tile .mm-tile-link.mm-btn-secondary { display: inline-flex; width: auto; min-height: 0; padding: 0; gap: 0.375rem; border: 0; border-radius: 0;
+    background: none; box-shadow: none; color: var(--accent); font-size: 16px; font-weight: 700; justify-content: flex-start; }
+  .mm-tile .mm-tile-link::after { content: ""; position: absolute; inset: 0; border-radius: var(--radius); }
+  .mm-tile .mm-tile-link:focus-visible { outline: none; }
+  .mm-tile .mm-tile-link:focus-visible::after { outline: 3px solid var(--ring); outline-offset: 2px; }
+  .mm-tile:has(.mm-tile-link:active) { background: var(--surface-2); transform: scale(0.985); }
+  .mm-tile .mm-tile-link:active { transform: none; }
+}
+/* Dark accent text on the pill tag follows the system theme too. */
+@media (max-width: 767.98px) and (prefers-color-scheme: dark) { :root:not([data-theme]) .mm-latest-tag { color: #070b13; } }
+
+/* Desktop: keep A2. The hero action block is centred under the message, as before. */
+@media (min-width: 768px) {
+  .mm-hero-act { margin-top: 2rem; text-align: center; }
+  .mm-latest-link { gap: 0.375rem; }
+}
+
+/* ===== Header on phones (A3) ===== Wordmark lockup + Menu only; the theme toggle moves into the Menu below
+   560px (the bar keeps it from 560px). Menu rows are 52px; the panel is a full-width sheet. */
+.mmx-panel-theme { display: none; }
+@media (max-width: 559.98px) {
+  :root { --mmx-bar-h: 60px; }
+  .mmx-bar { padding-left: max(1rem, env(safe-area-inset-left, 0px)); padding-right: max(1rem, env(safe-area-inset-right, 0px)); }
+  .mmx-bar-theme { display: none; }
+  .mmx-panel-theme { display: block; padding: 0 0.75rem 0.25rem; }
+  .mmx-panel-theme .mmx-group { padding: 0; }
+  .mmx-panel-theme .mm-theme-toggle { display: flex; width: 100%; }
+  .mmx-panel-theme .mm-theme-toggle button { flex: 1; min-height: 44px; }
+  .mmx-panel-theme .mm-theme-toggle .mm-tt-label { display: inline; }
+}
+@media (max-width: 899.98px) {
+  .mmx-panel { border-radius: 0 0 20px 20px; padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); }
+  .mmx-panel .mmx-link { min-height: 52px; font-size: 17px; }
+  .mmx-panel .mmx-link:active { background: var(--surface-2); }
+  .mmx-menu > summary:active { background: var(--surface-2); }
+}
+/* Tap feedback for whole-card links (e.g. /subsidiaries). No hover-only affordances. */
+a.mm-card:active { background: var(--surface-2); }

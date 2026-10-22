@@ -4,208 +4,139 @@ export const fetchCache = "force-cache";
 
 import { ScrollDots } from "@moosematrix/ui";
 import { TypedAccent } from "../components/TypedAccent";
+import { HomeLink } from "../components/HomeLink";
+import { CARDS, HERO, LATEST } from "./home-content";
 
-// internal: a page on this site (same tab, plain link). The rest are other sites (new tab, labelled as such).
-const SECTIONS = [
-  {
-    id: "builds",
-    label: "Builds",
-    href: "/builds",
-    internal: true,
-    desc: "Projects · big ideas · in progress",
-    icon: "main",
-    tag: "Building",
-    bullets: ["WARDOG Labs", "Live tools", "Drops in progress"],
-  },
-  {
-    id: "money",
-    label: "Moo$e Money",
-    href: "https://m2.moosematrix.com",
-    internal: false,
-    desc: "Tools · dashboards · wealth systems",
-    icon: "money",
-    tag: "Finance",
-    bullets: ["Dashboards & trackers", "Wealth systems", "Simple workflows"],
-  },
-  {
-    id: "mumbles",
-    label: "Moose Mumbles",
-    href: "https://mooseman.moosematrix.com",
-    internal: false,
-    desc: "Writing · videos · notes in public",
-    icon: "main",
-    tag: "Writing",
-    bullets: ["Writeups & reviews", "Notes-in-public", "Progress trail"],
-  },
-  {
-    id: "store",
-    label: "Store",
-    href: "https://merch.moosematrix.com",
-    internal: false,
-    desc: "Merch · digital drops · goods",
-    icon: "store",
-    tag: "Merch",
-    bullets: ["Drops", "Digital goods", "Physical goods"],
-  },
-] as const;
+// Homepage (phone-first, Oct 2026). Same copy and one DOM for every width.
+// - Phones (<768px): the hero fills the first screen (svh, so no jump when the address bar hides); headline
+//   on a clamp() scale; the brand icon on top; the primary action full-width at the bottom of the screen
+//   (thumb zone) with the "Latest" pill under it. Sections become compact whole-card links (icon, label,
+//   one line, outcome), stacked so all four fit about one screen. Styles: .mm-home* in globals.css.
+// - Desktop (>=768px): unchanged from A2 (full-screen sections, soft snap, dots, brand panels).
+// The document is the only scroller; snap is desktop-only (packages/ui/src/styles.css).
+const DOTS = [{ id: "home", label: "Home" }, ...CARDS.map((c) => ({ id: c.id, label: c.label }))];
+const FULL = "md:min-h-[calc(100svh-var(--mmx-header-h))] md:flex md:items-center";
+// Section number only ("01"..."04"), desktop only: on phones the cards carry the icon instead.
+const pad = (n: number) => String(n).padStart(2, "0");
 
-// Same tab for this site's own pages; new tab (announced) for the other Moose sites.
-// `name` is the link's accessible name (it starts with the visible text, WCAG 2.5.3).
-function linkProps(s: (typeof SECTIONS)[number], name: string) {
-  return s.internal
-    ? { "aria-label": name }
-    : { target: "_blank", rel: "noopener noreferrer", "aria-label": `${name} (opens in new tab)` };
+// Keep a hyphenated word on one line ("write-ups" broke as "write- / ups" at 360px).
+function noBreak(text: string, word: string) {
+  const i = text.indexOf(word);
+  if (i < 0) return text;
+  return (
+    <>
+      {text.slice(0, i)}
+      <span className="whitespace-nowrap">{word}</span>
+      {text.slice(i + word.length)}
+    </>
+  );
 }
 
-const DOTS = [{ id: "home", label: "Home" }, ...SECTIONS.map((s) => ({ id: s.id, label: s.label }))];
+// Icons stay loading="lazy" (even the hero one): eager <img>s make React emit preloads that warn when another page
+// prefetches "/". Lazy images in the first screen still load right away; width/height reserve the box (CLS 0).
+function Icon({ name, size, className }: { name: string; size: number; className: string }) {
+  return (
+    <>
+      {(["light", "dark"] as const).map((scheme) => (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          key={scheme}
+          src={`/brand/${name}-icon-${scheme}.svg`}
+          alt=""
+          width={size}
+          height={size}
+          className={`mmx-only-${scheme} ${className}`}
+          decoding="async"
+          loading="lazy"
+        />
+      ))}
+    </>
+  );
+}
 
 export default function HomePage() {
   return (
-    // Not a second <main>: layout.tsx wraps every page in <main id="content"> (the skip-link target).
-    <div className="mm-shell">
-      {/* Keep Feb 14 desktop dots; hide on mobile (touch + no snap) */}
+    // Not a second <main>: layout.tsx wraps every page in <main id="content">.
+    <div className="mm-shell mm-home">
       <div className="hidden md:block">
         <ScrollDots containerId="mm-snap" items={DOTS} />
       </div>
 
-      {/* One scroller (the document) at every size, so there is a single scrollbar and the footer is
-          always reachable. The full-screen "sections" look comes from min-h on each section; soft snapping
-          (y proximity) lives on <html> in packages/ui/src/styles.css, off for reduced motion and mobile.
-          Previously md+ used an inner h-[100svh-76px] overflow-y-auto box: a second scrollbar nested in the
-          page scroller, with the footer outside it. */}
       <div id="mm-snap">
-        <section id="home">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-10 sm:pt-14 pb-10 md:min-h-[calc(100svh-var(--mmx-header-h))] md:flex md:items-center">
-            <div className="mx-auto max-w-3xl text-center">
-              <div className="flex flex-wrap items-center justify-center gap-2">
-                <span className="mm-chip mm-mono">Builds</span>
-                <span className="mm-chip mm-mono">Moo$e Money</span>
-                <span className="mm-chip mm-mono">Moose Mumbles</span>
-                <span className="mm-chip mm-mono">Moose Merch</span>
-              </div>
-
-              <h1 className="mm-mono mt-6 sm:mt-7 text-3xl sm:text-4xl md:text-6xl font-semibold tracking-tight text-[var(--fg)]">
-                A studio for the Moose <TypedAccent>ecosystem</TypedAccent>.
+        <section id="home" aria-labelledby="home-h" className="mm-hero">
+          <div className="mm-hero-in mx-auto max-w-6xl px-4 sm:px-6 md:pt-14 md:pb-12 md:min-h-[calc(100svh-var(--mmx-header-h)-6rem)] md:flex md:flex-col md:items-center md:justify-center">
+            <div className="mm-hero-top mx-auto max-w-3xl md:text-center">
+              {/* Brand icon (decorative; the header logo is the named link). Phones only: desktop is unchanged. */}
+              <span className="mm-hero-icon md:hidden" aria-hidden="true">
+                <Icon name="main" size={72} className="h-18 w-18 rounded-[18px]" />
+              </span>
+              <h1
+                id="home-h"
+                className="mm-hero-h1 mm-mono text-balance md:text-6xl font-semibold tracking-tight text-[var(--fg)]"
+              >
+                {noBreak(HERO.lead, "write-ups")} <TypedAccent>{HERO.accent}</TypedAccent>.
               </h1>
-
-              <p className="mt-4 sm:mt-5 text-sm sm:text-[15px] md:text-lg leading-relaxed text-[var(--muted)]">
-                MooseMatrix is the front door—four destinations, one consistent system. Scroll to pick a door.
+              <p className="mm-hero-sub md:mt-5 md:text-lg leading-relaxed text-[var(--muted)]">{HERO.sub}</p>
+            </div>
+            <div className="mm-hero-act">
+              {/* In-page link, not a button: no JS needed. Target id comes from the first section. */}
+              <a href={`#${CARDS[0].id}`} className="mm-btn-primary mm-hero-cta w-full sm:w-auto justify-center">
+                {HERO.cta.text} <span aria-hidden="true">{"\u2193"}</span>
+              </a>
+              <p className="mm-latest">
+                <a href={LATEST.href} className="mm-latest-link">
+                  <span className="mm-latest-tag mm-mono">{LATEST.label}</span>
+                  <span>{LATEST.text}</span>
+                </a>
+                <span aria-hidden="true" className="mm-latest-sep"> · </span>
+                <time dateTime={LATEST.date}>{LATEST.dateText}</time>
               </p>
-
-              <div className="mt-8 sm:mt-10 flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-[12px] text-[var(--muted)]">
-                <span className="mm-topbar px-4 py-2 mm-mono">Build</span>
-                <span className="mm-topbar px-4 py-2 mm-mono">Learn</span>
-                <span className="mm-topbar px-4 py-2 mm-mono">Track</span>
-                <span className="mm-topbar px-4 py-2 mm-mono">Support</span>
-              </div>
             </div>
           </div>
         </section>
 
-        {SECTIONS.map((s, idx) => (
-          <section key={s.id} id={s.id}>
-            <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10 sm:py-14 md:min-h-[calc(100svh-var(--mmx-header-h))] md:flex md:items-center">
-              <div className="grid w-full items-start gap-8 md:grid-cols-12 md:items-center">
-                <div className="md:col-span-6">
-                  <div className="flex items-center gap-2">
-                    <span className="mm-chip mm-mono">{s.tag}</span>
-                    <span className="mm-mono text-[12px] uppercase tracking-[0.18em] text-[var(--muted)]">
-                      {String(idx + 1).padStart(2, "0")} / {String(SECTIONS.length).padStart(2, "0")}
+        <div className="mm-tiles">
+          {CARDS.map((c, idx) => (
+            <section key={c.id} id={c.id} aria-labelledby={`${c.id}-h`} className="mm-sec md:border-t md:border-[var(--border)]">
+              <div className={`mm-sec-in mx-auto max-w-6xl px-4 sm:px-6 md:py-14 ${FULL}`}>
+                <div className="grid w-full items-center gap-8 md:grid-cols-12">
+                  {/* Phones: this column is the card; its one link stretches over the whole card. */}
+                  <div className="mm-tile md:col-span-7">
+                    <span className="mm-tile-icon md:hidden" aria-hidden="true">
+                      <Icon name={c.icon} size={48} className="h-12 w-12 rounded-xl" />
                     </span>
-                  </div>
-
-                  <h2 className="mt-5 sm:mt-6 text-balance text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight text-[var(--fg)]">
-                    {s.label}
-                  </h2>
-
-                  <p className="mt-3 sm:mt-4 text-sm sm:text-[15px] md:text-lg leading-relaxed text-[var(--muted)]">
-                    {s.desc}
-                  </p>
-
-                  <ul className="mt-5 sm:mt-6 space-y-2 text-[13px] md:text-[14px] text-[var(--muted)]">
-                    {s.bullets.map((b) => (
-                      <li key={b} className="flex items-start gap-3">
-                        <span aria-hidden className="mt-[7px] h-1.5 w-1.5 rounded-full bg-[var(--muted)]" />
-                        <span className="leading-relaxed">{b}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <div className="mt-7 sm:mt-8">
-                    <a
-                      href={s.href}
-                      {...linkProps(s, `Open ${s.label}`)}
-                      className="mm-underline mm-mono inline-flex items-center text-[12px] uppercase tracking-[0.18em] text-[var(--muted)] hover:text-[var(--fg)]"
+                    <span className="mm-mono hidden md:inline text-[12px] uppercase tracking-[0.18em] text-[var(--muted)]">
+                      {pad(idx + 1)}
+                    </span>
+                    <h2
+                      id={`${c.id}-h`}
+                      className="mm-tile-h md:mt-5 text-balance md:text-6xl font-semibold tracking-tight text-[var(--fg)]"
                     >
-                      Open {s.label} <span aria-hidden="true" className="ml-1">→</span>
-                    </a>
+                      {c.label}
+                    </h2>
+                    <p className="mm-tile-p md:mt-4 max-w-xl md:text-xl leading-relaxed text-[var(--muted)]">{c.desc}</p>
+                    <div className="mm-tile-act md:mt-8">
+                      <HomeLink
+                        href={c.href}
+                        external={c.external}
+                        className="mm-tile-link mm-btn-secondary sm:w-auto justify-center inline-flex"
+                      >
+                        {c.cta}
+                      </HomeLink>
+                    </div>
                   </div>
-                </div>
 
-                <div className="md:col-span-6">
-                  <div className="mm-card p-5 sm:p-6 md:p-8">
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-4">
-                        {(["light", "dark"] as const).map((scheme) => (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            key={scheme}
-                            src={`/brand/${s.icon}-icon-${scheme}.svg`}
-                            alt={`${s.label} icon`}
-                            width={52}
-                            height={52}
-                            className={`mmx-only-${scheme} rounded-2xl`}
-                            decoding="async"
-                          />
-                        ))}
-                        <div>
-                          <div className="mm-mono text-[12px] uppercase tracking-[0.18em] text-[var(--muted)]">
-                            Destination
-                          </div>
-                          <div className="mt-1 text-[18px] sm:text-[20px] font-semibold text-[var(--fg)]">
-                            {s.label}
-                          </div>
-                        </div>
-                      </div>
-
-                      <a
-                        href={s.href}
-                        {...linkProps(s, `Open ${s.label}`)}
-                        className="mm-underline mm-mono text-[12px] text-[var(--muted)] hover:text-[var(--fg)]"
-                      >
-                        {s.internal ? "→" : "↗"}
-                      </a>
-                    </div>
-
-                    <div className="mt-5 sm:mt-6 h-px bg-[var(--border)]" />
-
-                    <p className="mt-5 sm:mt-6 text-[14px] leading-relaxed text-[var(--muted)]">{s.desc}</p>
-
-                    <div className="mt-6 sm:mt-7 flex flex-wrap gap-2">
-                      {s.bullets.map((b) => (
-                        <span key={b} className="mm-topbar px-3 py-2 mm-mono text-[12px] text-[var(--muted)]">
-                          {b}
-                        </span>
-                      ))}
-                    </div>
-
-                    <div className="mt-7 sm:mt-8">
-                      <a
-                        href={s.href}
-                        {...linkProps(s, `Visit ${s.label}`)}
-                        className="mm-btn-secondary w-full sm:w-auto justify-center inline-flex"
-                      >
-                        Visit {s.label} <span aria-hidden="true">→</span>
-                      </a>
+                  {/* Decorative brand panel (no link: one link per section). Desktop only. */}
+                  <div className="hidden md:col-span-5 md:block" aria-hidden="true">
+                    <div className="mm-card flex aspect-[4/3] items-center justify-center">
+                      <Icon name={c.icon} size={128} className="h-32 w-32 rounded-3xl" />
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </section>
-        ))}
-
-        <div className="h-6 sm:h-10" />
+            </section>
+          ))}
+        </div>
       </div>
     </div>
   );

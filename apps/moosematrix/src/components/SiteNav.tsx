@@ -8,6 +8,7 @@
 
 import { BrandLogo } from "./BrandLogo";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef } from "react";
 import { ThemeToggle } from "@moosematrix/ui";
 
 type L = { href: string; label: string; self?: boolean };
@@ -15,9 +16,10 @@ type Cur = "page" | "true" | undefined;
 
 const STUDIO: L[] = [
   { href: "/", label: "Home", self: true },
-  { href: "https://merch.moosematrix.com/", label: "Store" },
-  { href: "https://m2.moosematrix.com/", label: "Moo$e Money" },
-  { href: "https://mooseman.moosematrix.com/", label: "Mumbles" },
+  // Outcome-worded labels, identical to the homepage cards (structure unchanged).
+  { href: "https://merch.moosematrix.com/", label: "Shop" },
+  { href: "https://mooseman.moosematrix.com/", label: "Write-ups" },
+  { href: "https://m2.moosematrix.com/", label: "Money tools" },
 ];
 
 const PAGES: L[] = [
@@ -52,6 +54,28 @@ export function SiteNav() {
   const studioCurrent = (l: L): Cur => (l.self ? (path === "/" ? "page" : "true") : undefined);
   const pageCurrent = (l: L): Cur => (path === l.href || path.startsWith(l.href + "/") ? "page" : undefined);
 
+  // Menu is a native <details> (opens/closes and exposes expanded state without JS). Enhancement only:
+  // Escape closes it and returns focus to the Menu button; a tap outside closes it. Not modal, so no trap.
+  const menu = useRef<HTMLDetailsElement>(null);
+  useEffect(() => {
+    const d = menu.current;
+    if (!d) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape" || !d.open) return;
+      d.open = false;
+      d.querySelector("summary")?.focus();
+    };
+    const onDown = (e: PointerEvent) => {
+      if (d.open && e.target instanceof Node && !d.contains(e.target)) d.open = false;
+    };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", onDown);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", onDown);
+    };
+  }, []);
+
   return (
     <header className="mmx-header">
       <div className="mmx-bar">
@@ -64,8 +88,10 @@ export function SiteNav() {
           </ul>
         </nav>
         <div className="mmx-tools">
-          <ThemeToggle />
-          <details className="mmx-menu">
+          <div className="mmx-bar-theme">
+            <ThemeToggle />
+          </div>
+          <details className="mmx-menu" ref={menu}>
             <summary>
               <svg className="mmx-ico-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
               <svg className="mmx-ico-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" /></svg>
@@ -84,6 +110,11 @@ export function SiteNav() {
                   <Links items={PAGES} current={pageCurrent} />
                 </ul>
               </nav>
+              {/* Phones (<560px): the theme toggle lives here so the bar fits the wordmark + Menu. */}
+              <div className="mmx-panel-theme">
+                <p className="mmx-group" aria-hidden="true">Theme</p>
+                <ThemeToggle />
+              </div>
             </div>
           </details>
         </div>
