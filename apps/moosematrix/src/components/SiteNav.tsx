@@ -15,9 +15,10 @@ type Cur = "page" | "true" | undefined;
 
 const STUDIO: L[] = [
   { href: "/", label: "Home", self: true },
-  { href: "https://merch.moosematrix.com/", label: "Store" },
-  { href: "https://m2.moosematrix.com/", label: "Moo$e Money" },
-  { href: "https://mooseman.moosematrix.com/", label: "Mumbles" },
+  // Mockup label proposal: outcome words, identical to the homepage cards (structure unchanged).
+  { href: "https://merch.moosematrix.com/", label: "Shop" },
+  { href: "https://mooseman.moosematrix.com/", label: "Write-ups" },
+  { href: "https://m2.moosematrix.com/", label: "Money tools" },
 ];
 
 const PAGES: L[] = [

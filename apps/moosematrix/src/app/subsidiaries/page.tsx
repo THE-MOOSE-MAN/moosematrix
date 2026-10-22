@@ -14,38 +14,41 @@ type Door = {
   focus: string[];
 };
 
+// Labels match the shared nav (Builds, Shop, Write-ups, Money tools); the property name is in the copy.
+// Builds replaces the old "Moose Matrix -> matrix.moosematrix.com" card, which looped back to this hub.
+// Statuses are unchanged from the previous directory; descriptions match the homepage and /builds.
 const DOORS: Door[] = [
   {
-    name: "Moose Matrix",
-    href: "https://matrix.moosematrix.com",
-    subdomain: "matrix.moosematrix.com",
-    desc: "Tech hub for security engineering, builds, and studio output.",
+    name: "Builds",
+    href: "/builds",
+    subdomain: "moosematrix.com/builds",
+    desc: "WARDOG Labs and other projects in progress.",
     status: "Live",
-    focus: ["Engineering", "Security", "Builds"],
+    focus: ["WARDOG Labs", "Projects"],
   },
   {
-    name: "Moo$e Money",
-    href: "https://m2.moosematrix.com",
-    subdomain: "m2.moosematrix.com",
-    desc: "Tools, dashboards, and systems for wealth clarity.",
-    status: "Beta",
-    focus: ["Dashboards", "Automation", "Wealth systems"],
-  },
-  {
-    name: "Moose Mumbles",
-    href: "https://mooseman.moosematrix.com",
-    subdomain: "mooseman.moosematrix.com",
-    desc: "Writing, videos, reviews, and notes in public.",
-    status: "Live",
-    focus: ["Writing", "Reviews", "Research notes"],
-  },
-  {
-    name: "Moose Merch",
+    name: "Shop",
     href: "https://merch.moosematrix.com",
     subdomain: "merch.moosematrix.com",
-    desc: "Physical + digital goods that support the ecosystem.",
+    desc: "Moose Merch. The first drop is in the works.",
     status: "Coming soon",
-    focus: ["Drops", "Goods", "Digital"],
+    focus: ["Moose Merch", "First drop"],
+  },
+  {
+    name: "Write-ups",
+    href: "https://mooseman.moosematrix.com",
+    subdomain: "mooseman.moosematrix.com",
+    desc: "Tech deep-dives, reviews and notes on Moose Mumbles.",
+    status: "Live",
+    focus: ["Moose Mumbles", "Reviews"],
+  },
+  {
+    name: "Money tools",
+    href: "https://m2.moosematrix.com",
+    subdomain: "m2.moosematrix.com",
+    desc: "Free TSP and deployment savings calculators on Moo$e Money.",
+    status: "Beta",
+    focus: ["Moo$e Money", "Calculators"],
   },
 ];
 
@@ -93,7 +96,7 @@ export default function SubsidiariesPage() {
             <a
               key={d.name}
               href={d.href}
-              rel="noopener noreferrer"
+              rel={d.href.startsWith("/") ? undefined : "noopener noreferrer"}
               className={[
                 "group mm-card relative overflow-hidden p-6",
                 "focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]",

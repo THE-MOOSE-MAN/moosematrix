@@ -4,208 +4,124 @@ export const fetchCache = "force-cache";
 
 import { ScrollDots } from "@moosematrix/ui";
 import { TypedAccent } from "../components/TypedAccent";
+import { HomeLink } from "../components/HomeLink";
+import { CARDS, HERO, LATEST } from "./home-content";
 
-// internal: a page on this site (same tab, plain link). The rest are other sites (new tab, labelled as such).
-const SECTIONS = [
-  {
-    id: "builds",
-    label: "Builds",
-    href: "/builds",
-    internal: true,
-    desc: "Projects · big ideas · in progress",
-    icon: "main",
-    tag: "Building",
-    bullets: ["WARDOG Labs", "Live tools", "Drops in progress"],
-  },
-  {
-    id: "money",
-    label: "Moo$e Money",
-    href: "https://m2.moosematrix.com",
-    internal: false,
-    desc: "Tools · dashboards · wealth systems",
-    icon: "money",
-    tag: "Finance",
-    bullets: ["Dashboards & trackers", "Wealth systems", "Simple workflows"],
-  },
-  {
-    id: "mumbles",
-    label: "Moose Mumbles",
-    href: "https://mooseman.moosematrix.com",
-    internal: false,
-    desc: "Writing · videos · notes in public",
-    icon: "main",
-    tag: "Writing",
-    bullets: ["Writeups & reviews", "Notes-in-public", "Progress trail"],
-  },
-  {
-    id: "store",
-    label: "Store",
-    href: "https://merch.moosematrix.com",
-    internal: false,
-    desc: "Merch · digital drops · goods",
-    icon: "store",
-    tag: "Merch",
-    bullets: ["Drops", "Digital goods", "Physical goods"],
-  },
-] as const;
-
-// Same tab for this site's own pages; new tab (announced) for the other Moose sites.
-// `name` is the link's accessible name (it starts with the visible text, WCAG 2.5.3).
-function linkProps(s: (typeof SECTIONS)[number], name: string) {
-  return s.internal
-    ? { "aria-label": name }
-    : { target: "_blank", rel: "noopener noreferrer", "aria-label": `${name} (opens in new tab)` };
-}
-
-const DOTS = [{ id: "home", label: "Home" }, ...SECTIONS.map((s) => ({ id: s.id, label: s.label }))];
+// MOCKUP A (mock/home-sections-2026-10-21): Dustin's full-screen sections, kept. Hero + one section per
+// destination, each with exactly one link. The document is the only scroller (soft snap on <html> lives in
+// packages/ui/src/styles.css), so the footer is always reachable. The hero is a little shorter than the
+// screen so the next section peeks in: a visible cue that the page scrolls (avoids the "false floor").
+const DOTS = [{ id: "home", label: "Home" }, ...CARDS.map((c) => ({ id: c.id, label: c.label }))];
+const FULL = "md:min-h-[calc(100svh-var(--mmx-header-h))] md:flex md:items-center";
+// Section number only ("01"..."04"): keeps the sections feel within the A word budget.
+const pad = (n: number) => String(n).padStart(2, "0");
 
 export default function HomePage() {
   return (
-    // Not a second <main>: layout.tsx wraps every page in <main id="content"> (the skip-link target).
+    // Not a second <main>: layout.tsx wraps every page in <main id="content">.
     <div className="mm-shell">
-      {/* Keep Feb 14 desktop dots; hide on mobile (touch + no snap) */}
       <div className="hidden md:block">
         <ScrollDots containerId="mm-snap" items={DOTS} />
       </div>
 
-      {/* One scroller (the document) at every size, so there is a single scrollbar and the footer is
-          always reachable. The full-screen "sections" look comes from min-h on each section; soft snapping
-          (y proximity) lives on <html> in packages/ui/src/styles.css, off for reduced motion and mobile.
-          Previously md+ used an inner h-[100svh-76px] overflow-y-auto box: a second scrollbar nested in the
-          page scroller, with the footer outside it. */}
       <div id="mm-snap">
-        <section id="home">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-10 sm:pt-14 pb-10 md:min-h-[calc(100svh-var(--mmx-header-h))] md:flex md:items-center">
+        <section id="home" aria-labelledby="home-h">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-10 sm:pt-14 pb-12 md:min-h-[calc(100svh-var(--mmx-header-h)-6rem)] md:flex md:items-center">
             <div className="mx-auto max-w-3xl text-center">
-              <div className="flex flex-wrap items-center justify-center gap-2">
-                <span className="mm-chip mm-mono">Builds</span>
-                <span className="mm-chip mm-mono">Moo$e Money</span>
-                <span className="mm-chip mm-mono">Moose Mumbles</span>
-                <span className="mm-chip mm-mono">Moose Merch</span>
-              </div>
-
-              <h1 className="mm-mono mt-6 sm:mt-7 text-3xl sm:text-4xl md:text-6xl font-semibold tracking-tight text-[var(--fg)]">
-                A studio for the Moose <TypedAccent>ecosystem</TypedAccent>.
+              <h1
+                id="home-h"
+                className="mm-mono text-balance text-3xl sm:text-4xl md:text-6xl font-semibold tracking-tight text-[var(--fg)]"
+              >
+                {HERO.lead} <TypedAccent>{HERO.accent}</TypedAccent>.
               </h1>
-
-              <p className="mt-4 sm:mt-5 text-sm sm:text-[15px] md:text-lg leading-relaxed text-[var(--muted)]">
-                MooseMatrix is the front door—four destinations, one consistent system. Scroll to pick a door.
-              </p>
-
-              <div className="mt-8 sm:mt-10 flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-[12px] text-[var(--muted)]">
-                <span className="mm-topbar px-4 py-2 mm-mono">Build</span>
-                <span className="mm-topbar px-4 py-2 mm-mono">Learn</span>
-                <span className="mm-topbar px-4 py-2 mm-mono">Track</span>
-                <span className="mm-topbar px-4 py-2 mm-mono">Support</span>
+              <p className="mt-4 sm:mt-5 text-[15px] md:text-lg leading-relaxed text-[var(--muted)]">{HERO.sub}</p>
+              <div className="mt-8">
+                {/* In-page link, not a button: no JS needed. Target id comes from the first section. */}
+                <a href={`#${CARDS[0].id}`} className="mm-btn-primary w-full sm:w-auto justify-center">
+                  {HERO.cta.text} <span aria-hidden="true">{"\u2193"}</span>
+                </a>
               </div>
+              <p className="mt-5 text-[14px] text-[var(--muted)]">
+                <a
+                  href={LATEST.href}
+                  className="mm-underline inline-flex min-h-6 items-center gap-1.5 hover:text-[var(--fg)]"
+                >
+                  <span className="mm-mono text-[12px] font-semibold uppercase tracking-[0.14em] text-[var(--fg)]">{LATEST.label}</span>
+                  <span>{LATEST.text}</span>
+                </a>
+                <span aria-hidden="true"> · </span>
+                <time dateTime={LATEST.date}>{LATEST.dateText}</time>
+              </p>
             </div>
           </div>
         </section>
 
-        {SECTIONS.map((s, idx) => (
-          <section key={s.id} id={s.id}>
-            <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10 sm:py-14 md:min-h-[calc(100svh-var(--mmx-header-h))] md:flex md:items-center">
-              <div className="grid w-full items-start gap-8 md:grid-cols-12 md:items-center">
-                <div className="md:col-span-6">
-                  <div className="flex items-center gap-2">
-                    <span className="mm-chip mm-mono">{s.tag}</span>
+        {CARDS.map((c, idx) => (
+          <section key={c.id} id={c.id} aria-labelledby={`${c.id}-h`} className="border-t border-[var(--border)]">
+            <div className={`mx-auto max-w-6xl px-4 sm:px-6 py-12 sm:py-14 ${FULL}`}>
+              <div className="grid w-full items-center gap-8 md:grid-cols-12">
+                <div className="md:col-span-7">
+                  <div className="flex items-center gap-3">
+                    {/* Wrapper carries md:hidden: .mmx-only-* sets display on the img itself. */}
+                    <span className="flex md:hidden">
+                    {(["light", "dark"] as const).map((scheme) => (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        key={scheme}
+                        src={`/brand/${c.icon}-icon-${scheme}.svg`}
+                        alt=""
+                        width={40}
+                        height={40}
+                        className={`mmx-only-${scheme} h-10 w-10 rounded-xl`}
+                        decoding="async"
+                        loading="lazy"
+                      />
+                    ))}
+                    </span>
                     <span className="mm-mono text-[12px] uppercase tracking-[0.18em] text-[var(--muted)]">
-                      {String(idx + 1).padStart(2, "0")} / {String(SECTIONS.length).padStart(2, "0")}
+                      {pad(idx + 1)}
                     </span>
                   </div>
-
-                  <h2 className="mt-5 sm:mt-6 text-balance text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight text-[var(--fg)]">
-                    {s.label}
+                  <h2
+                    id={`${c.id}-h`}
+                    className="mt-4 sm:mt-5 text-balance text-3xl sm:text-4xl md:text-6xl font-semibold tracking-tight text-[var(--fg)]"
+                  >
+                    {c.label}
                   </h2>
-
-                  <p className="mt-3 sm:mt-4 text-sm sm:text-[15px] md:text-lg leading-relaxed text-[var(--muted)]">
-                    {s.desc}
-                  </p>
-
-                  <ul className="mt-5 sm:mt-6 space-y-2 text-[13px] md:text-[14px] text-[var(--muted)]">
-                    {s.bullets.map((b) => (
-                      <li key={b} className="flex items-start gap-3">
-                        <span aria-hidden className="mt-[7px] h-1.5 w-1.5 rounded-full bg-[var(--muted)]" />
-                        <span className="leading-relaxed">{b}</span>
-                      </li>
-                    ))}
-                  </ul>
-
+                  <p className="mt-3 sm:mt-4 max-w-xl text-[15px] md:text-xl leading-relaxed text-[var(--muted)]">{c.desc}</p>
                   <div className="mt-7 sm:mt-8">
-                    <a
-                      href={s.href}
-                      {...linkProps(s, `Open ${s.label}`)}
-                      className="mm-underline mm-mono inline-flex items-center text-[12px] uppercase tracking-[0.18em] text-[var(--muted)] hover:text-[var(--fg)]"
+                    <HomeLink
+                      href={c.href}
+                      external={c.external}
+                      className="mm-btn-secondary w-full sm:w-auto justify-center inline-flex"
                     >
-                      Open {s.label} <span aria-hidden="true" className="ml-1">→</span>
-                    </a>
+                      {c.cta}
+                    </HomeLink>
                   </div>
                 </div>
 
-                <div className="md:col-span-6">
-                  <div className="mm-card p-5 sm:p-6 md:p-8">
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-4">
-                        {(["light", "dark"] as const).map((scheme) => (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            key={scheme}
-                            src={`/brand/${s.icon}-icon-${scheme}.svg`}
-                            alt={`${s.label} icon`}
-                            width={52}
-                            height={52}
-                            className={`mmx-only-${scheme} rounded-2xl`}
-                            decoding="async"
-                          />
-                        ))}
-                        <div>
-                          <div className="mm-mono text-[12px] uppercase tracking-[0.18em] text-[var(--muted)]">
-                            Destination
-                          </div>
-                          <div className="mt-1 text-[18px] sm:text-[20px] font-semibold text-[var(--fg)]">
-                            {s.label}
-                          </div>
-                        </div>
-                      </div>
-
-                      <a
-                        href={s.href}
-                        {...linkProps(s, `Open ${s.label}`)}
-                        className="mm-underline mm-mono text-[12px] text-[var(--muted)] hover:text-[var(--fg)]"
-                      >
-                        {s.internal ? "→" : "↗"}
-                      </a>
-                    </div>
-
-                    <div className="mt-5 sm:mt-6 h-px bg-[var(--border)]" />
-
-                    <p className="mt-5 sm:mt-6 text-[14px] leading-relaxed text-[var(--muted)]">{s.desc}</p>
-
-                    <div className="mt-6 sm:mt-7 flex flex-wrap gap-2">
-                      {s.bullets.map((b) => (
-                        <span key={b} className="mm-topbar px-3 py-2 mm-mono text-[12px] text-[var(--muted)]">
-                          {b}
-                        </span>
-                      ))}
-                    </div>
-
-                    <div className="mt-7 sm:mt-8">
-                      <a
-                        href={s.href}
-                        {...linkProps(s, `Visit ${s.label}`)}
-                        className="mm-btn-secondary w-full sm:w-auto justify-center inline-flex"
-                      >
-                        Visit {s.label} <span aria-hidden="true">→</span>
-                      </a>
-                    </div>
+                {/* Decorative brand panel (no link: one link per section). */}
+                <div className="hidden md:col-span-5 md:block" aria-hidden="true">
+                  <div className="mm-card flex aspect-[4/3] items-center justify-center">
+                    {(["light", "dark"] as const).map((scheme) => (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        key={scheme}
+                        src={`/brand/${c.icon}-icon-${scheme}.svg`}
+                        alt=""
+                        width={128}
+                        height={128}
+                        className={`mmx-only-${scheme} h-32 w-32 rounded-3xl`}
+                        decoding="async"
+                        loading="lazy"
+                      />
+                    ))}
                   </div>
                 </div>
               </div>
             </div>
           </section>
         ))}
-
-        <div className="h-6 sm:h-10" />
       </div>
     </div>
   );
