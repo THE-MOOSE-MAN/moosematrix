@@ -35,6 +35,9 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
+  // A3: let the layout reach the screen edges on notched phones; header, hero and footer pad with
+  // env(safe-area-inset-*) so nothing sits under the notch or the home indicator.
+  viewportFit: "cover",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#f7f6f3" },
     { media: "(prefers-color-scheme: dark)", color: "#070b13" },

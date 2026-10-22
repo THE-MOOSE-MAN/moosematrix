@@ -92,7 +92,13 @@ export function ThemeToggle() {
     // Pick up a choice made on another *.moosematrix.com tab when this one is shown again.
     const resync = () => { if (!document.hidden) setMode(readMode()); };
     document.addEventListener("visibilitychange", resync);
-    return () => document.removeEventListener("visibilitychange", resync);
+    // Keep every toggle on the page in step (the header has one in the bar and one in the phone Menu).
+    const mo = new MutationObserver(() => setMode(readMode()));
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => {
+      document.removeEventListener("visibilitychange", resync);
+      mo.disconnect();
+    };
   }, []);
 
   const choose = (next: ThemeMode) => {

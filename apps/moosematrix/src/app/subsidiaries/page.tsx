@@ -65,7 +65,7 @@ function statusPill(status: Door["status"]) {
 export default function SubsidiariesPage() {
   return (
     <div className="mm-shell">
-      <div className="mx-auto max-w-6xl px-6 py-14">
+      <div className="mx-auto max-w-6xl px-4 py-10 md:px-6 md:py-14">
         {/* Header */}
         <div className="flex flex-col gap-3">
           <div className="mm-mono text-[12px] uppercase tracking-[0.22em] text-[var(--muted)]">
@@ -76,14 +76,14 @@ export default function SubsidiariesPage() {
             Subsidiaries &amp; <TypedAccent>subdomains</TypedAccent>
           </h1>
 
-          <p className="max-w-2xl text-[15px] md:text-lg leading-relaxed text-[var(--muted)]">
+          <p className="max-w-2xl text-[16px] md:text-lg leading-relaxed text-[var(--muted)]">
             Each part of the Moose ecosystem lives on its own subdomain—clear boundaries, less clutter, easier navigation.
           </p>
 
           <div className="mt-2">
             <Link
               href="/"
-              className="mm-underline mm-mono inline-flex items-center text-[12px] uppercase tracking-[0.18em] text-[var(--muted)] hover:text-[var(--fg)]"
+              className="mm-underline mm-mono inline-flex min-h-11 md:min-h-6 items-center text-[12px] uppercase tracking-[0.18em] text-[var(--muted)] hover:text-[var(--fg)]"
             >
               ← Back to home
             </Link>
@@ -91,14 +91,14 @@ export default function SubsidiariesPage() {
         </div>
 
         {/* Grid (cards, but calm) */}
-        <div className="mt-10 grid gap-6 md:grid-cols-2">
+        <div className="mt-8 md:mt-10 grid gap-4 md:gap-6 md:grid-cols-2">
           {DOORS.map((d) => (
             <a
               key={d.name}
               href={d.href}
               rel={d.href.startsWith("/") ? undefined : "noopener noreferrer"}
               className={[
-                "group mm-card relative overflow-hidden p-6",
+                "group mm-card relative overflow-hidden p-5 md:p-6",
                 "focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]",
               ].join(" ")}
             >
@@ -127,7 +127,7 @@ export default function SubsidiariesPage() {
                   </div>
                 </div>
 
-                <p className="mt-4 text-[14px] leading-relaxed text-[var(--muted)]">
+                <p className="mt-4 text-[16px] md:text-[14px] leading-relaxed text-[var(--muted)]">
                   {d.desc}
                 </p>
 

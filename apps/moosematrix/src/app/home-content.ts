@@ -1,4 +1,4 @@
-// Homepage copy, shared word-for-word by both layout mockups (A: sections, B: grid) so Dustin compares
+// Homepage copy (shared by the hero, the section cards and the nav labels).
 // layout only. Facts come from the live sites and the Builds page; no dates, prices or metrics invented.
 // Hero CTA: Dustin chose a neutral "Start exploring" jump over a store-only CTA (21 Oct 2026).
 
