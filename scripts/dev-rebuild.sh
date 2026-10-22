@@ -16,4 +16,4 @@ docker build -t $APP_NAME "$PROJECT_DIR"
 echo "🚀 Running new container on port $PORT..."
 docker run -d -p $PORT:3000 --name $APP_NAME $APP_NAME
 
-echo "✅ $APP_NAME is running at http://<62.72.27.120>:$PORT"
+echo "✅ $APP_NAME is running at http://localhost:$PORT"
