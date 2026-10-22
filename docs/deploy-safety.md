@@ -57,6 +57,8 @@ What this means for the secret:
   `moose-vps ssh-ed25519 AAAA…`. The host field can be anything (it is replaced); **the key is what is pinned.**
 - Hashed entries (`|1|…`, from `ssh-keyscan -H`) and `@cert-authority`/`@revoked` lines are rejected: the step
   fails with an error and nothing connects.
+- Blank and `#` comment lines are skipped (VB R39 L9); at least one key line is required. The secret reaches the
+  step through `env:`, never as inline `${{ }}` text in the script (L10).
 - The same value Vulnerability Bot prepared for moose-brain (the 3 `[<IP>]:<PORT> <type> <key>` lines read from the
   VPS's own `/etc/ssh/ssh_host_*_key.pub`) works here unchanged, whether `VPS_HOST` is the IP or a hostname.
 - Check before setting: `ssh-keygen -lf <file>` must show the VPS fingerprints.
