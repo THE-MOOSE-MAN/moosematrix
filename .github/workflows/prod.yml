@@ -142,8 +142,8 @@ jobs:
           docker image inspect "${IMAGE_REPO}:prod-latest" \
             --format 'revision={{ index .Config.Labels "org.opencontainers.image.revision" }}' 2>/dev/null || true
 
-          echo "🧹 Pruning images older than 7 days..."
-          docker image prune -af --filter "until=168h" || true
+          echo "🧹 Pruning dangling images only (keeps tagged and rollback-* images)..."
+          docker image prune -f || true
 
           echo "✅ Prod deployment complete → https://moosematrix.com"
           EOF

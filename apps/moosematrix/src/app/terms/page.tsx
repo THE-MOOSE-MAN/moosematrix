@@ -1,3 +1,4 @@
+import { TypedAccent } from "../../components/TypedAccent";
 export const dynamic = "force-static";
 export const revalidate = false;
 
@@ -5,10 +6,10 @@ const LAST_UPDATED = "February 13, 2026";
 
 export default function TermsPage() {
   return (
-    <main className="mm-shell">
+    <div className="mm-shell">
       <section className="mx-auto max-w-4xl px-6 pt-14 pb-16">
         <h1 className="mm-mono text-4xl md:text-5xl font-semibold tracking-tight text-[var(--fg)]">
-          Terms of Service
+          Terms of <TypedAccent>Service</TypedAccent>
         </h1>
         <p className="mt-3 text-[13px] text-[var(--muted)]">Last updated: {LAST_UPDATED}</p>
 
@@ -71,6 +72,6 @@ export default function TermsPage() {
           </div>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

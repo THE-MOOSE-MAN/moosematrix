@@ -1,12 +1,13 @@
+import { TypedAccent } from "../../components/TypedAccent";
 export const dynamic = "force-static";
 export const revalidate = false;
 
 export default function SecurityPage() {
   return (
-    <main className="mm-shell">
+    <div className="mm-shell">
       <section className="mx-auto max-w-4xl px-6 pt-14 pb-16">
         <h1 className="mm-mono text-4xl md:text-5xl font-semibold tracking-tight text-[var(--fg)]">
-          Security
+          <TypedAccent>Security</TypedAccent>
         </h1>
 
         <div className="mt-8 space-y-6 text-[14px] leading-relaxed text-[var(--muted)]">
@@ -39,6 +40,6 @@ export default function SecurityPage() {
           </div>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

@@ -2,25 +2,28 @@ export const dynamic = "force-static";
 export const revalidate = false;
 export const fetchCache = "force-cache";
 
-import Image from "next/image";
 import { ScrollDots } from "@moosematrix/ui";
+import { TypedAccent } from "../components/TypedAccent";
 
+// internal: a page on this site (same tab, plain link). The rest are other sites (new tab, labelled as such).
 const SECTIONS = [
   {
-    id: "matrix",
-    label: "Moose Matrix",
-    href: "https://matrix.moosematrix.com",
-    desc: "Tech hub · security engineering · builds",
-    icon: "/moose.png",
-    tag: "Engineering",
-    bullets: ["Security-first builds", "Uniform systems", "Minimal surface area"],
+    id: "builds",
+    label: "Builds",
+    href: "/builds",
+    internal: true,
+    desc: "Projects · big ideas · in progress",
+    icon: "main",
+    tag: "Building",
+    bullets: ["WARDOG Labs", "Live tools", "Drops in progress"],
   },
   {
     id: "money",
     label: "Moo$e Money",
     href: "https://m2.moosematrix.com",
+    internal: false,
     desc: "Tools · dashboards · wealth systems",
-    icon: "/moose_money_logo.png",
+    icon: "money",
     tag: "Finance",
     bullets: ["Dashboards & trackers", "Wealth systems", "Simple workflows"],
   },
@@ -28,8 +31,9 @@ const SECTIONS = [
     id: "mumbles",
     label: "Moose Mumbles",
     href: "https://mooseman.moosematrix.com",
+    internal: false,
     desc: "Writing · videos · notes in public",
-    icon: "/moose.png",
+    icon: "main",
     tag: "Writing",
     bullets: ["Writeups & reviews", "Notes-in-public", "Progress trail"],
   },
@@ -37,19 +41,28 @@ const SECTIONS = [
     id: "store",
     label: "Store",
     href: "https://merch.moosematrix.com",
+    internal: false,
     desc: "Merch · digital drops · goods",
-    icon: "/moose_merch_logo.png",
+    icon: "store",
     tag: "Merch",
     bullets: ["Drops", "Digital goods", "Physical goods"],
   },
 ] as const;
 
+// Same tab for this site's own pages; new tab (announced) for the other Moose sites.
+// `name` is the link's accessible name (it starts with the visible text, WCAG 2.5.3).
+function linkProps(s: (typeof SECTIONS)[number], name: string) {
+  return s.internal
+    ? { "aria-label": name }
+    : { target: "_blank", rel: "noopener noreferrer", "aria-label": `${name} (opens in new tab)` };
+}
+
 const DOTS = [{ id: "home", label: "Home" }, ...SECTIONS.map((s) => ({ id: s.id, label: s.label }))];
 
 export default function HomePage() {
   return (
-    // Not a second <main>: layout.tsx already wraps every page in <main>. id="content" is the skip-link target.
-    <div id="content" className="mm-shell">
+    // Not a second <main>: layout.tsx wraps every page in <main id="content"> (the skip-link target).
+    <div className="mm-shell">
       {/* Keep Feb 14 desktop dots; hide on mobile (touch + no snap) */}
       <div className="hidden md:block">
         <ScrollDots containerId="mm-snap" items={DOTS} />
@@ -62,17 +75,17 @@ export default function HomePage() {
           page scroller, with the footer outside it. */}
       <div id="mm-snap">
         <section id="home">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-10 sm:pt-14 pb-10 md:min-h-[calc(100svh-76px)] md:flex md:items-center">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-10 sm:pt-14 pb-10 md:min-h-[calc(100svh-var(--mmx-header-h))] md:flex md:items-center">
             <div className="mx-auto max-w-3xl text-center">
               <div className="flex flex-wrap items-center justify-center gap-2">
-                <span className="mm-chip mm-mono">Moose Matrix</span>
+                <span className="mm-chip mm-mono">Builds</span>
                 <span className="mm-chip mm-mono">Moo$e Money</span>
                 <span className="mm-chip mm-mono">Moose Mumbles</span>
                 <span className="mm-chip mm-mono">Moose Merch</span>
               </div>
 
               <h1 className="mm-mono mt-6 sm:mt-7 text-3xl sm:text-4xl md:text-6xl font-semibold tracking-tight text-[var(--fg)]">
-                A studio for the Moose ecosystem.
+                A studio for the Moose <TypedAccent>ecosystem</TypedAccent>.
               </h1>
 
               <p className="mt-4 sm:mt-5 text-sm sm:text-[15px] md:text-lg leading-relaxed text-[var(--muted)]">
@@ -91,7 +104,7 @@ export default function HomePage() {
 
         {SECTIONS.map((s, idx) => (
           <section key={s.id} id={s.id}>
-            <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10 sm:py-14 md:min-h-[calc(100svh-76px)] md:flex md:items-center">
+            <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10 sm:py-14 md:min-h-[calc(100svh-var(--mmx-header-h))] md:flex md:items-center">
               <div className="grid w-full items-start gap-8 md:grid-cols-12 md:items-center">
                 <div className="md:col-span-6">
                   <div className="flex items-center gap-2">
@@ -121,10 +134,8 @@ export default function HomePage() {
                   <div className="mt-7 sm:mt-8">
                     <a
                       href={s.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      {...linkProps(s, `Open ${s.label}`)}
                       className="mm-underline mm-mono inline-flex items-center text-[12px] uppercase tracking-[0.18em] text-[var(--muted)] hover:text-[var(--fg)]"
-                      aria-label={`Open ${s.label} (opens in new tab)`}
                     >
                       Open {s.label} <span aria-hidden="true" className="ml-1">→</span>
                     </a>
@@ -135,14 +146,18 @@ export default function HomePage() {
                   <div className="mm-card p-5 sm:p-6 md:p-8">
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-4">
-                        <Image
-                          src={s.icon}
-                          alt={`${s.label} icon`}
-                          width={52}
-                          height={52}
-                          className="rounded-2xl border border-[var(--border)] bg-[var(--surface)]"
-                          priority={idx === 0}
-                        />
+                        {(["light", "dark"] as const).map((scheme) => (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            key={scheme}
+                            src={`/brand/${s.icon}-icon-${scheme}.svg`}
+                            alt={`${s.label} icon`}
+                            width={52}
+                            height={52}
+                            className={`mmx-only-${scheme} rounded-2xl`}
+                            decoding="async"
+                          />
+                        ))}
                         <div>
                           <div className="mm-mono text-[12px] uppercase tracking-[0.18em] text-[var(--muted)]">
                             Destination
@@ -155,12 +170,10 @@ export default function HomePage() {
 
                       <a
                         href={s.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        {...linkProps(s, `Open ${s.label}`)}
                         className="mm-underline mm-mono text-[12px] text-[var(--muted)] hover:text-[var(--fg)]"
-                        aria-label={`Open ${s.label} (opens in new tab)`}
                       >
-                        ↗
+                        {s.internal ? "→" : "↗"}
                       </a>
                     </div>
 
@@ -179,8 +192,7 @@ export default function HomePage() {
                     <div className="mt-7 sm:mt-8">
                       <a
                         href={s.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        {...linkProps(s, `Visit ${s.label}`)}
                         className="mm-btn-secondary w-full sm:w-auto justify-center inline-flex"
                       >
                         Visit {s.label} <span aria-hidden="true">→</span>

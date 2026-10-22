@@ -1,19 +1,28 @@
 // layout.tsx
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import { NavbarStatic, FooterStatic } from "@moosematrix/ui";
+import { FooterStatic } from "@moosematrix/ui";
+import { SiteNav } from "../components/SiteNav";
 
 export const metadata: Metadata = {
   title: "The Moose Matrix",
   description: "A hub for projects, writing, and products.",
   metadataBase: new URL("https://moosematrix.com"),
-  icons: { icon: "/moose.png" },
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "16x16 32x32" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+  },
+  manifest: "/site.webmanifest",
   openGraph: {
     title: "The Moose Matrix",
     description: "A hub for projects, writing, and products.",
     url: "https://moosematrix.com",
     siteName: "The Moose Matrix",
-    images: [{ url: "/og.png", width: 1200, height: 630 }],
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Moose Matrix" }],
     locale: "en_US",
     type: "website",
   },
@@ -70,9 +79,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script id="mm-theme-init" dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
       </head>
       <body className="min-h-svh antialiased flex flex-col overflow-x-hidden">
-        <NavbarStatic />
-        {/* Desktop/tablet: allow nested scroll containers. Mobile: allow doc growth. */}
-        <main className="flex-1 md:min-h-0">{children}</main>
+        {/* Skip link first in the tab order; target is the one <main> below (pages render no <main> of their own). */}
+        <a href="#content" className="mm-skip-link">Skip to content</a>
+        <SiteNav />
+        <main id="content" tabIndex={-1} className="flex-1">{children}</main>
         <FooterStatic />
       </body>
     </html>
