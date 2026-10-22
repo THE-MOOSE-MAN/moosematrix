@@ -34,7 +34,7 @@ test("every inline script in every prerendered page is covered by a hash (and no
       if (/\ssrc=/.test(m[1]) || /type="application\/(ld\+)?json"/.test(m[1])) continue;
       assert.ok(D["script-src"].includes(sha(m[2])), `${path.basename(f)}: inline script not hashed: ${m[2].slice(0, 60)}`);
     }
-    assert.doesNotMatch(h, /\son[a-z]+="/i, `${path.basename(f)}: inline event handler`);
+    assert.doesNotMatch(h.replace(/<script\b[\s\S]*?<\/script>/gi, ""), /<[a-z][^>]*?\son[a-z]+\s*=/i, `${path.basename(f)}: inline event handler`);
   }
 });
 
@@ -45,3 +45,19 @@ test("server.js sends the generated policy in production only", () => {
   assert.match(s, /res\.setHeader\(header, csp\)/);
   assert.deepEqual(D["style-src"].filter((x) => !x.startsWith("'sha256-")), ["'self'"], "style-src: 'self' + <style> hashes only (no 'unsafe-hashes')");
 });
+
+test("built-in error pages are styled from their hashed <style> block, with no style attribute left (VB L1/L2)", () => {
+  for (const rel of ["app/_global-error.html", "pages/500.html"]) {
+    const h = fs.readFileSync(path.join(root, ".next", "server", rel), "utf8");
+    assert.doesNotMatch(h, /\sstyle\s*=/, rel);
+    assert.match(h, /\[data-mmx-ge="mmx-ge0"\]\{/, rel);
+    const block = h.match(/<style\b[^>]*>([\s\S]*?)<\/style>/i)[1];
+    assert.ok(D["style-src"].includes(sha(block)), `${rel}: <style> block hashed`);
+    for (const m of h.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)) {
+      if (/\ssrc=/.test(m[1]) || /type="application\/(ld\+)?json"/.test(m[1])) continue;
+      assert.ok(D["script-src"].includes(sha(m[2])), `${rel}: inline script hashed`);
+    }
+  }
+});
+
+test("policy stays under the 3000-byte cap", () => assert.ok(Buffer.byteLength(csp.policy) <= 3000, `${Buffer.byteLength(csp.policy)} bytes`));

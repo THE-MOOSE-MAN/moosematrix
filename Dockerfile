@@ -34,6 +34,8 @@ ENV NEXT_TELEMETRY_DISABLED=1
 
 # Run build only for the MooseMatrix app
 RUN npx turbo run build --filter=moosematrix...
+# CSP guard + built-HTML tests on the exact build that ships (VB M3, 22 Oct 2026): a failing test fails the image.
+RUN cd apps/moosematrix && npm test
 
 
 # -------------------------------
