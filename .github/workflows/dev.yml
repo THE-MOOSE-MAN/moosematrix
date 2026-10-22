@@ -88,35 +88,44 @@ jobs:
 
       - name: Install SSH key
         shell: bash
+        # L10 (VB R39): secrets reach the script through env:, never as ${{ }} text inside it
+        env:
+          VPS_SSH_KEY_B64: ${{ secrets.VPS_SSH_KEY_B64 }}
         run: |
           set -euo pipefail
           mkdir -p ~/.ssh
-          echo "${{ secrets.VPS_SSH_KEY_B64 }}" | base64 -d > ~/.ssh/id_ed25519
+          printf '%s' "$VPS_SSH_KEY_B64" | base64 -d > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
 
       - name: Pin VPS host key (VPS_KNOWN_HOSTS secret)
         shell: bash
+        env:
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
         run: |
           set -euo pipefail
           # The host key is pinned from a repo secret instead of trusting whatever ssh-keyscan returns on
           # each run (same pattern as moose_money / mooseman-site). Pre-merge step: add VPS_KNOWN_HOSTS.
           mkdir -p ~/.ssh && chmod 700 ~/.ssh
           umask 077
-          printf '%s\n' "${{ secrets.VPS_KNOWN_HOSTS }}" > ~/.ssh/known_hosts.in
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts.in
           # Pin by KEY, not by host string: VPS_HOST may be an IP or a hostname, so ssh looks the key up
           # under the fixed alias moose-vps (-o HostKeyAlias=moose-vps below) and the host field of each
           # plain "<host> <type> <key>" line is rewritten to that alias. Hashed (|1|...) or @marker lines
-          # are rejected. See docs/deploy-safety.md.
-          awk 'NF == 0 { next }
+          # are rejected; blank and comment lines are skipped (L9). See docs/deploy-safety.md.
+          awk 'NF == 0 || $1 ~ /^#/ { next }
                $1 ~ /^(\||@)/ || NF < 3 { bad = 1; next }
                { print "moose-vps", $2, $3; n++ }
                END { exit (bad || n == 0) }' ~/.ssh/known_hosts.in > ~/.ssh/known_hosts \
-            || { rm -f ~/.ssh/known_hosts.in; echo "::error::VPS_KNOWN_HOSTS secret is missing, empty or not plain '<host> <type> <key>' lines; see docs/deploy-safety.md"; exit 1; }
+            || { rm -f ~/.ssh/known_hosts ~/.ssh/known_hosts.in; echo "::error::VPS_KNOWN_HOSTS secret is missing, empty or not plain '<host> <type> <key>' lines; see docs/deploy-safety.md"; exit 1; }
           rm -f ~/.ssh/known_hosts.in
           chmod 600 ~/.ssh/known_hosts
 
       - name: Deploy Moosematrix Dev (ephemeral GHCR login on VPS)
         shell: bash
+        env:   # L10: ssh target from env, not ${{ secrets.* }} text in the script
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
         run: |
           set -euo pipefail
 
@@ -170,5 +179,5 @@ jobs:
           main </dev/null; exit $?
           EOF
           } | ssh -4 -T -o StrictHostKeyChecking=yes -o HostKeyAlias=moose-vps -o ConnectTimeout=20 -i ~/.ssh/id_ed25519 \
-            -p "${{ secrets.VPS_PORT }}" \
-            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" bash -s
+            -p "$VPS_PORT" \
+            "${VPS_USER}@${VPS_HOST}" bash -s
