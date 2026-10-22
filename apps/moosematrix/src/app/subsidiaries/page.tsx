@@ -3,7 +3,7 @@ export const revalidate = false;
 export const fetchCache = "force-cache";
 
 import Link from "next/link";
-import { TypedAccent } from "../../components/TypedAccent";
+import { TypedLine } from "../../components/TypedLine";
 
 type Door = {
   name: string;
@@ -14,17 +14,33 @@ type Door = {
   focus: string[];
 };
 
-// Labels match the shared nav (Builds, Shop, Write-ups, Money tools); the property name is in the copy.
-// Builds replaces the old "Moose Matrix -> matrix.moosematrix.com" card, which looped back to this hub.
+// Labels and order match the shared nav (Research & Development, Moose Mumbles, Moo$e Money, Shop; 22 Oct 2026).
+// Research & Development (/builds, formerly "Builds") replaces the old "Moose Matrix -> matrix.moosematrix.com" card, which looped back to this hub.
 // Statuses are unchanged from the previous directory; descriptions match the homepage and /builds.
 const DOORS: Door[] = [
   {
-    name: "Builds",
+    name: "Research & Development",
     href: "/builds",
     subdomain: "moosematrix.com/builds",
     desc: "WARDOG Labs and other projects in progress.",
     status: "Live",
     focus: ["WARDOG Labs", "Projects"],
+  },
+  {
+    name: "Moose Mumbles",
+    href: "https://mooseman.moosematrix.com",
+    subdomain: "mooseman.moosematrix.com",
+    desc: "Tech deep-dives, reviews and notes on Moose Mumbles.",
+    status: "Live",
+    focus: ["Moose Mumbles", "Reviews"],
+  },
+  {
+    name: "Moo$e Money",
+    href: "https://m2.moosematrix.com",
+    subdomain: "m2.moosematrix.com",
+    desc: "Free TSP and deployment savings calculators on Moo$e Money.",
+    status: "Beta",
+    focus: ["Moo$e Money", "Calculators"],
   },
   {
     name: "Shop",
@@ -33,22 +49,6 @@ const DOORS: Door[] = [
     desc: "Moose Merch. The first drop is in the works.",
     status: "Coming soon",
     focus: ["Moose Merch", "First drop"],
-  },
-  {
-    name: "Write-ups",
-    href: "https://mooseman.moosematrix.com",
-    subdomain: "mooseman.moosematrix.com",
-    desc: "Tech deep-dives, reviews and notes on Moose Mumbles.",
-    status: "Live",
-    focus: ["Moose Mumbles", "Reviews"],
-  },
-  {
-    name: "Money tools",
-    href: "https://m2.moosematrix.com",
-    subdomain: "m2.moosematrix.com",
-    desc: "Free TSP and deployment savings calculators on Moo$e Money.",
-    status: "Beta",
-    focus: ["Moo$e Money", "Calculators"],
   },
 ];
 
@@ -73,7 +73,7 @@ export default function SubsidiariesPage() {
           </div>
 
           <h1 className="text-balance text-4xl md:text-5xl font-semibold tracking-tight text-[var(--fg)]">
-            Subsidiaries &amp; <TypedAccent>subdomains</TypedAccent>
+            <TypedLine text="Subsidiaries & subdomains" accent="subdomains" />
           </h1>
 
           <p className="max-w-2xl text-[16px] md:text-lg leading-relaxed text-[var(--muted)]">

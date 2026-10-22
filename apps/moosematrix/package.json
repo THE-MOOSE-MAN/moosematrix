@@ -4,9 +4,11 @@
   "scripts": {
     "predev": "bash ./scripts/free-port.sh 3001",
     "dev": "next dev --webpack -p 3001",
-    "build": "next build",
+    "build": "next build && node scripts/csp-hashes.mjs",
     "start": "node server.js",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "node --test tests/*.test.ts tests/*.test.mjs",
+    "test:e2e": "node --test tests/e2e/header.e2e.mjs"
   },
   "dependencies": {
     "@moosematrix/ui": "file:../../packages/ui",

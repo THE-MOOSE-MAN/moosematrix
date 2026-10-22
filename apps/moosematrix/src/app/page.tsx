@@ -3,7 +3,7 @@ export const revalidate = false;
 export const fetchCache = "force-cache";
 
 import { ScrollDots } from "@moosematrix/ui";
-import { TypedAccent } from "../components/TypedAccent";
+import { TypedLine } from "../components/TypedLine";
 import { HomeLink } from "../components/HomeLink";
 import { CARDS, HERO, LATEST } from "./home-content";
 
@@ -18,19 +18,6 @@ const DOTS = [{ id: "home", label: "Home" }, ...CARDS.map((c) => ({ id: c.id, la
 const FULL = "md:min-h-[calc(100svh-var(--mmx-header-h))] md:flex md:items-center";
 // Section number only ("01"..."04"), desktop only: on phones the cards carry the icon instead.
 const pad = (n: number) => String(n).padStart(2, "0");
-
-// Keep a hyphenated word on one line ("write-ups" broke as "write- / ups" at 360px).
-function noBreak(text: string, word: string) {
-  const i = text.indexOf(word);
-  if (i < 0) return text;
-  return (
-    <>
-      {text.slice(0, i)}
-      <span className="whitespace-nowrap">{word}</span>
-      {text.slice(i + word.length)}
-    </>
-  );
-}
 
 // Icons stay loading="lazy" (even the hero one): eager <img>s make React emit preloads that warn when another page
 // prefetches "/". Lazy images in the first screen still load right away; width/height reserve the box (CLS 0).
@@ -74,7 +61,8 @@ export default function HomePage() {
                 id="home-h"
                 className="mm-hero-h1 mm-mono text-balance md:text-6xl font-semibold tracking-tight text-[var(--fg)]"
               >
-                {noBreak(HERO.lead, "write-ups")} <TypedAccent>{HERO.accent}</TypedAccent>.
+                {/* Whole line types out once (CSS only); HERO.accent stays in the accent colour. Copy: home-content.ts. */}
+                <TypedLine text={HERO.line} accent={HERO.accent} />
               </h1>
               <p className="mm-hero-sub md:mt-5 md:text-lg leading-relaxed text-[var(--muted)]">{HERO.sub}</p>
             </div>

@@ -312,20 +312,24 @@ html:has(#mm-snap) { scroll-padding-top: var(--mmx-header-h); }
   html:has(#mm-snap) #site-footer { scroll-snap-align: end; }
 }
 
-/* ===== Shared Moose Matrix top nav (mmx-*) — identical on moosematrix.com, m2 and merch. 2026-10-21 =====
-   Row 1: brand (site mark + name, links to the site's home) | studio links Home · Store · Moo$e Money · Mumbles |
-          theme toggle | Menu (mobile only, <details>, no JS).
-   Row 2 (>=900px): this site's own pages. Current page: aria-current="page" (or "true" for the current site
-   while on one of its sub-pages) + a 2px accent underline, never colour alone. Uses the shared tokens. */
+/* ===== Shared Moose Matrix header (mmx-*) — identical on moosematrix.com, mooseman, m2 and merch. 2026-10-22 =====
+   Canonical copy: /workspace/redesign-2026-10-22/src/mmx-nav-2026-10-22.css (pasted into each repo; keep in sync).
+   Bar (>=1056px): brand | [Home ·] R&D · Moose Mumbles · Moo$e Money · Shop · More ▾ | theme toggle.
+   1056px = the narrowest width where the bar fits on every site with the same header (m2 is widest: 1042px with
+   Home + R&D, measured 22 Oct 2026), plus a little room for font differences between systems.
+     More = native <details> disclosure (no JS needed) with About · Directory · Security · Contact.
+   Below 1056px the four links + More do not fit next to the brand (see the 360px measurement in the report), so the
+     bar is brand | theme | Menu, and the Menu sheet uses the same groups: the 4 main links, then "More".
+   Row 2 (subdomains only, >=1056px): this site's own pages. Current: aria-current + a 2px accent underline, never
+   colour alone. Focus: the global :focus-visible ring (3px --ring). Targets >= 44px. Uses the shared tokens. */
 :root { --mmx-bar-h: 64px; --mmx-sub-h: 40px; --mmx-header-h: var(--mmx-bar-h); }
-@media (min-width: 900px) { :root { --mmx-header-h: calc(var(--mmx-bar-h) + var(--mmx-sub-h) + 1px); } }
 .mmx-header { position: sticky; top: 0; z-index: 50; border-bottom: 1px solid var(--border); background: color-mix(in srgb, var(--surface) 84%, transparent); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
 .mmx-bar, .mmx-sub-list { width: 100%; max-width: 72rem; margin: 0 auto; padding: 0 1rem; }
 @media (min-width: 640px) { .mmx-bar, .mmx-sub-list { padding: 0 1.5rem; } }
 .mmx-bar { position: relative; display: flex; align-items: center; gap: 0.5rem; height: var(--mmx-bar-h); }
 .mmx-brand { display: inline-flex; flex: none; align-items: center; gap: 0.6rem; min-height: 44px; color: var(--fg); text-decoration: none; border-radius: 10px; }
 .mmx-brand:hover { color: var(--fg); }
-/* Brand logo (final, 2026-10-21): the light and dark art are both in the HTML; this shows the active theme's copy.
+/* Brand logo (site-specific sizes): the light and dark art are both in the HTML; this shows the active theme's copy.
    Sizes come from the width/height attributes on each <img>/<source> (no fixed box), so space is reserved (CLS 0). */
 .mmx-brand img { display: block; width: auto; height: 26px; max-width: none; border: 0; border-radius: 0; background: none; }
 @media (min-width: 560px) { .mmx-brand img { height: 24px; } }
@@ -338,16 +342,25 @@ html:has(#mm-snap) { scroll-padding-top: var(--mmx-header-h); }
   :root:not([data-theme]) .mmx-only-light { display: none; }
   :root:not([data-theme]) .mmx-only-dark { display: block; }
 }
-.mmx-word { font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace); font-size: 13px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; white-space: nowrap; }
-@media (max-width: 559px) { .mmx-word { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } }
 .mmx-list { display: flex; gap: 0.15rem; margin: 0; padding: 0; list-style: none; }
-.mmx-link { position: relative; display: inline-flex; align-items: center; min-height: 44px; padding: 0 0.75rem; border-radius: 10px; color: var(--muted); font-size: 14px; font-weight: 600; text-decoration: none; white-space: nowrap; transition: background-color 140ms ease, color 140ms ease; }
-.mmx-link:hover { color: var(--fg); background: var(--surface-2); }
-.mmx-link[aria-current] { color: var(--fg); }
-.mmx-link[aria-current]::after { content: ""; position: absolute; left: 0.75rem; right: 0.75rem; bottom: 5px; height: 2px; border-radius: 2px; background: var(--accent); }
+.mmx-link, .mmx-more > summary { position: relative; display: inline-flex; align-items: center; min-height: 44px; padding: 0 0.75rem; border-radius: 10px; color: var(--muted); font-size: 14px; font-weight: 600; text-decoration: none; white-space: nowrap; transition: background-color 140ms ease, color 140ms ease; }
+.mmx-link:hover, .mmx-more > summary:hover { color: var(--fg); background: var(--surface-2); }
+.mmx-link[aria-current], .mmx-more > summary.mmx-more-cur { color: var(--fg); }
+.mmx-link[aria-current]::after, .mmx-more > summary.mmx-more-cur::after { content: ""; position: absolute; left: 0.75rem; right: 0.75rem; bottom: 5px; height: 2px; border-radius: 2px; background: var(--accent); }
 .mmx-nav { display: none; }
 .mmx-tools { display: flex; align-items: center; gap: 0.5rem; margin-left: auto; }
-/* Mobile menu: native disclosure (works without JS; the summary exposes expanded/collapsed). */
+/* "More" disclosure in the bar: a button-like summary with a chevron, and a small dropdown under it. */
+.mmx-more { position: relative; }
+.mmx-more > summary { gap: 0.3rem; list-style: none; cursor: pointer; -webkit-user-select: none; user-select: none; }
+.mmx-more > summary::-webkit-details-marker { display: none; }
+.mmx-chev { width: 16px; height: 16px; flex: none; transition: transform 140ms ease; }
+.mmx-more[open] > summary { color: var(--fg); background: var(--surface-2); }
+.mmx-more[open] .mmx-chev { transform: rotate(180deg); }
+.mmx-more-list { position: absolute; top: calc(100% + 0.4rem); right: 0; z-index: 60; display: grid; gap: 0.15rem; min-width: 12rem; margin: 0; padding: 0.4rem; list-style: none; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); box-shadow: var(--shadow); }
+.mmx-more-list .mmx-link { display: flex; color: var(--fg); font-size: 15px; }
+.mmx-more-list .mmx-link[aria-current] { background: var(--surface-2); }
+.mmx-more-list .mmx-link[aria-current]::after { right: auto; width: 2rem; bottom: 6px; }
+/* Phone / narrow menu: native disclosure (works without JS; the summary exposes expanded/collapsed). */
 .mmx-menu > summary { display: inline-flex; align-items: center; gap: 0.4rem; min-width: 44px; min-height: 44px; padding: 0 0.85rem; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--fg); font-size: 14px; font-weight: 700; list-style: none; cursor: pointer; }
 .mmx-menu > summary::-webkit-details-marker { display: none; }
 .mmx-menu > summary:hover { background: var(--surface-2); }
@@ -360,22 +373,25 @@ html:has(#mm-snap) { scroll-padding-top: var(--mmx-header-h); }
 .mmx-panel .mmx-link { display: flex; min-height: 48px; font-size: 16px; color: var(--fg); }
 .mmx-panel .mmx-link[aria-current] { background: var(--surface-2); }
 .mmx-panel .mmx-link[aria-current]::after { left: 0.75rem; right: auto; width: 2.5rem; bottom: 8px; }
-/* Theme toggle sits right of the links, left of Menu, on every site; slightly smaller on phones so it fits at 360px. */
-@media (max-width: 899px) {
+/* Theme toggle sits right of the links on every site: icons only in the bar (each button keeps its title/name) so the
+   widest lockup (Moo$e Money) still fits with the four links + More; slightly smaller below the desktop bar. */
+.mmx-tools > .theme-toggle .tt-label, .mmx-bar-theme .mm-tt-label { display: none; }
+@media (max-width: 1055.98px) {
   .mmx-tools .theme-toggle button, .mmx-tools .mm-theme-toggle button { min-width: 40px; min-height: 40px; padding: 0 0.55rem; }
 }
-/* Row 2: the current site's own pages (desktop). On phones they are in the Menu. */
+/* Row 2 (subdomains): the current site's own pages (desktop). On narrow screens they are in the Menu. */
 .mmx-sub { display: none; }
-@media (min-width: 900px) {
-  .mmx-nav { display: block; margin-left: 1rem; }
+@media (min-width: 1056px) {
+  .mmx-nav { display: flex; align-items: center; gap: 0.15rem; margin-left: 1rem; }
   .mmx-menu { display: none; }
   .mmx-sub { display: block; border-top: 1px solid var(--border); }
   .mmx-sub-list { display: flex; align-items: center; gap: 0.15rem; height: var(--mmx-sub-h); margin: 0 auto; list-style: none; }
   .mmx-sub .mmx-link { min-height: 36px; font-size: 13px; padding: 0 0.7rem; }
   .mmx-sub .mmx-link[aria-current]::after { left: 0.7rem; right: 0.7rem; bottom: 3px; }
   .mmx-sub-label { margin-right: 0.5rem; color: var(--muted); font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace); font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; }
+  :root:has(.mmx-sub) { --mmx-header-h: calc(var(--mmx-bar-h) + var(--mmx-sub-h) + 1px); }
 }
-@media (prefers-reduced-motion: reduce) { .mmx-link { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .mmx-link, .mmx-more > summary { transition: none; } .mmx-chev { transition: none; } }
 /* ===== end shared nav ===== */
 html { scroll-padding-top: calc(var(--mmx-header-h) + 16px); }
 /* Skip link: off-screen until focused (the old one used mm-sr-only, whose !important rules a focus: utility
@@ -387,54 +403,56 @@ main:focus { outline: none; }
 :root[data-theme="dark"] .mm-btn-primary, :root[data-theme="dark"] .mm-btn-primary:hover { color: #070b13; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme]) .mm-btn-primary, :root:not([data-theme]) .mm-btn-primary:hover { color: #070b13; } }
 
-/* ── Typed accent word (shared Moose Matrix pattern) ───────────────────────────────────────────────
-   Markup (server-rendered, no JS):
-     <span class="mmx-tw"><span class="mmx-tw-sr">word</span><span class="mmx-tw-a" aria-hidden="true"><span>w</span><span>o</span>…</span></span>
-   - The full word is always in the DOM (visually-hidden copy) for screen readers, find-in-page, copy and no-JS.
-   - Every glyph is laid out from the first frame; only `visibility` animates, so the final width is reserved (CLS 0).
-   - Types once on load (75ms/char, like mooseman.moosematrix.com), caret rides the newest glyph, blinks twice, then goes. Caret animations have no fill: when one ends the caret falls back to opacity 0.
-   - prefers-reduced-motion: no animation, the word is simply there. Supports up to 32 characters. */
-.mmx-tw { color: var(--accent); }
+/* ── Typed headline (shared Moose Matrix pattern, 22 Oct 2026: the WHOLE line types, not just the accent) ──
+   Markup (server-rendered, no JS; generated by TypedLine.tsx / TypedLine.astro):
+     <h1><span class="mmx-tw mmx-tw-s25"><span class="mmx-tw-sr">Line with <span class="mmx-tw-acc">accent</span></span>
+       <span class="mmx-tw-a" aria-hidden="true"><span>L</span>…<span class="mmx-tw-acc">a</span>…</span></span></h1>
+   - The full sentence is in the DOM from the start (visually-hidden copy) for screen readers, SEO and no-JS.
+   - Every glyph is laid out AND painted from the first frame; only its colour is transparent until its turn
+     (never visibility/opacity), so the final size is reserved (CLS 0) and the heading is a first-paint LCP candidate.
+   - Types once on load. The per-character step is picked per line (.mmx-tw-s75 … .mmx-tw-s15) so a line takes
+     about 1.5 s at most; the caret rides the newest glyph, blinks twice at the end, then goes (as before).
+     The caret is currentColor, so it is blue while it types the accent phrase.
+   - Accent glyphs (.mmx-tw-acc) keep the accent colour while and after typing.
+   - The glyph spans are NOT positioned (a position:relative glyph becomes its own tiny LCP candidate and knocks the
+     heading out of LCP) and have no pseudo-element: the caret is a box-shadow strip just right of the newest glyph,
+     so it never changes layout and stays on that glyph's line, even at a line end.
+   - prefers-reduced-motion: no animation, the line is simply there. Supports up to 96 characters. */
+.mmx-tw-acc { color: var(--accent); }
 .mmx-tw-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0; }
-.mmx-tw-a { --mmx-tw-step: 75ms; --mmx-tw-start: 150ms; -webkit-user-select: none; user-select: none; }
-.mmx-tw-a > span { position: relative; animation: mmx-tw-in 1ms linear both; }
-.mmx-tw-a > span::after { content: ""; position: absolute; top: 0.12em; bottom: 0.08em; right: -0.07em; width: 0.08em; border-radius: 1px; background: currentColor; opacity: 0; pointer-events: none; animation: mmx-tw-caret var(--mmx-tw-step) linear; }
-.mmx-tw-a > span:nth-child(1), .mmx-tw-a > span:nth-child(1)::after { animation-delay: calc(var(--mmx-tw-start) + 0 * var(--mmx-tw-step)); }
-.mmx-tw-a > span:nth-child(2), .mmx-tw-a > span:nth-child(2)::after { animation-delay: calc(var(--mmx-tw-start) + 1 * var(--mmx-tw-step)); }
-.mmx-tw-a > span:nth-child(3), .mmx-tw-a > span:nth-child(3)::after { animation-delay: calc(var(--mmx-tw-start) + 2 * var(--mmx-tw-step)); }
-.mmx-tw-a > span:nth-child(4), .mmx-tw-a > span:nth-child(4)::after { animation-delay: calc(var(--mmx-tw-start) + 3 * var(--mmx-tw-step)); }
-.mmx-tw-a > span:nth-child(5), .mmx-tw-a > span:nth-child(5)::after { animation-delay: calc(var(--mmx-tw-start) + 4 * var(--mmx-tw-step)); }
-.mmx-tw-a > span:nth-child(6), .mmx-tw-a > span:nth-child(6)::after { animation-delay: calc(var(--mmx-tw-start) + 5 * var(--mmx-tw-step)); }
-.mmx-tw-a > span:nth-child(7), .mmx-tw-a > span:nth-child(7)::after { animation-delay: calc(var(--mmx-tw-start) + 6 * var(--mmx-tw-step)); }
-.mmx-tw-a > span:nth-child(8), .mmx-tw-a > span:nth-child(8)::after { animation-delay: calc(var(--mmx-tw-start) + 7 * var(--mmx-tw-step)); }
-.mmx-tw-a > span:nth-child(9), .mmx-tw-a > span:nth-child(9)::after { animation-delay: calc(var(--mmx-tw-start) + 8 * var(--mmx-tw-step)); }
-.mmx-tw-a > span:nth-child(10), .mmx-tw-a > span:nth-child(10)::after { animation-delay: calc(var(--mmx-tw-start) + 9 * var(--mmx-tw-step)); }
-.mmx-tw-a > span:nth-child(11), .mmx-tw-a > span:nth-child(11)::after { animation-delay: calc(var(--mmx-tw-start) + 10 * var(--mmx-tw-step)); }
-.mmx-tw-a > span:nth-child(12), .mmx-tw-a > span:nth-child(12)::after { animation-delay: calc(var(--mmx-tw-start) + 11 * var(--mmx-tw-step)); }
-.mmx-tw-a > span:nth-child(13), .mmx-tw-a > span:nth-child(13)::after { animation-delay: calc(var(--mmx-tw-start) + 12 * var(--mmx-tw-step)); }
-.mmx-tw-a > span:nth-child(14), .mmx-tw-a > span:nth-child(14)::after { animation-delay: calc(var(--mmx-tw-start) + 13 * var(--mmx-tw-step)); }
-.mmx-tw-a > span:nth-child(15), .mmx-tw-a > span:nth-child(15)::after { animation-delay: calc(var(--mmx-tw-start) + 14 * var(--mmx-tw-step)); }
-.mmx-tw-a > span:nth-child(16), .mmx-tw-a > span:nth-child(16)::after { animation-delay: calc(var(--mmx-tw-start) + 15 * var(--mmx-tw-step)); }
-.mmx-tw-a > span:nth-child(17), .mmx-tw-a > span:nth-child(17)::after { animation-delay: calc(var(--mmx-tw-start) + 16 * var(--mmx-tw-step)); }
-.mmx-tw-a > span:nth-child(18), .mmx-tw-a > span:nth-child(18)::after { animation-delay: calc(var(--mmx-tw-start) + 17 * var(--mmx-tw-step)); }
-.mmx-tw-a > span:nth-child(19), .mmx-tw-a > span:nth-child(19)::after { animation-delay: calc(var(--mmx-tw-start) + 18 * var(--mmx-tw-step)); }
-.mmx-tw-a > span:nth-child(20), .mmx-tw-a > span:nth-child(20)::after { animation-delay: calc(var(--mmx-tw-start) + 19 * var(--mmx-tw-step)); }
-.mmx-tw-a > span:nth-child(21), .mmx-tw-a > span:nth-child(21)::after { animation-delay: calc(var(--mmx-tw-start) + 20 * var(--mmx-tw-step)); }
-.mmx-tw-a > span:nth-child(22), .mmx-tw-a > span:nth-child(22)::after { animation-delay: calc(var(--mmx-tw-start) + 21 * var(--mmx-tw-step)); }
-.mmx-tw-a > span:nth-child(23), .mmx-tw-a > span:nth-child(23)::after { animation-delay: calc(var(--mmx-tw-start) + 22 * var(--mmx-tw-step)); }
-.mmx-tw-a > span:nth-child(24), .mmx-tw-a > span:nth-child(24)::after { animation-delay: calc(var(--mmx-tw-start) + 23 * var(--mmx-tw-step)); }
-.mmx-tw-a > span:nth-child(25), .mmx-tw-a > span:nth-child(25)::after { animation-delay: calc(var(--mmx-tw-start) + 24 * var(--mmx-tw-step)); }
-.mmx-tw-a > span:nth-child(26), .mmx-tw-a > span:nth-child(26)::after { animation-delay: calc(var(--mmx-tw-start) + 25 * var(--mmx-tw-step)); }
-.mmx-tw-a > span:nth-child(27), .mmx-tw-a > span:nth-child(27)::after { animation-delay: calc(var(--mmx-tw-start) + 26 * var(--mmx-tw-step)); }
-.mmx-tw-a > span:nth-child(28), .mmx-tw-a > span:nth-child(28)::after { animation-delay: calc(var(--mmx-tw-start) + 27 * var(--mmx-tw-step)); }
-.mmx-tw-a > span:nth-child(29), .mmx-tw-a > span:nth-child(29)::after { animation-delay: calc(var(--mmx-tw-start) + 28 * var(--mmx-tw-step)); }
-.mmx-tw-a > span:nth-child(30), .mmx-tw-a > span:nth-child(30)::after { animation-delay: calc(var(--mmx-tw-start) + 29 * var(--mmx-tw-step)); }
-.mmx-tw-a > span:nth-child(31), .mmx-tw-a > span:nth-child(31)::after { animation-delay: calc(var(--mmx-tw-start) + 30 * var(--mmx-tw-step)); }
-.mmx-tw-a > span:nth-child(32), .mmx-tw-a > span:nth-child(32)::after { animation-delay: calc(var(--mmx-tw-start) + 31 * var(--mmx-tw-step)); }
-.mmx-tw-a > span:last-child::after { animation-name: mmx-tw-blink; animation-duration: 0.9s; animation-iteration-count: 2; animation-timing-function: step-end; }
-@keyframes mmx-tw-in { from { visibility: hidden; } to { visibility: visible; } }
-@keyframes mmx-tw-caret { from, to { opacity: 1; } }
-@keyframes mmx-tw-blink { 0% { opacity: 1; } 50%, 100% { opacity: 0; } }
+.mmx-tw { --mmx-tw-step: 75ms; --mmx-tw-start: 150ms; }
+.mmx-tw-s75 { --mmx-tw-step: 75ms; } .mmx-tw-s60 { --mmx-tw-step: 60ms; } .mmx-tw-s50 { --mmx-tw-step: 50ms; } .mmx-tw-s40 { --mmx-tw-step: 40ms; } .mmx-tw-s30 { --mmx-tw-step: 30ms; } .mmx-tw-s25 { --mmx-tw-step: 25ms; } .mmx-tw-s20 { --mmx-tw-step: 20ms; } .mmx-tw-s15 { --mmx-tw-step: 15ms; }
+.mmx-tw-a { -webkit-user-select: none; user-select: none; }
+.mmx-tw-a > span { --i: 0; animation: mmx-tw-in 1ms linear backwards, mmx-tw-caret var(--mmx-tw-step) linear; animation-delay: calc(var(--mmx-tw-start) + var(--i) * var(--mmx-tw-step)), calc(var(--mmx-tw-start) + var(--i) * var(--mmx-tw-step)); }
+.mmx-tw-a > span:nth-child(2) { --i: 1; } .mmx-tw-a > span:nth-child(3) { --i: 2; } .mmx-tw-a > span:nth-child(4) { --i: 3; } .mmx-tw-a > span:nth-child(5) { --i: 4; }
+.mmx-tw-a > span:nth-child(6) { --i: 5; } .mmx-tw-a > span:nth-child(7) { --i: 6; } .mmx-tw-a > span:nth-child(8) { --i: 7; } .mmx-tw-a > span:nth-child(9) { --i: 8; }
+.mmx-tw-a > span:nth-child(10) { --i: 9; } .mmx-tw-a > span:nth-child(11) { --i: 10; } .mmx-tw-a > span:nth-child(12) { --i: 11; } .mmx-tw-a > span:nth-child(13) { --i: 12; }
+.mmx-tw-a > span:nth-child(14) { --i: 13; } .mmx-tw-a > span:nth-child(15) { --i: 14; } .mmx-tw-a > span:nth-child(16) { --i: 15; } .mmx-tw-a > span:nth-child(17) { --i: 16; }
+.mmx-tw-a > span:nth-child(18) { --i: 17; } .mmx-tw-a > span:nth-child(19) { --i: 18; } .mmx-tw-a > span:nth-child(20) { --i: 19; } .mmx-tw-a > span:nth-child(21) { --i: 20; }
+.mmx-tw-a > span:nth-child(22) { --i: 21; } .mmx-tw-a > span:nth-child(23) { --i: 22; } .mmx-tw-a > span:nth-child(24) { --i: 23; } .mmx-tw-a > span:nth-child(25) { --i: 24; }
+.mmx-tw-a > span:nth-child(26) { --i: 25; } .mmx-tw-a > span:nth-child(27) { --i: 26; } .mmx-tw-a > span:nth-child(28) { --i: 27; } .mmx-tw-a > span:nth-child(29) { --i: 28; }
+.mmx-tw-a > span:nth-child(30) { --i: 29; } .mmx-tw-a > span:nth-child(31) { --i: 30; } .mmx-tw-a > span:nth-child(32) { --i: 31; } .mmx-tw-a > span:nth-child(33) { --i: 32; }
+.mmx-tw-a > span:nth-child(34) { --i: 33; } .mmx-tw-a > span:nth-child(35) { --i: 34; } .mmx-tw-a > span:nth-child(36) { --i: 35; } .mmx-tw-a > span:nth-child(37) { --i: 36; }
+.mmx-tw-a > span:nth-child(38) { --i: 37; } .mmx-tw-a > span:nth-child(39) { --i: 38; } .mmx-tw-a > span:nth-child(40) { --i: 39; } .mmx-tw-a > span:nth-child(41) { --i: 40; }
+.mmx-tw-a > span:nth-child(42) { --i: 41; } .mmx-tw-a > span:nth-child(43) { --i: 42; } .mmx-tw-a > span:nth-child(44) { --i: 43; } .mmx-tw-a > span:nth-child(45) { --i: 44; }
+.mmx-tw-a > span:nth-child(46) { --i: 45; } .mmx-tw-a > span:nth-child(47) { --i: 46; } .mmx-tw-a > span:nth-child(48) { --i: 47; } .mmx-tw-a > span:nth-child(49) { --i: 48; }
+.mmx-tw-a > span:nth-child(50) { --i: 49; } .mmx-tw-a > span:nth-child(51) { --i: 50; } .mmx-tw-a > span:nth-child(52) { --i: 51; } .mmx-tw-a > span:nth-child(53) { --i: 52; }
+.mmx-tw-a > span:nth-child(54) { --i: 53; } .mmx-tw-a > span:nth-child(55) { --i: 54; } .mmx-tw-a > span:nth-child(56) { --i: 55; } .mmx-tw-a > span:nth-child(57) { --i: 56; }
+.mmx-tw-a > span:nth-child(58) { --i: 57; } .mmx-tw-a > span:nth-child(59) { --i: 58; } .mmx-tw-a > span:nth-child(60) { --i: 59; } .mmx-tw-a > span:nth-child(61) { --i: 60; }
+.mmx-tw-a > span:nth-child(62) { --i: 61; } .mmx-tw-a > span:nth-child(63) { --i: 62; } .mmx-tw-a > span:nth-child(64) { --i: 63; } .mmx-tw-a > span:nth-child(65) { --i: 64; }
+.mmx-tw-a > span:nth-child(66) { --i: 65; } .mmx-tw-a > span:nth-child(67) { --i: 66; } .mmx-tw-a > span:nth-child(68) { --i: 67; } .mmx-tw-a > span:nth-child(69) { --i: 68; }
+.mmx-tw-a > span:nth-child(70) { --i: 69; } .mmx-tw-a > span:nth-child(71) { --i: 70; } .mmx-tw-a > span:nth-child(72) { --i: 71; } .mmx-tw-a > span:nth-child(73) { --i: 72; }
+.mmx-tw-a > span:nth-child(74) { --i: 73; } .mmx-tw-a > span:nth-child(75) { --i: 74; } .mmx-tw-a > span:nth-child(76) { --i: 75; } .mmx-tw-a > span:nth-child(77) { --i: 76; }
+.mmx-tw-a > span:nth-child(78) { --i: 77; } .mmx-tw-a > span:nth-child(79) { --i: 78; } .mmx-tw-a > span:nth-child(80) { --i: 79; } .mmx-tw-a > span:nth-child(81) { --i: 80; }
+.mmx-tw-a > span:nth-child(82) { --i: 81; } .mmx-tw-a > span:nth-child(83) { --i: 82; } .mmx-tw-a > span:nth-child(84) { --i: 83; } .mmx-tw-a > span:nth-child(85) { --i: 84; }
+.mmx-tw-a > span:nth-child(86) { --i: 85; } .mmx-tw-a > span:nth-child(87) { --i: 86; } .mmx-tw-a > span:nth-child(88) { --i: 87; } .mmx-tw-a > span:nth-child(89) { --i: 88; }
+.mmx-tw-a > span:nth-child(90) { --i: 89; } .mmx-tw-a > span:nth-child(91) { --i: 90; } .mmx-tw-a > span:nth-child(92) { --i: 91; } .mmx-tw-a > span:nth-child(93) { --i: 92; }
+.mmx-tw-a > span:nth-child(94) { --i: 93; } .mmx-tw-a > span:nth-child(95) { --i: 94; } .mmx-tw-a > span:nth-child(96) { --i: 95; }
+.mmx-tw-a > span:last-child { animation-name: mmx-tw-in, mmx-tw-blink; animation-duration: 1ms, 0.9s; animation-iteration-count: 1, 2; animation-timing-function: linear, step-end; }
+@keyframes mmx-tw-in { from { color: transparent; } }
+@keyframes mmx-tw-caret { from, to { box-shadow: 0.11em 0 0 -0.04em currentColor; } }
+@keyframes mmx-tw-blink { 0% { box-shadow: 0.11em 0 0 -0.04em currentColor; } 50%, 100% { box-shadow: none; } }
 @media (prefers-reduced-motion: reduce) {
-  .mmx-tw-a > span, .mmx-tw-a > span::after { animation: none !important; }
+  .mmx-tw-a > span { animation: none !important; }
 }
+
