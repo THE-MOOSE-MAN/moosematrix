@@ -1,7 +1,8 @@
 // Browser checks for the shared Moose Matrix header and the typed headline (22 Oct 2026). Same file in
 // moosematrix, mooseman-site, moose_money and moose-wip (merch). No new repo dependency: it loads puppeteer-core
 // from an audit-tools folder (MMX_AUDIT_TOOLS, default /workspace/tools/audit) and drives the system Chrome.
-// Usage: node tests/e2e/header.e2e.mjs <base-url> [--typed]     (--typed: the page H1 uses the typed headline)
+// Usage: node tests/e2e/header.e2e.mjs <base-url> [--typed] [--home]   (--typed: the page H1 uses the typed headline;
+//        --home: a subdomain, so the link row starts with Home to https://moosematrix.com/)
 //    or: MMX_BASE_URL=<base-url> MMX_TYPED=1 node --test tests/e2e/header.e2e.mjs
 import { createRequire } from "node:module";
 import { test, after } from "node:test";
@@ -12,7 +13,9 @@ const puppeteer = createRequire(tools + "/package.json")("puppeteer-core");
 const base = process.env.MMX_BASE_URL || process.argv.slice(2).find((a) => /^https?:/.test(a));
 const typed = process.argv.includes("--typed") || process.env.MMX_TYPED === "1";
 if (!base) throw new Error("usage: header.e2e.mjs <base-url> [--typed]");
-const MAIN = ["Research & Development", "Moose Mumbles", "Moo$e Money", "Shop"];
+// Top menu shows "R&D" (title keeps "Research & Development"); subdomains (--home / MMX_HOME=1) start with Home.
+const home = process.argv.includes("--home") || process.env.MMX_HOME === "1";
+const MAIN = [...(home ? ["Home"] : []), "R&D", "Moose Mumbles", "Moo$e Money", "Shop"];
 const MORE = ["About", "Directory", "Security", "Contact"];
 
 const browser = await puppeteer.launch({ executablePath: process.env.CHROME || "/usr/bin/google-chrome", args: ["--no-sandbox"], headless: "new" });
@@ -35,6 +38,9 @@ const focused = (p) => p.evaluate(() => { const a = document.activeElement; retu
 test("desktop bar: brand, the 4 main links in order, then More with an aria-hidden chevron", async () => {
   const { p, errors } = await open(1280);
   assert.deepEqual(await texts(p, ".mmx-nav > .mmx-list > li > a"), MAIN);
+  const rnd = await p.$eval(".mmx-nav > .mmx-list a[href$='/builds']", (a) => [a.title, a.textContent.trim()]);
+  assert.deepEqual(rnd, ["Research & Development", "R&D"]);
+  if (home) assert.equal(await p.$eval(".mmx-nav > .mmx-list > li:first-child > a", (a) => a.href), "https://moosematrix.com/");
   assert.equal(await p.$eval(".mmx-more > summary", (s) => s.textContent.trim()), "More");
   assert.equal(await p.$eval(".mmx-more > summary svg", (s) => s.getAttribute("aria-hidden")), "true");
   assert.deepEqual(await texts(p, ".mmx-more-list a"), MORE);
@@ -44,6 +50,18 @@ test("desktop bar: brand, the 4 main links in order, then More with an aria-hidd
   await p.close();
 });
 
+test("breakpoint: the bar (links + More) from 1056px with no overflow; the Menu below that", async () => {
+  for (const [w, bar] of [[1056, true], [1055, false]]) {
+    const { p } = await open(w);
+    const r = await p.evaluate(() => {
+      const vis = (s) => { const e = document.querySelector(s); return !!e && getComputedStyle(e).display !== "none"; };
+      const b = document.querySelector(".mmx-bar");
+      return { nav: vis(".mmx-nav"), menu: vis(".mmx-menu"), fits: b.scrollWidth <= b.clientWidth && document.documentElement.scrollWidth <= innerWidth };
+    });
+    assert.deepEqual(r, { nav: bar, menu: !bar, fits: true }, `at ${w}px`);
+    await p.close();
+  }
+});
 test("More menu by keyboard: Tab reaches it, Enter opens, Space closes, Escape closes and returns focus", async () => {
   const { p } = await open(1280);
   await p.focus(".mmx-more > summary");

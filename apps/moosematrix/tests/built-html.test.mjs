@@ -8,7 +8,8 @@ const dir = path.join(import.meta.dirname, "..", ".next", "server", "app");
 const read = (f) => fs.readFileSync(path.join(dir, f), "utf8");
 const strip = (h) => h.replace(/<!--.*?-->/g, "").replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&#x27;|&rsquo;/g, "\u2019").replace(/\s+/g, " ").trim();
 const between = (h, a, b) => { const i = h.indexOf(a); assert.ok(i >= 0, a); const j = h.indexOf(b, i); return h.slice(i, j); };
-const MAIN = ["Research & Development", "Moose Mumbles", "Moo$e Money", "Shop"];
+const MAIN = ["Research & Development", "Moose Mumbles", "Moo$e Money", "Shop"]; // cards, headings
+const HEADER = ["R&D", "Moose Mumbles", "Moo$e Money", "Shop"]; // top menu (Dustin 22 Oct 7:31)
 const MORE = ["About", "Directory", "Security", "Contact"];
 // Text of the visually-hidden copy inside a TypedLine heading.
 const srText = (h1) => { const m = h1.match(/<span class="mmx-tw-sr">(.*?)<\/span><span class="mmx-tw-a"/); assert.ok(m, "mmx-tw-sr"); return { html: m[1], text: strip(m[1]) }; };
@@ -21,11 +22,13 @@ test("header: brand, 4 main links in order, then a More <details> with About/Dir
     const header = between(h, '<header class="mmx-header"', "</header>");
     const bar = between(header, 'aria-label="Moose Matrix"', "</nav>");
     const [main, more] = bar.split('<details class="mmx-more"');
-    assert.deepEqual(anchors(main), MAIN, f);
+    assert.deepEqual(anchors(main), HEADER, f);
+    assert.match(main, /href="\/builds"[^>]* title="Research &amp; Development">R&amp;D</, f + ": full name kept as the title");
+    assert.ok(!main.includes(">Home<"), f + ": no Home link on moosematrix.com itself");
     assert.match(more, /<summary[^>]*><span>More<\/span><svg class="mmx-chev"[^>]*aria-hidden="true"/, f);
     assert.deepEqual(anchors(more), MORE, f);
     const menu = between(header, 'aria-label="Moose Matrix (menu)"', "</nav>");
-    assert.deepEqual(anchors(menu), [...MAIN, ...MORE], f + " menu");
+    assert.deepEqual(anchors(menu), [...HEADER, ...MORE], f + " menu");
     assert.match(menu, /<p class="mmx-group" id="mmx-menu-more">More<\/p>/);
     assert.ok(!/ style="/.test(header), "no inline styles in the header (CSP)");
     assert.ok(!/<script(?![^>]*src=)[^>]*>[^<]+/.test(header), "no inline script in the header");
@@ -34,7 +37,7 @@ test("header: brand, 4 main links in order, then a More <details> with About/Dir
 
 test("aria-current: R&D on /builds, About on /about (and More underlined), nothing extra on /", () => {
   const b = read("builds.html");
-  assert.match(b, /<a class="mmx-link" href="\/builds" aria-current="page">Research &amp; Development<\/a>/);
+  assert.match(b, /<a class="mmx-link" href="\/builds" aria-current="page" title="Research &amp; Development">R&amp;D<\/a>/);
   const a = read("about.html");
   assert.match(a, /<a class="mmx-link" href="\/about" aria-current="page">About<\/a>/);
   assert.match(a, /<summary class="mmx-more-cur">/);

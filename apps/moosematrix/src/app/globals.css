@@ -99,7 +99,7 @@
   .mmx-panel-theme .mm-theme-toggle button { flex: 1; min-height: 44px; }
   .mmx-panel-theme .mm-theme-toggle .mm-tt-label { display: inline; }
 }
-@media (max-width: 1199.98px) {
+@media (max-width: 1055.98px) {
   .mmx-panel { border-radius: 0 0 20px 20px; padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); }
   .mmx-panel .mmx-link { min-height: 52px; font-size: 17px; }
   .mmx-panel .mmx-link:active { background: var(--surface-2); }

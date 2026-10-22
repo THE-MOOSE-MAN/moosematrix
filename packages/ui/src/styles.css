@@ -314,11 +314,13 @@ html:has(#mm-snap) { scroll-padding-top: var(--mmx-header-h); }
 
 /* ===== Shared Moose Matrix header (mmx-*) — identical on moosematrix.com, mooseman, m2 and merch. 2026-10-22 =====
    Canonical copy: /workspace/redesign-2026-10-22/src/mmx-nav-2026-10-22.css (pasted into each repo; keep in sync).
-   Bar (>=1200px): brand | Research & Development · Moose Mumbles · Moo$e Money · Shop · More ▾ | theme toggle.
+   Bar (>=1056px): brand | [Home ·] R&D · Moose Mumbles · Moo$e Money · Shop · More ▾ | theme toggle.
+   1056px = the narrowest width where the bar fits on every site with the same header (m2 is widest: 1042px with
+   Home + R&D, measured 22 Oct 2026), plus a little room for font differences between systems.
      More = native <details> disclosure (no JS needed) with About · Directory · Security · Contact.
-   Below 1200px the four links + More do not fit next to the brand (see the 360px measurement in the report), so the
+   Below 1056px the four links + More do not fit next to the brand (see the 360px measurement in the report), so the
      bar is brand | theme | Menu, and the Menu sheet uses the same groups: the 4 main links, then "More".
-   Row 2 (subdomains only, >=1200px): this site's own pages. Current: aria-current + a 2px accent underline, never
+   Row 2 (subdomains only, >=1056px): this site's own pages. Current: aria-current + a 2px accent underline, never
    colour alone. Focus: the global :focus-visible ring (3px --ring). Targets >= 44px. Uses the shared tokens. */
 :root { --mmx-bar-h: 64px; --mmx-sub-h: 40px; --mmx-header-h: var(--mmx-bar-h); }
 .mmx-header { position: sticky; top: 0; z-index: 50; border-bottom: 1px solid var(--border); background: color-mix(in srgb, var(--surface) 84%, transparent); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
@@ -374,12 +376,12 @@ html:has(#mm-snap) { scroll-padding-top: var(--mmx-header-h); }
 /* Theme toggle sits right of the links on every site: icons only in the bar (each button keeps its title/name) so the
    widest lockup (Moo$e Money) still fits with the four links + More; slightly smaller below the desktop bar. */
 .mmx-tools > .theme-toggle .tt-label, .mmx-bar-theme .mm-tt-label { display: none; }
-@media (max-width: 1199.98px) {
+@media (max-width: 1055.98px) {
   .mmx-tools .theme-toggle button, .mmx-tools .mm-theme-toggle button { min-width: 40px; min-height: 40px; padding: 0 0.55rem; }
 }
 /* Row 2 (subdomains): the current site's own pages (desktop). On narrow screens they are in the Menu. */
 .mmx-sub { display: none; }
-@media (min-width: 1200px) {
+@media (min-width: 1056px) {
   .mmx-nav { display: flex; align-items: center; gap: 0.15rem; margin-left: 1rem; }
   .mmx-menu { display: none; }
   .mmx-sub { display: block; border-top: 1px solid var(--border); }

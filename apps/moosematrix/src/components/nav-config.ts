@@ -3,11 +3,13 @@
 // order, are copied into mooseman-site (MmxHeader.tsx), moose_money (Header.astro) and the merch pages; their
 // tests assert this list. Shop stays LAST. URLs never change with a label (Research & Development is still /builds).
 
-export type NavLink = { href: string; label: string; key: string };
+// `nav` is the shorter label shown in the header (desktop bar and phone menu); `label` is the full name used by
+// the homepage cards, page headings and the link's title. Dustin, 22 Oct 2026 7:31: "R&D" in the top menu.
+export type NavLink = { href: string; label: string; key: string; nav?: string };
 
 // Row 1: the four main sections.
 export const MAIN_NAV: readonly NavLink[] = [
-  { key: "rnd", href: "/builds", label: "Research & Development" },
+  { key: "rnd", href: "/builds", label: "Research & Development", nav: "R&D" },
   { key: "mumbles", href: "https://mooseman.moosematrix.com/", label: "Moose Mumbles" },
   { key: "money", href: "https://m2.moosematrix.com/", label: "Moo$e Money" },
   { key: "shop", href: "https://merch.moosematrix.com/", label: "Shop" },
@@ -22,6 +24,9 @@ export const MORE_NAV: readonly NavLink[] = [
 ];
 
 export const MORE_LABEL = "More";
+
+/** The text the header shows for a link (the short form when there is one). */
+export const headerLabel = (l: NavLink): string => l.nav ?? l.label;
 
 export function navLabel(key: string): string {
   const l = [...MAIN_NAV, ...MORE_NAV].find((x) => x.key === key);

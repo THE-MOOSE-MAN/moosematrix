@@ -3,7 +3,7 @@
 // Shared Moose Matrix header (22 Oct 2026): identical on moosematrix.com, mooseman.moosematrix.com,
 // m2.moosematrix.com and merch.moosematrix.com. Labels and order: nav-config.ts (copied, with tests, into the
 // other repos).
-//   Bar (wide screens): brand · Research & Development · Moose Mumbles · Moo$e Money · Shop · More ▾ · theme toggle.
+//   Bar (wide screens): brand · Home · R&D · Moose Mumbles · Moo$e Money · Shop · More ▾ · theme toggle.
 //     "More" is a native <details> disclosure (works with no JS, exposes expanded/collapsed) holding the company
 //     pages About · Directory · Security · Contact. They also stay in the footer on purpose.
 //   Phones / narrow screens: brand · (theme) · Menu. The Menu sheet uses the same groups: the 4 main links, then More.
@@ -17,7 +17,7 @@ import { BrandLogo } from "./BrandLogo";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { ThemeToggle } from "@moosematrix/ui";
-import { MAIN_NAV, MORE_LABEL, MORE_NAV, type NavLink } from "./nav-config";
+import { MAIN_NAV, MORE_LABEL, MORE_NAV, headerLabel, type NavLink } from "./nav-config";
 
 type Cur = "page" | "true" | undefined;
 
@@ -31,8 +31,8 @@ function Links({ items, current }: { items: readonly NavLink[]; current: (l: Nav
     <>
       {items.map((l) => (
         <li key={l.href}>
-          <a className="mmx-link" href={l.href} aria-current={current(l)}>
-            {l.label}
+          <a className="mmx-link" href={l.href} aria-current={current(l)} title={l.nav ? l.label : undefined}>
+            {headerLabel(l)}
           </a>
         </li>
       ))}
