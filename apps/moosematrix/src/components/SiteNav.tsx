@@ -21,6 +21,7 @@ const STUDIO: L[] = [
 ];
 
 const PAGES: L[] = [
+  { href: "/builds", label: "Builds" },
   { href: "/about", label: "About" },
   { href: "/subsidiaries", label: "Directory" },
   { href: "/security", label: "Security" },
