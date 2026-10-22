@@ -96,7 +96,6 @@ export default function SubsidiariesPage() {
             <a
               key={d.name}
               href={d.href}
-              rel={d.href.startsWith("/") ? undefined : "noopener noreferrer"}
               className={[
                 "group mm-card relative overflow-hidden p-5 md:p-6",
                 "focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]",

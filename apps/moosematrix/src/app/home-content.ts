@@ -10,7 +10,7 @@ export type HomeCard = {
   desc: string; // <= 10 words
   cta: string; // the card's one link, worded by outcome
   href: string;
-  external: boolean; // other Moose sites open in a new tab (announced to screen readers)
+  external: boolean; // another Moose site (shown with the ↗ arrow); all links open in the same tab
   icon: HomeIcon;
 };
 
@@ -73,6 +73,5 @@ export const CARDS: readonly HomeCard[] = [
   },
 ];
 
-export const NEW_TAB_HINT = " (opens in new tab)";
 export const ARROW_INTERNAL = "\u2192";
 export const ARROW_EXTERNAL = "\u2197\uFE0E";
