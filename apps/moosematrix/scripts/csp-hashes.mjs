@@ -72,7 +72,9 @@ for (const rel of errorPages) {
     if (!map.has(css)) map.set(css, `mmx-ge${map.size}`);
     return ` data-mmx-ge="${map.get(css)}"`;
   });
-  if (!map.size) continue;
+  // Next's built-in error markup has no lang on <html> (axe html-has-lang, serious): add it while the file is open.
+  html = html.replace(/<html(?![^>]*\slang=)([^>]*)>/i, '<html lang="en"$1>');
+  if (!map.size) { write(f, html); const c = path.join(standalone, "server", rel); if (fs.existsSync(c)) write(c, html); continue; }
   const orig = html.match(/<style\b[^>]*>([\s\S]*?)<\/style>/i);
   if (!orig) fail(`${rel} has style attributes but no <style> block to move them into`);
   keepStyleHashes.push(sha(orig[1]));

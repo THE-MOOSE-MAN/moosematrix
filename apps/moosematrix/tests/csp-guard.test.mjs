@@ -101,6 +101,7 @@ test("L1: the built-in error page's style attributes move into its hashed <style
   assert.equal(r.code, 0, r.err);
   const out = fs.readFileSync(path.join(root, ".next", "server", "app", "_global-error.html"), "utf8");
   assert.doesNotMatch(out, /\sstyle=/);
+  assert.match(out, /<html lang="en">/, "lang added for screen readers");
   assert.match(out, /<style>body\{margin:0\}\[data-mmx-ge="mmx-ge0"\]\{font-family:system-ui,"Segoe UI";height:100vh\}\[data-mmx-ge="mmx-ge1"\]\{display:inline-block\}<\/style>/);
   assert.equal((out.match(/ data-mmx-ge="mmx-ge1"/g) || []).length, 2, "identical values share one rule");
   assert.equal((out.match(/\[data-mmx-ge="mmx-ge1"\]/g) || []).length, 1);
