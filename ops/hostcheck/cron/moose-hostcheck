@@ -1,0 +1,6 @@
+# /etc/cron.d/moose-hostcheck: cron ALTERNATIVE to the systemd timer (install.sh --cron).
+# Same user, same script, but none of the systemd sandboxing (ProtectSystem, NoNewPrivileges, PrivateNetwork...).
+# Prefer the timer. The state dir must exist and belong to moose-hostcheck (install.sh --cron creates it).
+SHELL=/bin/sh
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+17 6 * * * moose-hostcheck /usr/bin/python3 -I /usr/local/lib/moose-hostcheck/moose_hostcheck.py >/dev/null 2>&1

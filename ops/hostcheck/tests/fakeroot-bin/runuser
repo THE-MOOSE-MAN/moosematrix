@@ -1,0 +1,10 @@
+#!/bin/sh
+# fake for install.bats: logs the call; tracks whether moose-hostcheck exists / is in docker
+n=$(basename "$0")
+echo "$n $*" >> "$FAKE_LOG"
+case "$n" in
+  useradd) touch "$FAKE_USERS/moose-hostcheck" ;;
+  userdel) rm -f "$FAKE_USERS/moose-hostcheck" "$FAKE_USERS/moose-hostcheck.docker" ;;
+  usermod) touch "$FAKE_USERS/moose-hostcheck.docker" ;;
+esac
+exit 0
