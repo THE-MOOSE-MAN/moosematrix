@@ -1,7 +1,7 @@
-// One link, used for the hero CTA and each card's single link. Other Moose sites open in a new tab; the
-// "(opens in new tab)" hint is visually hidden text inside the link, so the accessible name starts with
-// the visible words (WCAG 2.5.3) and no aria-label is needed. The arrow is decorative.
-import { ARROW_EXTERNAL, ARROW_INTERNAL, NEW_TAB_HINT } from "../app/home-content";
+// One link, used for the hero CTA and each card's single link. Every link opens in the same tab
+// (Dustin's navigation preference, 22 Oct 2026). Links to other Moose sites keep the decorative ↗ arrow
+// so sighted users can see they lead to another site; the arrow is aria-hidden.
+import { ARROW_EXTERNAL, ARROW_INTERNAL } from "../app/home-content";
 
 export function HomeLink({
   href,
@@ -15,13 +15,8 @@ export function HomeLink({
   children: string;
 }) {
   return (
-    <a
-      href={href}
-      className={className}
-      {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-    >
+    <a href={href} className={className}>
       {children}
-      {external ? <span className="mm-sr-only">{NEW_TAB_HINT}</span> : null}
       <span aria-hidden="true">{external ? ARROW_EXTERNAL : ARROW_INTERNAL}</span>
     </a>
   );

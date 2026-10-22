@@ -80,8 +80,8 @@ function StatusPill({ status }: { status: Status }) {
   );
 }
 
-function newTabLabel(b: Build) {
-  return `${b.cta}: ${b.host} (opens in new tab)`;
+function linkLabel(b: Build) {
+  return `${b.cta}: ${b.host}`;
 }
 
 export default function BuildsPage() {
@@ -116,10 +116,8 @@ export default function BuildsPage() {
             <div className="mt-6 sm:mt-7">
               <a
                 href={BIG_IDEA.href}
-                target="_blank"
-                rel="noopener noreferrer"
                 className="mm-btn-primary w-full sm:w-auto justify-center inline-flex"
-                aria-label={newTabLabel(BIG_IDEA)}
+                aria-label={linkLabel(BIG_IDEA)}
               >
                 {BIG_IDEA.cta} <span aria-hidden="true">{"\u2197\uFE0E"}</span>
               </a>
@@ -145,10 +143,8 @@ export default function BuildsPage() {
                 <div className="mt-6">
                   <a
                     href={b.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
                     className="mm-btn-secondary w-full justify-center inline-flex"
-                    aria-label={newTabLabel(b)}
+                    aria-label={linkLabel(b)}
                   >
                     {b.cta} <span aria-hidden="true">{"\u2197\uFE0E"}</span>
                   </a>

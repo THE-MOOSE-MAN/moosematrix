@@ -21,10 +21,6 @@ const COMPANY: FooterLink[] = [
   { label: "Terms", href: "/terms" },
 ];
 
-function relFor(l: FooterLink) {
-  return l.external ? "noopener noreferrer" : undefined;
-}
-
 function IconSystem(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
@@ -124,7 +120,7 @@ export function FooterStatic({ year }: { year?: number }) {
             <ul className="mt-2 md:mt-4 md:space-y-3">
               {STUDIO.map((l) => (
                 <li key={l.label}>
-                  <a href={l.href} rel={relFor(l)} className={footerLink}>
+                  <a href={l.href} className={footerLink}>
                     {l.label} <span aria-hidden="true" className="ml-1">→</span>
                   </a>
                 </li>
