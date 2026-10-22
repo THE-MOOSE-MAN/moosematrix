@@ -5,20 +5,23 @@ export const fetchCache = "force-cache";
 import { ScrollDots } from "@moosematrix/ui";
 import { TypedAccent } from "../components/TypedAccent";
 
+// internal: a page on this site (same tab, plain link). The rest are other sites (new tab, labelled as such).
 const SECTIONS = [
   {
-    id: "matrix",
-    label: "Moose Matrix",
-    href: "https://matrix.moosematrix.com",
-    desc: "Tech hub · security engineering · builds",
+    id: "builds",
+    label: "Builds",
+    href: "/builds",
+    internal: true,
+    desc: "Projects · big ideas · in progress",
     icon: "main",
-    tag: "Engineering",
-    bullets: ["Security-first builds", "Uniform systems", "Minimal surface area"],
+    tag: "Building",
+    bullets: ["WARDOG Labs", "Live tools", "Drops in progress"],
   },
   {
     id: "money",
     label: "Moo$e Money",
     href: "https://m2.moosematrix.com",
+    internal: false,
     desc: "Tools · dashboards · wealth systems",
     icon: "money",
     tag: "Finance",
@@ -28,6 +31,7 @@ const SECTIONS = [
     id: "mumbles",
     label: "Moose Mumbles",
     href: "https://mooseman.moosematrix.com",
+    internal: false,
     desc: "Writing · videos · notes in public",
     icon: "main",
     tag: "Writing",
@@ -37,12 +41,21 @@ const SECTIONS = [
     id: "store",
     label: "Store",
     href: "https://merch.moosematrix.com",
+    internal: false,
     desc: "Merch · digital drops · goods",
     icon: "store",
     tag: "Merch",
     bullets: ["Drops", "Digital goods", "Physical goods"],
   },
 ] as const;
+
+// Same tab for this site's own pages; new tab (announced) for the other Moose sites.
+// `name` is the link's accessible name (it starts with the visible text, WCAG 2.5.3).
+function linkProps(s: (typeof SECTIONS)[number], name: string) {
+  return s.internal
+    ? { "aria-label": name }
+    : { target: "_blank", rel: "noopener noreferrer", "aria-label": `${name} (opens in new tab)` };
+}
 
 const DOTS = [{ id: "home", label: "Home" }, ...SECTIONS.map((s) => ({ id: s.id, label: s.label }))];
 
@@ -65,7 +78,7 @@ export default function HomePage() {
           <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-10 sm:pt-14 pb-10 md:min-h-[calc(100svh-var(--mmx-header-h))] md:flex md:items-center">
             <div className="mx-auto max-w-3xl text-center">
               <div className="flex flex-wrap items-center justify-center gap-2">
-                <span className="mm-chip mm-mono">Moose Matrix</span>
+                <span className="mm-chip mm-mono">Builds</span>
                 <span className="mm-chip mm-mono">Moo$e Money</span>
                 <span className="mm-chip mm-mono">Moose Mumbles</span>
                 <span className="mm-chip mm-mono">Moose Merch</span>
@@ -121,10 +134,8 @@ export default function HomePage() {
                   <div className="mt-7 sm:mt-8">
                     <a
                       href={s.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      {...linkProps(s, `Open ${s.label}`)}
                       className="mm-underline mm-mono inline-flex items-center text-[12px] uppercase tracking-[0.18em] text-[var(--muted)] hover:text-[var(--fg)]"
-                      aria-label={`Open ${s.label} (opens in new tab)`}
                     >
                       Open {s.label} <span aria-hidden="true" className="ml-1">→</span>
                     </a>
@@ -159,12 +170,10 @@ export default function HomePage() {
 
                       <a
                         href={s.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        {...linkProps(s, `Open ${s.label}`)}
                         className="mm-underline mm-mono text-[12px] text-[var(--muted)] hover:text-[var(--fg)]"
-                        aria-label={`Open ${s.label} (opens in new tab)`}
                       >
-                        ↗
+                        {s.internal ? "→" : "↗"}
                       </a>
                     </div>
 
@@ -183,8 +192,7 @@ export default function HomePage() {
                     <div className="mt-7 sm:mt-8">
                       <a
                         href={s.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        {...linkProps(s, `Visit ${s.label}`)}
                         className="mm-btn-secondary w-full sm:w-auto justify-center inline-flex"
                       >
                         Visit {s.label} <span aria-hidden="true">→</span>
