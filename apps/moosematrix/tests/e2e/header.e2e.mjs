@@ -92,6 +92,20 @@ test("360px: Menu holds the 4 main links, then a More group; Escape closes and r
   await p.close();
 });
 
+test("typed headline stays a first-paint LCP candidate (glyphs not positioned, so they are not split into tiny candidates)", { skip: !typed }, async () => {
+  const p = await browser.newPage();
+  await p.setViewport({ width: 360, height: 800, isMobile: true, hasTouch: true });
+  await p.evaluateOnNewDocument(() => { window.__lcp = []; new PerformanceObserver((l) => { for (const e of l.getEntries()) window.__lcp.push({ t: e.startTime, size: e.size, h1: !!(e.element && e.element.closest("h1")) }); }).observe({ type: "largest-contentful-paint", buffered: true }); });
+  await p.goto(base, { waitUntil: "load" });
+  await new Promise((r) => setTimeout(r, 2500));
+  const r = await p.evaluate(() => { const h = document.querySelector("h1").getBoundingClientRect(); const fcp = performance.getEntriesByName("first-contentful-paint")[0]; return { entries: window.__lcp, h1Area: h.width * h.height, glyphPos: getComputedStyle(document.querySelector("h1 .mmx-tw-a > span")).position, fcp: fcp ? fcp.startTime : 0 }; });
+  assert.equal(r.glyphPos, "static");
+  const last = r.entries[r.entries.length - 1];
+  assert.ok(last, "no LCP entry");
+  assert.ok(r.entries.some((e) => e.h1) || last.size >= r.h1Area * 0.5, `H1 not an LCP candidate: ${JSON.stringify(r)}`);
+  assert.ok(last.t - r.fcp < 50, `LCP ${last.t}ms is later than first paint ${r.fcp}ms`);
+  await p.close();
+});
 test("typed headline: painted (transparent) at first frame, accent stays accent, ~1.5 s max, reduced motion instant", { skip: !typed }, async () => {
   const { p } = await open(360);
   const info = await p.evaluate(() => {

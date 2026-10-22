@@ -412,14 +412,16 @@ main:focus { outline: none; }
      about 1.5 s at most; the caret rides the newest glyph, blinks twice at the end, then goes (as before).
      The caret is currentColor, so it is blue while it types the accent phrase.
    - Accent glyphs (.mmx-tw-acc) keep the accent colour while and after typing.
+   - The glyph spans are NOT positioned: a position:relative glyph becomes its own tiny LCP candidate, which would
+     knock the heading out of LCP. The caret is an out-of-flow box at its static position (just after the glyph).
    - prefers-reduced-motion: no animation, the line is simply there. Supports up to 96 characters. */
 .mmx-tw-acc { color: var(--accent); }
 .mmx-tw-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0; }
 .mmx-tw { --mmx-tw-step: 75ms; --mmx-tw-start: 150ms; }
 .mmx-tw-s75 { --mmx-tw-step: 75ms; } .mmx-tw-s60 { --mmx-tw-step: 60ms; } .mmx-tw-s50 { --mmx-tw-step: 50ms; } .mmx-tw-s40 { --mmx-tw-step: 40ms; } .mmx-tw-s30 { --mmx-tw-step: 30ms; } .mmx-tw-s25 { --mmx-tw-step: 25ms; } .mmx-tw-s20 { --mmx-tw-step: 20ms; } .mmx-tw-s15 { --mmx-tw-step: 15ms; }
 .mmx-tw-a { -webkit-user-select: none; user-select: none; }
-.mmx-tw-a > span { --i: 0; position: relative; animation: mmx-tw-in 1ms linear backwards; animation-delay: calc(var(--mmx-tw-start) + var(--i) * var(--mmx-tw-step)); }
-.mmx-tw-a > span::after { content: ""; position: absolute; top: 0.12em; bottom: 0.08em; right: -0.07em; width: 0.08em; border-radius: 1px; background: currentColor; opacity: 0; pointer-events: none; animation: mmx-tw-caret var(--mmx-tw-step) linear; animation-delay: calc(var(--mmx-tw-start) + var(--i) * var(--mmx-tw-step)); }
+.mmx-tw-a > span { --i: 0; animation: mmx-tw-in 1ms linear backwards; animation-delay: calc(var(--mmx-tw-start) + var(--i) * var(--mmx-tw-step)); }
+.mmx-tw-a > span::after { content: ""; position: absolute; width: 0.08em; height: 0.9em; margin: 0.12em 0 0 -0.01em; margin: calc((1lh - 0.9em) / 2) 0 0 -0.01em; border-radius: 1px; background: currentColor; opacity: 0; pointer-events: none; animation: mmx-tw-caret var(--mmx-tw-step) linear; animation-delay: calc(var(--mmx-tw-start) + var(--i) * var(--mmx-tw-step)); }
 .mmx-tw-a > span:nth-child(2) { --i: 1; } .mmx-tw-a > span:nth-child(3) { --i: 2; } .mmx-tw-a > span:nth-child(4) { --i: 3; } .mmx-tw-a > span:nth-child(5) { --i: 4; }
 .mmx-tw-a > span:nth-child(6) { --i: 5; } .mmx-tw-a > span:nth-child(7) { --i: 6; } .mmx-tw-a > span:nth-child(8) { --i: 7; } .mmx-tw-a > span:nth-child(9) { --i: 8; }
 .mmx-tw-a > span:nth-child(10) { --i: 9; } .mmx-tw-a > span:nth-child(11) { --i: 10; } .mmx-tw-a > span:nth-child(12) { --i: 11; } .mmx-tw-a > span:nth-child(13) { --i: 12; }
