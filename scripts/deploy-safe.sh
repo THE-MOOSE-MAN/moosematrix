@@ -8,6 +8,7 @@
 #
 # v2 (R39, after Vulnerability Bot review): stdin-safe main() wrapper, host-wide flock, pin-line-only
 # rollback, EXIT trap that never blocks cleanup, label validation, manual recovery hint.
+# v3 (VB R39 v2 N1): ds_up, a compose up that never aborts the deploy, so ds_finish decides and rolls back.
 #
 # Usage. The remote body MUST be wrapped in a function and run with stdin from /dev/null, so bash parses
 # the whole stream before anything runs and no child (docker compose run/exec) can eat the rest of it:
@@ -17,7 +18,8 @@
 #            DS_SHA=<40-hex GITHUB_SHA> DS_RUN_ID=<github.run_id>
 #     trap 'ds_on_exit || true; <cleanup>' EXIT   # records result=failed if the script dies first
 #     ds_pre                        # tag the running image <app>:rollback-YYYYMMDD-<shortsha>, keep newest 3
-#     ...pull / pin (ds_pin_set FROM TO for compose-pinned repos) / compose up (repo specific)...
+#     ...pull / pin (ds_pin_set FROM TO for compose-pinned repos) (repo specific)...
+#     ds_up -d --no-deps <service>  # docker compose -f DS_COMPOSE_FILE up ...; a failure is logged, not fatal
 #     ds_finish [health cmd...]     # wait healthy + revision label == DS_SHA; else roll back; write the record
 #     ds_prune                      # docker image prune -f (dangling only)
 #   }
@@ -175,6 +177,20 @@ ds_retain() {
         ds_log "retention: removing old auto tag $tag"
         docker rmi "$tag" >/dev/null || ds_log "could not untag $tag (kept)"
       done
+}
+
+# ds_up ARGS...: `docker compose -f DS_COMPOSE_FILE up ARGS...` that never aborts the deploy (VB R39 v2 N1).
+# Under set -e a failed `up` used to exit before ds_finish, and with --force-recreate the old container may
+# already be gone, so the service stayed down with no rollback. Now the failure is logged and ds_finish
+# decides: a missing or unhealthy container times out / fails health, a still-running old container fails
+# the revision check, and either way the auto-rollback runs.
+ds_up() {
+  local rc=0
+  docker compose -f "$DS_COMPOSE_FILE" up "$@" || rc=$?
+  if [ "$rc" -ne 0 ]; then
+    ds_log "compose up failed (rc=$rc); verifying anyway (auto-rollback if unhealthy or wrong revision)"
+  fi
+  return 0
 }
 
 # ds_wait_healthy [cmd...]: healthy within DS_HEALTH_TIMEOUT. Containers without a Docker HEALTHCHECK

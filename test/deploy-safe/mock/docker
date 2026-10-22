@@ -60,6 +60,12 @@ case "$1" in
           sed -n 's/^ *image: //p' "$(cat "$S/compose_pin_file")" | grep -F "$(cat "$S/compose_pin_prefix")" | head -n1 > "$S/ctr_ref"
         fi
         [ -f "$S/up_fail" ] && exit 1
+        # one-shot failures of the NEXT up (VB N1): the old container was already removed, or the new one
+        # was created but never became healthy
+        if [ -f "$S/up_fail_gone_once" ]; then rm -f "$S/up_fail_gone_once" "$S/ctr_image"; exit 1; fi
+        if [ -f "$S/up_fail_partial_once" ]; then
+          rm -f "$S/up_fail_partial_once"; resolve "$(ctr ref)" > "$S/ctr_image"; echo unhealthy > "$S/ctr_health"; exit 1
+        fi
         id="$(resolve "$(ctr ref)")"; echo "$id" > "$S/ctr_image"
         cp "$S/health_after_up" "$S/ctr_health" 2>/dev/null || echo healthy > "$S/ctr_health" ;;
     esac ;;

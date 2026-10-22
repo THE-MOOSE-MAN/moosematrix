@@ -10,7 +10,8 @@ The deploy job streams `scripts/deploy-safe.sh` plus the remote body over one SS
    pin or recreate containers at the same time. GitHub-side, the deploy job's `concurrency` group has
    `cancel-in-progress: false`, so a running deploy is never cancelled by a newer push.
 2. **Rollback tag.** `ds_pre` tags the running image `<app>:rollback-YYYYMMDD-<sha7>` and keeps the newest 3.
-3. **Pull / migrate / up** (repo specific).
+3. **Pull / migrate / up** (repo specific). `up` goes through `ds_up`, which logs a failure instead of aborting,
+   so step 4 always runs and a missing or half-started container is rolled back.
 4. **Verify.** `ds_finish` requires healthy + `org.opencontainers.image.revision == GITHUB_SHA`; otherwise it
    re-points the old ref at the rollback tag, recreates only this service, records `rolled_back` and fails the job.
 5. **Record + prune.** One JSON line in `/var/lib/moose-deploys/<app>.jsonl`; dangling-only prune.
@@ -44,6 +45,22 @@ moose_money and mooseman-site already use this pattern with their own `VPS_KNOWN
 | Workflow | Host secret | Port secret |
 |---|---|---|
 | `.github/workflows/prod.yml`, `dev.yml` | `VPS_HOST` | `VPS_PORT` |
+
+### moosematrix pins by key, under the alias `moose-vps`
+
+`VPS_HOST` may be an IP or a hostname, and a known_hosts entry normally only matches the exact host string ssh
+connects to. So the moosematrix workflows connect with `-o HostKeyAlias=moose-vps`, and the "Pin VPS host key"
+step rewrites the host field of every `VPS_KNOWN_HOSTS` line to `moose-vps` before writing `~/.ssh/known_hosts`.
+What this means for the secret:
+
+- Each line must be a plain `<host> <type> <key>` entry, e.g. `[<IP>]:<PORT> ssh-ed25519 AAAA…` or
+  `moose-vps ssh-ed25519 AAAA…`. The host field can be anything (it is replaced); **the key is what is pinned.**
+- Hashed entries (`|1|…`, from `ssh-keyscan -H`) and `@cert-authority`/`@revoked` lines are rejected: the step
+  fails with an error and nothing connects.
+- The same value Vulnerability Bot prepared for moose-brain (the 3 `[<IP>]:<PORT> <type> <key>` lines read from the
+  VPS's own `/etc/ssh/ssh_host_*_key.pub`) works here unchanged, whether `VPS_HOST` is the IP or a hostname.
+- Check before setting: `ssh-keygen -lf <file>` must show the VPS fingerprints.
+- A wrong key fails closed ("Host key verification failed"); nothing reaches the VPS.
 
 ## Rollback
 

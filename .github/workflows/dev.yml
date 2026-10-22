@@ -101,10 +101,19 @@ jobs:
           # The host key is pinned from a repo secret instead of trusting whatever ssh-keyscan returns on
           # each run (same pattern as moose_money / mooseman-site). Pre-merge step: add VPS_KNOWN_HOSTS.
           mkdir -p ~/.ssh && chmod 700 ~/.ssh
-          printf '%s\n' "${{ secrets.VPS_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          umask 077
+          printf '%s\n' "${{ secrets.VPS_KNOWN_HOSTS }}" > ~/.ssh/known_hosts.in
+          # Pin by KEY, not by host string: VPS_HOST may be an IP or a hostname, so ssh looks the key up
+          # under the fixed alias moose-vps (-o HostKeyAlias=moose-vps below) and the host field of each
+          # plain "<host> <type> <key>" line is rewritten to that alias. Hashed (|1|...) or @marker lines
+          # are rejected. See docs/deploy-safety.md.
+          awk 'NF == 0 { next }
+               $1 ~ /^(\||@)/ || NF < 3 { bad = 1; next }
+               { print "moose-vps", $2, $3; n++ }
+               END { exit (bad || n == 0) }' ~/.ssh/known_hosts.in > ~/.ssh/known_hosts \
+            || { rm -f ~/.ssh/known_hosts.in; echo "::error::VPS_KNOWN_HOSTS secret is missing, empty or not plain '<host> <type> <key>' lines; see docs/deploy-safety.md"; exit 1; }
+          rm -f ~/.ssh/known_hosts.in
           chmod 600 ~/.ssh/known_hosts
-          grep -q '[^[:space:]]' ~/.ssh/known_hosts \
-            || { echo "::error::VPS_KNOWN_HOSTS secret is missing or empty; see docs/deploy-safety.md"; exit 1; }
 
       - name: Deploy Moosematrix Dev (ephemeral GHCR login on VPS)
         shell: bash
@@ -143,7 +152,7 @@ jobs:
           docker compose -f docker-compose.yml pull "$SERVICE_NAME"
 
           echo "🚀 Recreating container..."
-          docker compose -f docker-compose.yml up -d --force-recreate "$SERVICE_NAME"
+          ds_up -d --force-recreate "$SERVICE_NAME"   # a failed up is logged; ds_finish decides + rolls back (VB N1)
 
           echo "🩺 Waiting for health + revision == ${DS_SHA:0:7} (auto-rollback on failure)..."
           ds_finish
@@ -160,6 +169,6 @@ jobs:
           }
           main </dev/null; exit $?
           EOF
-          } | ssh -4 -T -o StrictHostKeyChecking=yes -o ConnectTimeout=20 -i ~/.ssh/id_ed25519 \
+          } | ssh -4 -T -o StrictHostKeyChecking=yes -o HostKeyAlias=moose-vps -o ConnectTimeout=20 -i ~/.ssh/id_ed25519 \
             -p "${{ secrets.VPS_PORT }}" \
             "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" bash -s

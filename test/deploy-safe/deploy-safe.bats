@@ -383,3 +383,49 @@ echo POST_STEPS_DONE'
   DS_LOCK_WAIT='1;id' run ds_lock
   [ "$status" -eq 1 ]
 }
+
+# ---------- N1: a failing compose up must not skip the health check / rollback ----------
+deploy_with_failing_up() { # run a deploy under set -e whose `up` fails in mode $1
+  run bash -c "set -euo pipefail; export PATH='$PATH'; source '$SCRIPT'
+    ds_pre
+    docker tag '$NEW' ghcr.io/the-moose-man/moosematrix:prod-latest
+    touch '$MOCK_STATE/up_fail_$1_once'
+    ds_up -d --force-recreate moosematrix-app-prod
+    ds_finish
+    echo NOT_REACHED_ON_FAILURE"
+}
+
+@test "N1 control: a bare failing compose up under set -e exits before ds_finish (no rollback)" {
+  touch "$MOCK_STATE/up_fail_gone_once"
+  run bash -c "set -euo pipefail; export PATH='$PATH'; source '$SCRIPT'; ds_pre
+    docker compose -f docker-compose.yml up -d --force-recreate moosematrix-app-prod; ds_finish"
+  [ "$status" -ne 0 ]
+  [ ! -f "$MOCK_STATE/ctr_image" ]          # service left down
+  ! grep -q 'rolling back' <<< "$output"
+}
+
+@test "N1: up fails after the old container was removed -> health times out, auto-rollback restores it" {
+  deploy_with_failing_up gone
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"compose up failed (rc=1)"* ]]
+  [[ "$output" == *"rolling back moosematrix-app-prod"* ]]
+  [[ "$output" != *NOT_REACHED_ON_FAILURE* ]]
+  [ "$(cat "$MOCK_STATE/ctr_image")" = "$OLD" ]
+  grep -q "docker tag moosematrix:rollback-$TODAY-1111111 ghcr.io/the-moose-man/moosematrix:prod-latest" "$MOCK_STATE/calls"
+  tail -n1 "$DS_RECORD_DIR/moosematrix.jsonl" | jq -e --arg r "$OLDREV" '.result=="rolled_back" and .revision==$r'
+}
+
+@test "N1: up fails with the new container partially started (unhealthy) -> auto-rollback" {
+  deploy_with_failing_up partial
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"compose up failed (rc=1)"* ]]
+  [ "$(cat "$MOCK_STATE/ctr_image")" = "$OLD" ]
+  tail -n1 "$DS_RECORD_DIR/moosematrix.jsonl" | jq -e '.result=="rolled_back"'
+}
+
+@test "N1: ds_up passes its arguments through and is silent on success" {
+  run ds_up -d --no-deps moosematrix-app-prod
+  [ "$status" -eq 0 ]
+  [[ "$output" != *"compose up failed"* ]]
+  grep -qx 'docker compose -f docker-compose.yml up -d --no-deps moosematrix-app-prod' "$MOCK_STATE/calls"
+}
