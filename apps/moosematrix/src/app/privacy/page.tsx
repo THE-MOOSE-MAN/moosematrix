@@ -1,4 +1,4 @@
-import { TypedAccent } from "../../components/TypedAccent";
+import { TypedLine } from "../../components/TypedLine";
 export const dynamic = "force-static";
 export const revalidate = false;
 
@@ -7,7 +7,7 @@ export default function PrivacyPage() {
     <div className="mm-shell">
       <section className="mx-auto max-w-4xl px-6 pt-14 pb-16">
         <h1 className="mm-mono text-4xl md:text-5xl font-semibold tracking-tight text-[var(--fg)]">
-          Privacy <TypedAccent>Policy</TypedAccent>
+          <TypedLine text="Privacy Policy" accent="Policy" />
         </h1>
 
         <div className="mt-8 space-y-6 text-[14px] leading-relaxed text-[var(--muted)]">

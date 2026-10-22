@@ -3,14 +3,14 @@ export const revalidate = false;
 export const fetchCache = "force-cache";
 
 import type { Metadata } from "next";
-import { TypedAccent } from "../../components/TypedAccent";
+import { TypedLine } from "../../components/TypedLine";
 
 export const metadata: Metadata = {
-  title: "Builds · The Moose Matrix",
+  title: "Research & Development · The Moose Matrix",
   description: "What The Moose Man is building: big ideas, live tools and drops in progress.",
   alternates: { canonical: "/builds" },
   openGraph: {
-    title: "Builds · The Moose Matrix",
+    title: "Research & Development · The Moose Matrix",
     description: "Big ideas, live tools and drops in progress.",
     url: "https://moosematrix.com/builds",
     siteName: "The Moose Matrix",
@@ -88,10 +88,10 @@ export default function BuildsPage() {
   return (
     <div className="mm-shell">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-10 sm:pt-14 pb-16">
-        <div className="mm-mono text-[12px] uppercase tracking-[0.22em] text-[var(--muted)]">Builds</div>
+        <div className="mm-mono text-[12px] uppercase tracking-[0.22em] text-[var(--muted)]">Research &amp; Development</div>
 
         <h1 className="mm-mono mt-3 text-balance text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight text-[var(--fg)]">
-          What I&rsquo;m <TypedAccent>building</TypedAccent>
+          <TypedLine text="What I’m building" accent="building" />
         </h1>
 
         <p className="mt-4 max-w-2xl text-[15px] md:text-lg leading-relaxed text-[var(--muted)]">

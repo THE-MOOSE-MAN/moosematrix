@@ -3,11 +3,12 @@ import { ThemeLink } from "./ThemeLink";
 
 type FooterLink = { label: string; href: string; external?: boolean };
 
+// Same labels and order as the header (apps/moosematrix/src/components/nav-config.ts, 22 Oct 2026); Shop last.
 const STUDIO: FooterLink[] = [
-  { label: "Builds", href: "/builds" },
+  { label: "Research & Development", href: "/builds" },
+  { label: "Moose Mumbles", href: "https://mooseman.moosematrix.com", external: true },
+  { label: "Moo$e Money", href: "https://m2.moosematrix.com", external: true },
   { label: "Shop", href: "https://merch.moosematrix.com", external: true },
-  { label: "Write-ups", href: "https://mooseman.moosematrix.com", external: true },
-  { label: "Money tools", href: "https://m2.moosematrix.com", external: true },
 ];
 
 const COMPANY: FooterLink[] = [
