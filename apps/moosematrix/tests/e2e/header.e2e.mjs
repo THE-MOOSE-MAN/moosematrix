@@ -68,7 +68,8 @@ test("More menu by keyboard: Tab reaches it, Enter opens, Space closes, Escape c
   assert.notEqual(ring.split(" ")[0], "none", "More has a visible focus outline");
   // Outside click closes.
   await p.keyboard.press("Enter");
-  await p.mouse.click(640, 700);
+  const h1 = await p.$eval("h1", (h) => { const r = h.getBoundingClientRect(); return { x: r.left + 4, y: r.top + r.height / 2 }; });
+  await p.mouse.click(h1.x, h1.y); // a non-interactive spot outside the menu
   assert.equal(await isOpen(p, ".mmx-more"), false, "outside click closes");
   await p.close();
 });
