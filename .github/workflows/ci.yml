@@ -113,3 +113,30 @@ jobs:
       - name: Name denylist (skipped)
         if: env.HAS_DENYLIST != 'true'
         run: echo "REGISTRY_DENYLIST is not set; denylist check skipped."
+
+  app:
+    name: App build and tests (apps/moosematrix)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.22.1
+
+      - name: Install (lockfile, no install scripts)
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Build (next build, CSP hashes, tokens sync, search index guard)
+        run: npm -w moosematrix run build
+
+      - name: Unit and built-page tests
+        run: npm -w moosematrix test
+
