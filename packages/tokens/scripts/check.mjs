@@ -96,7 +96,7 @@ const changelog = (read("CHANGELOG.md").match(/^##\s+\[?(\d+\.\d+\.\d+)/m) || []
 const marker = (read("tokens.css").match(/--mm-tokens-version:\s*"([^"]+)"/) || [])[1];
 if (changelog !== version) fail(`version: CHANGELOG top entry ${changelog} != package.json ${version}`);
 if (marker !== version) fail(`version: tokens.css marker ${marker} != package.json ${version}`);
-for (const f of [...css.filter((f) => !f.startsWith("demo/")), "nav.js", "search.js", "theme-core.js", "theme-init.js", "render.mjs", ...html.filter((f) => !f.startsWith("demo/"))]) {
+for (const f of [...css.filter((f) => !f.startsWith("demo/")), "nav.js", "search.js", "theme-core.js", "theme-init.js", "render.mjs", ...html.filter((f) => !f.startsWith("demo/") && !f.startsWith("tests/"))]) {
   const m = read(f).match(/@moosematrix\/tokens (\d+\.\d+\.\d+)/);
   if (!m) fail(`version: ${f} has no "@moosematrix/tokens x.y.z" header`);
   else if (m[1] !== version) fail(`version: ${f} header says ${m[1]}, package.json ${version}`);

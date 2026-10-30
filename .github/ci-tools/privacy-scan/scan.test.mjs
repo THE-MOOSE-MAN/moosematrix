@@ -5,6 +5,7 @@ import { mkdtempSync, writeFileSync, readFileSync, copyFileSync, mkdirSync, rmSy
 import { execFileSync, spawnSync } from "node:child_process";
 import { gzipSync, brotliCompressSync, deflateSync, crc32 } from "node:zlib";
 import { tmpdir } from "node:os";
+import { randomBytes } from "node:crypto";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { BINARY_PROFILES } from "./config.mjs";
@@ -12,8 +13,11 @@ import { BINARY_PROFILES } from "./config.mjs";
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = join(here, "..", "..", "..");
 const SCAN = join(here, "scan.mjs");
-const C = "MMCANARY-field-q7z3w";
-const C2 = "MMCANARY alpha";
+// Random per run, so the canaries never appear in this file (the whole-tree test scans it too).
+const rand = (n) => [...randomBytes(n)].map((b) => "abcdefghjkmnpqrstuvwxyz"[b % 23]).join("");
+const C = `MMCANARY-field-a${rand(6)}`;
+const W = rand(7);
+const C2 = `MMCANARY ${W}`;
 
 const tmp = () => mkdtempSync(join(tmpdir(), "mm-scan-test-"));
 function termsFile(content) {
@@ -137,14 +141,14 @@ test("encoded variants are caught", () => {
     C.replace(/a/gi, "\u03b1"), // Greek alpha
     [...C].map((c) => (c >= "!" && c <= "~" ? String.fromCharCode(c.charCodeAt(0) + 0xfee0) : c)).join(""), // fullwidth
     C.replace(/-/g, " "), C.replace(/-/g, "_"), C.replace(/-/g, "."), C.replace(/-/g, "/"), C.replace(/-/g, "+"), C.replace(/-/g, "%20"), C.replace(/-/g, ""),
-    `MMCANARY-<b>field</b>-q7z3w`, `MMCA<!-- x -->NARY-field-q7z3w`, `"author": "${C}"`,
+    C.replace("field", "<b>field</b>"), C.replace("NARY", "<!-- x -->NARY"), `"author": "${C}"`,
   ];
   for (const f of forms) {
     const r = run(["--dir", textDir(`line one\nprefix ${f} suffix\n`), "--profile", "none"]);
     assert.equal(r.code, 1, `not caught: ${JSON.stringify(f).slice(0, 60)}`);
     assert.match(r.out, /term #1 in f\.txt:2/);
   }
-  for (const f of ["mmcanary_alpha", "MMCANARY.Alpha", "mmcanaryalpha", "alpha mmcanary", "MMCANARY%20alpha", "mmcanary\nalpha"]) {
+  for (const f of [`mmcanary_${W}`, `MMCANARY.${W.toUpperCase()}`, `mmcanary${W}`, `${W} mmcanary`, `MMCANARY%20${W}`, `mmcanary\n${W}`]) {
     const r = run(["--dir", textDir(`x ${f} y\n`), "--profile", "none"]);
     assert.equal(r.code, 1, f);
     assert.match(r.out, /term #2 in f\.txt/);
