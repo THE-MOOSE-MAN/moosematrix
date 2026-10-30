@@ -77,6 +77,9 @@ jobs:
           done < "$RUNNER_TEMP/changed.txt"
           exit $status
 
+      - name: IP leak check (self-test)
+        run: node --test packages/tokens/scripts/check-ips.test.mjs
+
       - name: IP leak check
         run: |
           mapfile -t files < <(while IFS= read -r f; do [ -f "$f" ] && echo "$f"; done < "$RUNNER_TEMP/changed.txt")

@@ -7,7 +7,7 @@
 //  - JS parses (node --check)
 //  - logos: inline SVG path data equals brand/main-mark-dark.svg
 //  - contrast: WCAG 2.2 AA pairs in both themes; the dark media block equals the explicit dark block
-//  - IPs: no public IPv4 addresses (scripts/check-ips.mjs)
+//  - IPs: no public or tailnet IPs, IPv6 literals, SSH port or MagicDNS names (scripts/check-ips.mjs)
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
@@ -183,8 +183,8 @@ if (failures.length === n) ok(`contrast: ${pairs.length} pairs pass in light and
 
 // IPs
 n = failures.length;
-for (const hit of scanIps([pkg])) fail(`ip: public IPv4 address at ${relative(pkg, hit)}`);
-if (failures.length === n) ok("ip: no public IPv4 addresses");
+for (const hit of scanIps([pkg])) fail(`ip: address/host/port leak at ${relative(pkg, hit)}`);
+if (failures.length === n) ok("ip: no public/tailnet IPs, IPv6, SSH port or MagicDNS names");
 
 if (failures.length) {
   console.error(`\n${failures.length} check(s) failed:`);
