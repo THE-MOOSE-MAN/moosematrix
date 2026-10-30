@@ -1,6 +1,6 @@
 {
   "$schema": "./nav.schema.json",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "main": [
     { "id": "research", "label": "Research", "href": "https://moosematrix.com/research/", "tick": 3 },
     { "id": "moose-mumbles", "label": "Moose Mumbles", "href": "https://mooseman.moosematrix.com/moose-mumbles", "tick": 2 },

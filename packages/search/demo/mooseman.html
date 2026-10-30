@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; require-trusted-types-for 'script'; trusted-types 'none'">
+<meta name="referrer" content="no-referrer">
+<title>@moosematrix/search demo (mooseman)</title>
+<link rel="stylesheet" href="../../tokens/fonts.css">
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../search.css">
+<link rel="stylesheet" href="demo.css">
+<script type="module" src="../search.js"></script>
+</head>
+<body>
+<div class="demo-wrap">
+  <header class="demo-bar">
+    <button type="button" class="demo-btn" data-mm-search-open id="demo-header-search">Search</button>
+  </header>
+  <main>
+    <h1>@moosematrix/search demo (mooseman)</h1>
+    <p>Open search with the button, Ctrl+K or Cmd+K. Section triggers open it pre-scoped.</p>
+    <p class="demo-bar">
+      <button type="button" class="demo-btn" data-mm-search-open data-mm-scope="library" id="demo-library">Search the Library</button>
+      <button type="button" class="demo-btn" data-mm-search-open data-mm-scope="reading-room" id="demo-reading-room">Search Reading Room</button>
+      <button type="button" class="demo-btn" data-mm-search-open data-mm-scope="mumbles" id="demo-mumbles">Search Moose Mumbles</button>
+    </p>
+  </main>
+</div>
+<dialog class="mm-search" id="mm-search" aria-modal="true" aria-labelledby="mm-search-title" data-mm-site="mooseman" data-mm-index="/search/demo/mooseman-index.json">
+  <div class="mm-search-in">
+    <div class="mm-search-top">
+      <h2 class="mm-search-title" id="mm-search-title">Search The Moose Man</h2>
+      <button type="button" class="mm-search-close" data-mm-search-close>Close<span class="mm-sr-only"> search</span> <kbd aria-hidden="true">Esc</kbd></button>
+    </div>
+    <div class="mm-search-bar" role="search">
+      <label class="mm-sr-only" for="mm-search-input">Search terms</label>
+      <svg class="mm-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" width="20" height="20"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m20 20-4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <input id="mm-search-input" type="search" maxlength="128" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" placeholder="Search" aria-describedby="mm-search-hint">
+    </div>
+    <fieldset class="mm-scopes">
+      <legend class="mm-sr-only">Search in</legend>
+      <span class="mm-scope"><input type="radio" name="mm-scope" id="mm-scope-all" value="all" checked><label for="mm-scope-all">All</label></span>
+      <span class="mm-scope"><input type="radio" name="mm-scope" id="mm-scope-library" value="library"><label for="mm-scope-library">Library</label></span>
+      <span class="mm-scope"><input type="radio" name="mm-scope" id="mm-scope-mumbles" value="mumbles"><label for="mm-scope-mumbles">Moose Mumbles</label></span>
+      <span class="mm-scope"><input type="radio" name="mm-scope" id="mm-scope-reading-room" value="reading-room"><label for="mm-scope-reading-room">Reading Room</label></span>
+      <span class="mm-scope"><input type="radio" name="mm-scope" id="mm-scope-ctf" value="ctf"><label for="mm-scope-ctf">CTF</label></span>
+      <span class="mm-scope"><input type="radio" name="mm-scope" id="mm-scope-money" value="money"><label for="mm-scope-money">Moo$e Money</label></span>
+    </fieldset>
+    <p class="mm-sr-only" id="mm-search-hint">Results update as you type. Use the up and down arrow keys to move through results.</p>
+    <p class="mm-search-status" id="mm-search-status" role="status" aria-live="polite" aria-atomic="true" data-mm-search-status></p>
+    <ul class="mm-search-results" aria-label="Search results" data-mm-search-results></ul>
+  </div>
+</dialog>
+</body>
+</html>

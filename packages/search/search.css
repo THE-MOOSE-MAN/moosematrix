@@ -1,0 +1,264 @@
+/* @moosematrix/search 0.1.0 — the one search overlay. Needs @moosematrix/tokens tokens.css.
+   Colours, type and spacing come from tokens only, so light/dark follow data-theme. */
+
+.mm-search {
+  width: min(860px, calc(100% - 2 * var(--mm-space-4)));
+  max-height: calc(100dvh - 2 * var(--mm-space-6));
+  margin: 12vh auto auto;
+  padding: 0;
+  border: 1px solid var(--mm-color-rule);
+  border-radius: var(--mm-radius-panel);
+  background: var(--mm-color-ground);
+  color: var(--mm-color-ink);
+  box-shadow: var(--mm-shadow-dialog);
+  font-family: var(--mm-font-body);
+  overflow: auto;
+}
+
+.mm-search::backdrop {
+  background: var(--mm-color-scrim);
+}
+
+/* Scroll lock without touching body.style */
+html:has(.mm-search[open]) {
+  overflow: hidden;
+}
+
+.mm-search-in {
+  padding: var(--mm-space-5);
+}
+
+.mm-search-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--mm-space-4);
+  margin-bottom: var(--mm-space-4);
+}
+
+.mm-search-title {
+  margin: 0;
+  color: var(--mm-color-ink);
+  font: 700 var(--mm-text-lg) / var(--mm-leading-display) var(--mm-font-display);
+}
+
+.mm-search :is(a, button, input):focus-visible,
+.mm-scope input:focus-visible + label {
+  outline: var(--mm-focus-ring);
+  outline-offset: var(--mm-focus-offset);
+}
+
+.mm-search-close {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mm-space-2);
+  min-height: var(--mm-control-height, 44px);
+  padding: 0 var(--mm-space-4);
+  border: 1px solid var(--mm-color-edge);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--mm-color-ink);
+  font: 500 var(--mm-text-sm) / 1 var(--mm-font-mono);
+  cursor: pointer;
+}
+
+.mm-search-close kbd {
+  font: inherit;
+  color: var(--mm-color-ink-2);
+}
+
+.mm-search-close:hover {
+  border-color: var(--mm-color-accent);
+}
+
+.mm-search-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--mm-space-3);
+  min-height: 56px;
+  padding: var(--mm-space-1) var(--mm-space-4);
+  border: 1px solid var(--mm-color-accent);
+  border-radius: 999px;
+  background: var(--mm-color-panel);
+}
+
+.mm-search-bar:focus-within {
+  box-shadow: 0 0 0 4px var(--mm-color-selection);
+}
+
+.mm-search-bar .mm-icon {
+  flex: none;
+  color: var(--mm-color-ink-2);
+}
+
+.mm-search-bar input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--mm-color-ink);
+  font: inherit;
+  font-size: var(--mm-text-base);
+}
+
+/* The bar draws the focus indicator for the input (box-shadow above). */
+.mm-search-bar input:focus-visible {
+  outline: none;
+}
+
+.mm-search-bar input::placeholder {
+  color: var(--mm-color-ink-2);
+  opacity: 1;
+}
+
+.mm-scopes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mm-space-2);
+  margin: var(--mm-space-4) 0 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.mm-scope {
+  position: relative;
+  display: inline-flex;
+}
+
+.mm-scope input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.mm-scope label,
+a.mm-scope-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--mm-space-4);
+  border: 1px solid var(--mm-color-edge);
+  border-radius: 999px;
+  background: var(--mm-color-panel);
+  color: var(--mm-color-ink);
+  font-size: var(--mm-text-sm);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.mm-scope input:checked + label {
+  border-color: var(--mm-color-accent);
+  background: var(--mm-color-accent-fill);
+  color: var(--mm-color-on-accent);
+  font-weight: 700;
+}
+
+.mm-scope:hover label,
+a.mm-scope-link:hover {
+  border-color: var(--mm-color-accent);
+}
+
+.mm-search-status {
+  min-height: 1.5em;
+  margin: var(--mm-space-3) var(--mm-space-1) 0;
+  color: var(--mm-color-ink-2);
+  font-size: var(--mm-text-sm);
+}
+
+.mm-search-results {
+  list-style: none;
+  margin: var(--mm-space-2) 0 0;
+  padding: 0;
+  max-height: min(360px, 45vh);
+  overflow: auto;
+}
+
+.mm-search-results:empty {
+  display: none;
+}
+
+.mm-result {
+  display: block;
+  min-height: 44px;
+  padding: var(--mm-space-3);
+  border-bottom: 1px solid var(--mm-color-rule);
+  border-radius: var(--mm-radius-control);
+  color: var(--mm-color-ink);
+  text-decoration: none;
+}
+
+.mm-result:hover {
+  background: var(--mm-color-panel-2);
+}
+
+.mm-result-meta {
+  display: block;
+  margin-bottom: var(--mm-space-1);
+  color: var(--mm-color-ink-2);
+  font: 500 var(--mm-text-sm) / 1.4 var(--mm-font-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mm-result-lock {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mm-space-1);
+  margin-bottom: var(--mm-space-1);
+  color: var(--mm-color-ink);
+  font: 700 var(--mm-text-sm) / 1.4 var(--mm-font-mono);
+}
+
+.mm-result-title {
+  display: block;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.mm-result-summary {
+  display: block;
+  margin-top: var(--mm-space-1);
+  color: var(--mm-color-ink-2);
+  font-size: var(--mm-text-sm);
+  overflow-wrap: anywhere;
+}
+
+.mm-result mark {
+  background: var(--mm-color-selection);
+  color: inherit;
+  border-radius: 2px;
+}
+
+@media (max-width: 750px) {
+  .mm-search {
+    width: calc(100% - 2 * var(--mm-space-2));
+    max-height: calc(100dvh - 2 * var(--mm-space-2));
+    margin-top: var(--mm-space-2);
+  }
+
+  .mm-search-in {
+    padding: var(--mm-space-4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mm-search,
+  .mm-search *,
+  .mm-search::backdrop {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .mm-scope input:checked + label {
+    outline: 2px solid CanvasText;
+  }
+}

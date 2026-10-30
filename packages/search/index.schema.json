@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://moosematrix.com/schemas/search-index-v1.json",
+  "title": "@moosematrix/search per-site index, version 1",
+  "description": "Same-origin per-site search index. Titles and editor teasers only: never a body or excerpt. search-core.mjs enforces the same rules in the browser and at build (tests/schema-sync.test.mjs keeps them in step).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "site", "generated", "items"],
+  "properties": {
+    "version": { "const": 1 },
+    "site": { "enum": ["moosematrix", "mooseman", "m2", "merch"] },
+    "generated": { "type": "string", "maxLength": 40, "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$" },
+    "items": { "type": "array", "maxItems": 5000, "items": { "$ref": "#/$defs/item" } }
+  },
+  "$defs": {
+    "item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "site", "section", "type", "url", "access"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,127}$" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "site": { "enum": ["moosematrix", "mooseman", "m2", "merch"] },
+        "section": { "enum": ["library", "projects", "lab", "research", "mumbles", "reading-room", "ctf", "money", "shop", "pages"] },
+        "type": { "type": "string", "minLength": 1, "maxLength": 40 },
+        "url": { "type": "string", "minLength": 1, "maxLength": 2048 },
+        "summary": { "type": "string", "maxLength": 300 },
+        "tags": { "type": "array", "maxItems": 20, "items": { "$ref": "#/$defs/tag" } },
+        "date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+        "access": { "enum": ["public", "premium"] }
+      },
+      "if": { "properties": { "access": { "const": "premium" } } },
+      "then": { "not": { "required": ["tags"] }, "properties": { "summary": { "maxLength": 160 } } }
+    },
+    "tag": { "type": "string", "minLength": 1, "maxLength": 40 }
+  }
+}

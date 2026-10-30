@@ -1,4 +1,4 @@
-// @moosematrix/tokens 0.1.1 — theme-init: applies the saved theme before first paint.
+// @moosematrix/tokens 0.1.2 — theme-init: applies the saved theme before first paint.
 // Load as the FIRST child of <head>, synchronously (no async/defer), from the content-hashed copy:
 //   <script src="/mm/theme-init.<sha8>.js"></script>   (hashed/manifest.json names the current file)
 // Works under script-src 'self' (no inline script, no hash). Without JS, or with no cookie, the page is dark.

@@ -1,11 +1,11 @@
-/* @moosematrix/tokens 0.1.1 — design tokens (v5).
+/* @moosematrix/tokens 0.1.2 — design tokens (v5).
    Dark is the default on every site; light applies only after an explicit choice:
    <html data-theme="light">, set by theme-init.js from the shared "mm-theme" cookie (see theme-core.js).
    The OS colour-scheme setting is not used. All colour pairs used for text meet WCAG 2.2 AA (4.5:1);
    edge meets 3:1 for non-text. See scripts/check.mjs. */
 
 :root {
-  --mm-tokens-version: "0.1.1";
+  --mm-tokens-version: "0.1.2";
 
   /* Dark theme (default) */
   color-scheme: dark;

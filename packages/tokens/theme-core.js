@@ -1,4 +1,4 @@
-// @moosematrix/tokens 0.1.1 — theme-core: the one reader and writer of the shared "mm-theme" cookie.
+// @moosematrix/tokens 0.1.2 — theme-core: the one reader and writer of the shared "mm-theme" cookie.
 // Not loaded on its own: scripts/build.mjs copies this block verbatim into theme-init.js (first paint)
 // and nav.js (the toggle), between the "theme-core.js" markers, and a test checks both copies match.
 //

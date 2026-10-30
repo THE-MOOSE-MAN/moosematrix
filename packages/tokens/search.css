@@ -1,4 +1,4 @@
-/* @moosematrix/tokens 0.1.1 — search overlay (native <dialog>). Needs tokens.css. */
+/* @moosematrix/tokens 0.1.2 — search overlay (native <dialog>). Needs tokens.css. */
 
 .mm-search {
   width: min(860px, calc(100% - 2 * var(--mm-space-4)));

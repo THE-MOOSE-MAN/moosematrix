@@ -1,0 +1,108 @@
+{
+  "version": 1,
+  "site": "moosematrix",
+  "generated": "2026-10-30T12:00:00Z",
+  "items": [
+    {
+      "id": "re-intro",
+      "title": "Reverse engineering: a gentle start",
+      "site": "moosematrix",
+      "section": "library",
+      "type": "guide",
+      "url": "/library/re-intro/",
+      "summary": "Reading binaries with free tools, one small step at a time.",
+      "tags": [
+        "reverse engineering",
+        "tools"
+      ],
+      "date": "2026-09-14",
+      "access": "public"
+    },
+    {
+      "id": "parser-fuzzing",
+      "title": "Fuzzing a toy parser",
+      "site": "moosematrix",
+      "section": "projects",
+      "type": "project",
+      "url": "/projects/parser-fuzzing/",
+      "summary": "A weekend project that found three crashes in a config parser.",
+      "tags": [
+        "fuzzing",
+        "security"
+      ],
+      "date": "2026-08-02",
+      "access": "public"
+    },
+    {
+      "id": "kernel-notes",
+      "title": "Kernel debugging notes",
+      "site": "moosematrix",
+      "section": "research",
+      "type": "note",
+      "url": "/research/kernel-notes/",
+      "summary": "Breakpoints, symbols and the questions that came up.",
+      "tags": [
+        "kernel",
+        "debugging"
+      ],
+      "date": "2026-07-21",
+      "access": "public"
+    },
+    {
+      "id": "ctf-warmup",
+      "title": "CTF warm-up: format strings",
+      "site": "moosematrix",
+      "section": "ctf",
+      "type": "writeup",
+      "url": "/ctf/warmup-format-strings/",
+      "summary": "A beginner write-up of a classic format-string challenge.",
+      "tags": [
+        "ctf",
+        "pwn"
+      ],
+      "date": "2026-06-30",
+      "access": "public"
+    },
+    {
+      "id": "budget-tool",
+      "title": "A plain budget spreadsheet",
+      "site": "m2",
+      "section": "money",
+      "type": "tool",
+      "url": "https://m2.moosematrix.com/tools/budget/",
+      "summary": "Track money in and out without an app.",
+      "tags": [
+        "money",
+        "budget"
+      ],
+      "date": "2026-05-11",
+      "access": "public"
+    },
+    {
+      "id": "rr-security-book",
+      "title": "Reading Room: a security engineering classic",
+      "site": "moosematrix",
+      "section": "reading-room",
+      "type": "book",
+      "url": "/reading-room/security-engineering/",
+      "summary": "Why this book is still worth reading, chapter by chapter.",
+      "tags": [
+        "books",
+        "security"
+      ],
+      "date": "2026-04-03",
+      "access": "public"
+    },
+    {
+      "id": "rr-premium-deep-dive",
+      "title": "Reading Room: annotated reverse engineering deep dive",
+      "site": "moosematrix",
+      "section": "reading-room",
+      "type": "book",
+      "url": "/reading-room/re-deep-dive/",
+      "summary": "Margin notes on every chapter, for members.",
+      "date": "2026-03-19",
+      "access": "premium"
+    }
+  ]
+}

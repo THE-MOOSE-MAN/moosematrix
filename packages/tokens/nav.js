@@ -1,4 +1,4 @@
-// @moosematrix/tokens 0.1.1 — header behaviour. Load with <script src=".../nav.js" defer></script>.
+// @moosematrix/tokens 0.1.2 — header behaviour. Load with <script src=".../nav.js" defer></script>.
 // No inline script or style is needed, so it works under a strict CSP (script-src 'self').
 // Everything here is an enhancement: without JS the links and the <details> menu work and the page is dark.
 //

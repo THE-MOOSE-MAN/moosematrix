@@ -1,4 +1,4 @@
-// @moosematrix/tokens 0.1.1 — search overlay. Load with <script src=".../search.js" defer></script>.
+// @moosematrix/tokens 0.1.2 — search overlay. Load with <script src=".../search.js" defer></script>.
 // Uses the native <dialog> (showModal makes the rest of the page inert, keeps focus inside, closes on Esc).
 // Untrusted index data is only ever written with textContent; URLs are kept only if they are https:
 // or same-origin. Index files are fetched with credentials omitted. Without JS (or <dialog>) the
