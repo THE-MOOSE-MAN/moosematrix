@@ -2,130 +2,216 @@ export const dynamic = "force-static";
 export const revalidate = false;
 export const fetchCache = "force-cache";
 
-import { ScrollDots } from "@moosematrix/ui";
-import { TypedLine } from "../components/TypedLine";
-import { HomeLink } from "../components/HomeLink";
-import { CARDS, HERO, LATEST } from "./home-content";
+import type { Metadata } from "next";
+import { GRAPH_ART, MOOSE_ART } from "../components/art";
+import { libraryItems } from "../lib/catalog";
 
-// Homepage (phone-first, Oct 2026). Same copy and one DOM for every width.
-// - Phones (<768px): the hero fills the first screen (svh, so no jump when the address bar hides); headline
-//   on a clamp() scale; the brand icon on top; the primary action full-width at the bottom of the screen
-//   (thumb zone) with the "Latest" pill under it. Sections become compact whole-card links (icon, label,
-//   one line, outcome), stacked so all four fit about one screen. Styles: .mm-home* in globals.css.
-// - Desktop (>=768px): unchanged from A2 (full-screen sections, soft snap, dots, brand panels).
-// The document is the only scroller; snap is desktop-only (packages/ui/src/styles.css).
-const DOTS = [{ id: "home", label: "Home" }, ...CARDS.map((c) => ({ id: c.id, label: c.label }))];
-const FULL = "md:min-h-[calc(100svh-var(--mmx-header-h))] md:flex md:items-center";
-// Section number only ("01"..."04"), desktop only: on phones the cards carry the icon instead.
-const pad = (n: number) => String(n).padStart(2, "0");
+// Home, from the accepted v5 mock (site-v5/index.html), in token colours so it works in light and dark.
+// Only real links: the two concept projects have no page yet, so their cards are not links.
+export const metadata: Metadata = {
+  title: "The Moose Matrix",
+  description:
+    "An independent technology studio: research, tools, writing and products for a more open, capable and secure digital future.",
+  alternates: { canonical: "/" },
+};
 
-// Icons stay loading="lazy" (even the hero one): eager <img>s make React emit preloads that warn when another page
-// prefetches "/". Lazy images in the first screen still load right away; width/height reserve the box (CLS 0).
-function Icon({ name, size, className }: { name: string; size: number; className: string }) {
+const QUICK = [
+  { href: "/builds", icon: "▣", label: "Projects" },
+  { href: "/library", icon: "▤", label: "Library" },
+  { href: "/search?q=reverse%20engineering", icon: "⌘", label: "Reverse Engineering" },
+  { href: "https://mooseman.moosematrix.com/moose-mumbles", icon: "⚑", label: "Moose Mumbles" },
+  { href: "https://merch.moosematrix.com/", icon: "♧", label: "Shop" },
+];
+
+export default function Home() {
+  const library = libraryItems().slice(0, 3);
   return (
-    <>
-      {(["light", "dark"] as const).map((scheme) => (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          key={scheme}
-          src={`/brand/${name}-icon-${scheme}.svg`}
-          alt=""
-          width={size}
-          height={size}
-          className={`mmx-only-${scheme} ${className}`}
-          decoding="async"
-          loading="lazy"
-        />
-      ))}
-    </>
-  );
-}
-
-export default function HomePage() {
-  return (
-    // Not a second <main>: layout.tsx wraps every page in <main id="content">.
-    <div className="mm-shell mm-home">
-      <div className="hidden md:block">
-        <ScrollDots containerId="mm-snap" items={DOTS} />
-      </div>
-
-      <div id="mm-snap">
-        <section id="home" aria-labelledby="home-h" className="mm-hero">
-          <div className="mm-hero-in mx-auto max-w-6xl px-4 sm:px-6 md:pt-14 md:pb-12 md:min-h-[calc(100svh-var(--mmx-header-h)-6rem)] md:flex md:flex-col md:items-center md:justify-center">
-            <div className="mm-hero-top mx-auto max-w-3xl md:text-center">
-              {/* Brand icon (decorative; the header logo is the named link). Phones only: desktop is unchanged. */}
-              <span className="mm-hero-icon md:hidden" aria-hidden="true">
-                <Icon name="main" size={72} className="h-18 w-18 rounded-[18px]" />
-              </span>
-              <h1
-                id="home-h"
-                className="mm-hero-h1 mm-mono text-balance md:text-6xl font-semibold tracking-tight text-[var(--fg)]"
-              >
-                {/* Whole line types out once (CSS only); HERO.accent stays in the accent colour. Copy: home-content.ts. */}
-                <TypedLine text={HERO.line} accent={HERO.accent} />
-              </h1>
-              <p className="mm-hero-sub md:mt-5 md:text-lg leading-relaxed text-[var(--muted)]">{HERO.sub}</p>
-            </div>
-            <div className="mm-hero-act">
-              {/* In-page link, not a button: no JS needed. Target id comes from the first section. */}
-              <a href={`#${CARDS[0].id}`} className="mm-btn-primary mm-hero-cta w-full sm:w-auto justify-center">
-                {HERO.cta.text} <span aria-hidden="true">{"\u2193"}</span>
-              </a>
-              <p className="mm-latest">
-                <a href={LATEST.href} className="mm-latest-link">
-                  <span className="mm-latest-tag mm-mono">{LATEST.label}</span>
-                  <span>{LATEST.text}</span>
-                </a>
-                <span aria-hidden="true" className="mm-latest-sep"> · </span>
-                <time dateTime={LATEST.date}>{LATEST.dateText}</time>
-              </p>
-            </div>
+    <div className="mm-v5">
+      <section className="mm-hero" aria-labelledby="mm-hero-title">
+        <div className="mm-shell mm-hero-in">
+          <div className="mm-hero-art" aria-hidden="true" dangerouslySetInnerHTML={{ __html: MOOSE_ART }} />
+          <div className="mm-hero-copy">
+            <p className="mm-eyebrow mm-micro">FOR A MORE OPEN TOMORROW</p>
+            <h1 id="mm-hero-title" className="mm-display mm-hero-title">
+              THE<br />MOOSE MATRIX
+            </h1>
+            <p className="mm-hero-sub">INDEPENDENT STUDIO</p>
+            <p className="mm-hero-desc">
+              Research. Build. Reverse engineer. Document. Share.
+              <br />
+              An independent technology studio exploring the systems behind a more open, capable, and secure digital
+              future.
+            </p>
           </div>
-        </section>
+          <nav className="mm-hero-links" aria-label="Quick links">
+            <ul className="mm-chips-row" role="list">
+              {QUICK.map((q) => (
+                <li key={q.label} className="contents">
+                  <a className="mm-chip-link" href={q.href}>
+                    <span className="mm-chip-icon" aria-hidden="true">{q.icon}</span>
+                    {q.label}
+                  </a>
+                </li>
+              ))}
+              <li className="contents">
+                <a className="mm-chip-link" href="/search" data-mm-search-open="">
+                  <span className="mm-chip-icon" aria-hidden="true">⌕</span>
+                  Search
+                </a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </section>
 
-        <div className="mm-tiles">
-          {CARDS.map((c, idx) => (
-            <section key={c.id} id={c.id} aria-labelledby={`${c.id}-h`} className="mm-sec md:border-t md:border-[var(--border)]">
-              <div className={`mm-sec-in mx-auto max-w-6xl px-4 sm:px-6 md:py-14 ${FULL}`}>
-                <div className="grid w-full items-center gap-8 md:grid-cols-12">
-                  {/* Phones: this column is the card; its one link stretches over the whole card. */}
-                  <div className="mm-tile md:col-span-7">
-                    <span className="mm-tile-icon md:hidden" aria-hidden="true">
-                      <Icon name={c.icon} size={48} className="h-12 w-12 rounded-xl" />
-                    </span>
-                    <span className="mm-mono hidden md:inline text-[12px] uppercase tracking-[0.18em] text-[var(--muted)]">
-                      {pad(idx + 1)}
-                    </span>
-                    <h2
-                      id={`${c.id}-h`}
-                      className="mm-tile-h md:mt-5 text-balance md:text-6xl font-semibold tracking-tight text-[var(--fg)]"
-                    >
-                      {c.label}
-                    </h2>
-                    <p className="mm-tile-p md:mt-4 max-w-xl md:text-xl leading-relaxed text-[var(--muted)]">{c.desc}</p>
-                    <div className="mm-tile-act md:mt-8">
-                      <HomeLink
-                        href={c.href}
-                        external={c.external}
-                        className="mm-tile-link mm-btn-secondary sm:w-auto justify-center inline-flex"
-                      >
-                        {c.cta}
-                      </HomeLink>
-                    </div>
-                  </div>
-
-                  {/* Decorative brand panel (no link: one link per section). Desktop only. */}
-                  <div className="hidden md:col-span-5 md:block" aria-hidden="true">
-                    <div className="mm-card flex aspect-[4/3] items-center justify-center">
-                      <Icon name={c.icon} size={128} className="h-32 w-32 rounded-3xl" />
-                    </div>
-                  </div>
+      <section className="mm-section" aria-labelledby="mm-projects-title">
+        <div className="mm-shell">
+          <div className="mm-section-top">
+            <div>
+              <h2 id="mm-projects-title" className="mm-display mm-section-title">SELECTED PROJECTS</h2>
+              <p className="mm-section-note">Tools, systems, and things worth building.</p>
+            </div>
+            <a className="mm-text-link" href="/builds">[ VIEW ALL PROJECTS → ]</a>
+          </div>
+          <div className="mm-projects">
+            <article className="mm-project">
+              <div className="mm-project-top mm-micro"><span>01 / TOOLING</span><span>CONCEPT</span></div>
+              <div className="mm-visual" aria-hidden="true">
+                <div className="mm-terminal">
+                  $ moose-lab inspect --target sample.bin{"\n"}
+                  <span className="mm-accent">[+] loading ELF64 headers</span>{"\n"}
+                  entry: 0x401000{"\n"}
+                  sections: .text .rodata .data{"\n"}
+                  <span className="mm-accent">[+] mapping functions...</span>{"\n"}
+                  0x401005  xor byte ptr [rcx], 0xab{"\n"}
+                  0x40100c  inc rcx{"\n"}
+                  → analyzing control flow
                 </div>
               </div>
-            </section>
-          ))}
+              <h3>Assembly Stack Visualizer</h3>
+              <p>A proposed interactive tool for inspecting registers, stack frames, and calling conventions.</p>
+              <p className="mm-card-tags mm-micro">ASSEMBLY · DEBUGGING · VISUALIZATION</p>
+            </article>
+            <article className="mm-project">
+              <div className="mm-project-top mm-micro"><span>02 / INFRASTRUCTURE</span><span>IN DEVELOPMENT</span></div>
+              <div className="mm-visual mm-visual-grid" aria-hidden="true" />
+              <h3>PROMETHEUS</h3>
+              <p>A searchable knowledge platform built around PostgreSQL, pgvector, and structured ingestion.</p>
+              <p className="mm-card-tags mm-micro">POSTGRES · PGVECTOR · SEARCH</p>
+            </article>
+            <article className="mm-project">
+              <div className="mm-project-top mm-micro"><span>03 / FINANCE</span><span>LIVE</span></div>
+              <div className="mm-visual" aria-hidden="true" dangerouslySetInnerHTML={{ __html: GRAPH_ART }} />
+              <h3>
+                <a className="mm-card-link" href="https://m2.moosematrix.com/">Moose Money / M2 →</a>
+              </h3>
+              <p>
+                Free military money tools: TSP growth and Savings Deposit Program calculators, live at m2.moosematrix.com.
+              </p>
+              <p className="mm-micro mm-accent">Planned: options trade journal</p>
+              <p className="mm-card-tags mm-micro">FINANCE · ANALYTICS · DATA</p>
+            </article>
+          </div>
         </div>
-      </div>
+      </section>
+
+      <section className="mm-section" aria-label="Highlights">
+        <div className="mm-shell mm-editorial">
+          <div>
+            <div className="mm-col-head">
+              <h2 className="mm-display">FROM THE LIBRARY</h2>
+              <a className="mm-text-link" href="/library">[ OPEN LIBRARY → ]</a>
+            </div>
+            {library.length ? (
+              library.map((it) => (
+                <a key={it.id} className="mm-entry" href={it.href}>
+                  <span className="mm-thumb" aria-hidden="true" />
+                  <span>
+                    <small className="mm-micro">{it.type}</small>
+                    <strong>{it.title}</strong>
+                  </span>
+                </a>
+              ))
+            ) : (
+              <p className="mm-empty">
+                The first research notes, writeups and essays are being written. Until then, the build log is on{" "}
+                <a className="mm-accent" href="/builds">Projects</a>.
+              </p>
+            )}
+          </div>
+          <div>
+            <div className="mm-col-head">
+              <h2 className="mm-display">THE MOOSE LAB</h2>
+              <a className="mm-text-link" href="/lab">[ ENTER LAB → ]</a>
+            </div>
+            <div className="mm-lab-panel" aria-hidden="true">
+              <pre>
+                <span className="mm-comment"># research &gt; experiment &gt; iterate</span>
+                {"\n"}def open_knowledge():{"\n"}    return {"{"}
+                {"\n"}      <span className="mm-accent">&quot;tools&quot;</span>: &quot;better systems&quot;,
+                {"\n"}      <span className="mm-accent">&quot;people&quot;</span>: &quot;stronger communities&quot;,
+                {"\n"}      <span className="mm-accent">&quot;outcome&quot;</span>: &quot;a more open tomorrow&quot;
+                {"\n"}    {"}"}
+                {"\n"}&gt; <span className="mm-accent">▮</span>
+              </pre>
+            </div>
+            <p className="mm-lab-desc">
+              A working space for experiments, tools, and ideas in progress. Code, hardware, infrastructure, and the weird
+              corners in between. <span className="mm-micro mm-accent">Planned · nothing open yet</span>
+            </p>
+          </div>
+          <div>
+            <div className="mm-col-head">
+              <h2 className="mm-display">FROM THE MOOSE MAN</h2>
+              <a className="mm-text-link" href="https://mooseman.moosematrix.com/">[ VISIT → ]</a>
+            </div>
+            <a className="mm-entry" href="https://mooseman.moosematrix.com/moose-mumbles">
+              <span className="mm-thumb" aria-hidden="true" />
+              <span>
+                <small className="mm-micro">LIVE · BLOG</small>
+                <strong>Moose Mumbles: writeups, reviews and notes in public</strong>
+              </span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section className="mm-merch" aria-labelledby="mm-merch-title">
+        <div className="mm-shell">
+          <p className="mm-micro mm-accent">MOOSE MERCH / IN DEVELOPMENT</p>
+          <h2 id="mm-merch-title" className="mm-display">
+            TOOLS FOR<br />CURIOUS MINDS.
+          </h2>
+          <p>Apparel, gear, and limited editions for builders, researchers, and people who ask “how?”</p>
+          <a className="mm-outline-button" href="https://merch.moosematrix.com/">
+            VISIT MOOSE MERCH <span aria-hidden="true">→</span>
+          </a>
+          <p className="mm-micro mm-muted">TECHNICAL / FUNCTIONAL / UNDERSTATED</p>
+        </div>
+      </section>
+
+      <section className="mm-section" aria-label="Studio and contact">
+        <div className="mm-shell mm-studio">
+          <div>
+            <div className="mm-col-head"><h2 className="mm-display">ABOUT THE STUDIO</h2></div>
+            <p className="mm-studio-copy">
+              The Moose Matrix is a security-first ecosystem of tools, writing, and products. The personal side, with CTF
+              writeups and life notes, lives on The Moose Man.
+            </p>
+            <div className="mm-studio-links">
+              <a className="mm-text-link" href="/about">[ ABOUT THE STUDIO → ]</a>
+              <a className="mm-text-link" href="https://mooseman.moosematrix.com/">[ THE MOOSE MAN → ]</a>
+            </div>
+          </div>
+          <div>
+            <div className="mm-col-head"><h2 className="mm-display">CONTACT</h2></div>
+            <p className="mm-studio-copy">Collaboration, feedback, or business inquiries.</p>
+            <div className="mm-studio-links">
+              <a className="mm-text-link" href="/contact">[ CONTACT → ]</a>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

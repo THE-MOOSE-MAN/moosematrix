@@ -50,7 +50,20 @@ app.prepare().then(() => {
   });
 
   // ----------------------------
-  // 3. Default Next.js handler
+  // 3. /search-index.json (rollout §2): The Moose Man's search overlay is its one foreign reader, so the CORS origin is a
+  //    fixed value, never an echo, and there is no Allow-Credentials. Plain GET, so no preflight.
+  // ----------------------------
+  server.get("/search-index.json", (req, res, nextMw) => {
+    res.setHeader("Access-Control-Allow-Origin", "https://mooseman.moosematrix.com");
+    res.setHeader("Vary", "Origin");
+    res.setHeader("Cache-Control", "public, max-age=300");
+    res.setHeader("Content-Type", "application/json");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    nextMw();
+  });
+
+  // ----------------------------
+  // 4. Default Next.js handler
   // ----------------------------
   server.all("*", (req, res) => handle(req, res));
 
