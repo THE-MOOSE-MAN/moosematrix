@@ -1,5 +1,8 @@
 {
-  "version": "0.1.1",
-  "current": "theme-init.0ca47197.js",
-  "previous": null
+  "version": "0.1.2",
+  "current": "theme-init.d6ccd1c0.js",
+  "previous": {
+    "version": "0.1.1",
+    "file": "theme-init.0ca47197.js"
+  }
 }

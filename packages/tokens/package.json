@@ -1,6 +1,6 @@
 {
   "name": "@moosematrix/tokens",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Moose Matrix design tokens, Tailwind v4 theme, self-hosted fonts, logos, and the shared header, footer and search overlay as plain HTML/CSS/JS.",
   "private": true,
   "license": "UNLICENSED",

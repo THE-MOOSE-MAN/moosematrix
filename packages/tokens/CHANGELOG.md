@@ -2,6 +2,10 @@
 
 All notable changes to `@moosematrix/tokens`. Versions follow semver; release tags are `tokens-vX.Y.Z`.
 
+## 0.1.2 — unreleased
+
+- Tests: use bracket-form event handler assignment in the render test (no runtime change).
+
 ## 0.1.1 — unreleased
 
 Shared nav data, a framework-neutral header/footer builder, dark by default, and one theme writer.

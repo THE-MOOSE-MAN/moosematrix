@@ -1,4 +1,4 @@
-// @moosematrix/tokens 0.1.1 — render.mjs: the shared header and footer as HTML strings, built from nav.json.
+// @moosematrix/tokens 0.1.2 — render.mjs: the shared header and footer as HTML strings, built from nav.json.
 // Pure functions, zero dependencies, no DOM, Node >= 20. Callable at build time from Next, Astro
 // (<Fragment set:html={renderHeader({...})} />) and plain build scripts. Every value from nav data is checked
 // against the same rules as nav.schema.json (own https origins only) and HTML-escaped before it is output.
