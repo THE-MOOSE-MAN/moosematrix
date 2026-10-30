@@ -1,33 +1,34 @@
-/* @moosematrix/tokens 0.1.0 — design tokens (v5).
-   Dark and light themes. Selection order, same as packages/ui and the shared "mm-theme" cookie:
-   1. <html data-theme="dark|light"> (explicit choice), 2. prefers-color-scheme, 3. light.
-   All colour pairs used for text meet WCAG 2.2 AA (4.5:1); edge meets 3:1 for non-text. See scripts/check.mjs. */
+/* @moosematrix/tokens 0.1.1 — design tokens (v5).
+   Dark is the default on every site; light applies only after an explicit choice:
+   <html data-theme="light">, set by theme-init.js from the shared "mm-theme" cookie (see theme-core.js).
+   The OS colour-scheme setting is not used. All colour pairs used for text meet WCAG 2.2 AA (4.5:1);
+   edge meets 3:1 for non-text. See scripts/check.mjs. */
 
 :root {
-  --mm-tokens-version: "0.1.0";
+  --mm-tokens-version: "0.1.1";
 
-  /* Light theme (default when nothing else applies) */
-  color-scheme: light;
-  --mm-color-ground: #f7f6f3;
-  --mm-color-panel: #ffffff;
-  --mm-color-panel-2: #f1f0ec;
-  --mm-color-ink: #0b1f35;
-  --mm-color-ink-2: #46566b;
-  --mm-color-accent: #5d33a6;
+  /* Dark theme (default) */
+  color-scheme: dark;
+  --mm-color-ground: #0b0f17;
+  --mm-color-panel: #121926;
+  --mm-color-panel-2: #19212f;
+  --mm-color-ink: #e5e7eb;
+  --mm-color-ink-2: #aeb6c4;
+  --mm-color-accent: #b79cf7;
   --mm-color-accent-fill: #6f3fc0;
   --mm-color-accent-fill-hover: #5d33a6;
-  --mm-color-on-accent: #ffffff;
-  --mm-color-edge: #6b778a;
-  --mm-color-rule: #dcdfe5;
-  --mm-color-tick: #b9bfca;
-  --mm-color-money: #047857;
-  --mm-color-store: #0b5ed7;
-  --mm-color-selection: #e6dcfb;
-  --mm-color-header: rgb(247 246 243 / 0.94);
-  --mm-color-scrim: rgb(11 31 53 / 0.55);
-  --mm-shadow-dialog: 0 24px 80px rgb(11 31 53 / 0.22);
-  --mm-logo-tile: #0b1f35;
-  --mm-logo-mark: #f7f6f3;
+  --mm-color-on-accent: #f4f1fb;
+  --mm-color-edge: #66738a;
+  --mm-color-rule: #263044;
+  --mm-color-tick: #4b4f5c;
+  --mm-color-money: #34d399;
+  --mm-color-store: #60a5fa;
+  --mm-color-selection: #3a2d5c;
+  --mm-color-header: rgb(11 15 23 / 0.93);
+  --mm-color-scrim: rgb(5 7 11 / 0.82);
+  --mm-shadow-dialog: 0 30px 100px rgb(0 0 0 / 0.8);
+  --mm-logo-tile: #e5e7eb;
+  --mm-logo-mark: #0b1f35;
 
   /* Type */
   --mm-font-display: "Barlow Condensed", "Roboto Condensed", "Arial Narrow", sans-serif;
@@ -69,61 +70,29 @@
   --mm-duration: 0.28s;
 }
 
-/* Dark: explicit choice */
-:root[data-theme="dark"] {
-  color-scheme: dark;
-  --mm-color-ground: #0b0f17;
-  --mm-color-panel: #121926;
-  --mm-color-panel-2: #19212f;
-  --mm-color-ink: #e5e7eb;
-  --mm-color-ink-2: #aeb6c4;
-  --mm-color-accent: #b79cf7;
-  --mm-color-accent-fill: #6f3fc0;
-  --mm-color-accent-fill-hover: #5d33a6;
-  --mm-color-on-accent: #f4f1fb;
-  --mm-color-edge: #66738a;
-  --mm-color-rule: #263044;
-  --mm-color-tick: #4b4f5c;
-  --mm-color-money: #34d399;
-  --mm-color-store: #60a5fa;
-  --mm-color-selection: #3a2d5c;
-  --mm-color-header: rgb(11 15 23 / 0.93);
-  --mm-color-scrim: rgb(5 7 11 / 0.82);
-  --mm-shadow-dialog: 0 30px 100px rgb(0 0 0 / 0.8);
-  --mm-logo-tile: #e5e7eb;
-  --mm-logo-mark: #0b1f35;
-}
-
-/* Dark: system preference, no explicit choice (no JS needed) */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) {
-    color-scheme: dark;
-    --mm-color-ground: #0b0f17;
-    --mm-color-panel: #121926;
-    --mm-color-panel-2: #19212f;
-    --mm-color-ink: #e5e7eb;
-    --mm-color-ink-2: #aeb6c4;
-    --mm-color-accent: #b79cf7;
-    --mm-color-accent-fill: #6f3fc0;
-    --mm-color-accent-fill-hover: #5d33a6;
-    --mm-color-on-accent: #f4f1fb;
-    --mm-color-edge: #66738a;
-    --mm-color-rule: #263044;
-    --mm-color-tick: #4b4f5c;
-    --mm-color-money: #34d399;
-    --mm-color-store: #60a5fa;
-    --mm-color-selection: #3a2d5c;
-    --mm-color-header: rgb(11 15 23 / 0.93);
-    --mm-color-scrim: rgb(5 7 11 / 0.82);
-    --mm-shadow-dialog: 0 30px 100px rgb(0 0 0 / 0.8);
-    --mm-logo-tile: #e5e7eb;
-    --mm-logo-mark: #0b1f35;
-  }
-}
-
-/* Light: explicit choice (values are the :root defaults) */
+/* Light: explicit choice only (theme-init.js / nav.js set data-theme="light") */
 :root[data-theme="light"] {
   color-scheme: light;
+  --mm-color-ground: #f7f6f3;
+  --mm-color-panel: #ffffff;
+  --mm-color-panel-2: #f1f0ec;
+  --mm-color-ink: #0b1f35;
+  --mm-color-ink-2: #46566b;
+  --mm-color-accent: #5d33a6;
+  --mm-color-accent-fill: #6f3fc0;
+  --mm-color-accent-fill-hover: #5d33a6;
+  --mm-color-on-accent: #ffffff;
+  --mm-color-edge: #6b778a;
+  --mm-color-rule: #dcdfe5;
+  --mm-color-tick: #b9bfca;
+  --mm-color-money: #047857;
+  --mm-color-store: #0b5ed7;
+  --mm-color-selection: #e6dcfb;
+  --mm-color-header: rgb(247 246 243 / 0.94);
+  --mm-color-scrim: rgb(11 31 53 / 0.55);
+  --mm-shadow-dialog: 0 24px 80px rgb(11 31 53 / 0.22);
+  --mm-logo-tile: #0b1f35;
+  --mm-logo-mark: #f7f6f3;
 }
 
 /* Shared helpers used by the header, footer and search partials */

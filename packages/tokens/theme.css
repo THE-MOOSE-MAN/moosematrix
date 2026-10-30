@@ -1,4 +1,4 @@
-/* @moosematrix/tokens 0.1.0 — Tailwind CSS v4 theme.
+/* @moosematrix/tokens 0.1.1 — Tailwind CSS v4 theme.
    Usage (after tokens.css):  @import "tailwindcss";  @import "@moosematrix/tokens/theme.css";
    "inline" makes utilities reference the runtime variables, so dark/light switching keeps working. */
 

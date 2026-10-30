@@ -1,6 +1,6 @@
 {
   "name": "@moosematrix/tokens",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Moose Matrix design tokens, Tailwind v4 theme, self-hosted fonts, logos, and the shared header, footer and search overlay as plain HTML/CSS/JS.",
   "private": true,
   "license": "UNLICENSED",
@@ -16,6 +16,12 @@
     "./footer.css": "./footer.css",
     "./search.css": "./search.css",
     "./nav.js": "./nav.js",
+    "./theme-core.js": "./theme-core.js",
+    "./theme-init.js": "./theme-init.js",
+    "./hashed/*": "./hashed/*",
+    "./nav.json": "./nav.json",
+    "./nav.schema.json": "./nav.schema.json",
+    "./render.mjs": "./render.mjs",
     "./search.js": "./search.js",
     "./header.html": "./header.html",
     "./footer.html": "./footer.html",
@@ -32,6 +38,12 @@
     "footer.css",
     "search.css",
     "nav.js",
+    "theme-core.js",
+    "theme-init.js",
+    "hashed/",
+    "nav.json",
+    "nav.schema.json",
+    "render.mjs",
     "search.js",
     "header.html",
     "footer.html",
@@ -42,7 +54,8 @@
     "README.md"
   ],
   "scripts": {
-    "build": "node scripts/build-demo.mjs",
-    "lint": "node scripts/check.mjs"
+    "build": "node scripts/build.mjs && node scripts/build-demo.mjs",
+    "lint": "node scripts/check.mjs",
+    "test": "node --test \"tests/*.test.mjs\" \"scripts/*.test.mjs\""
   }
 }

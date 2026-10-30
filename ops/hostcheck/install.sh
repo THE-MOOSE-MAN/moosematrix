@@ -8,7 +8,7 @@
 #   --run-now                 run one check right away
 #   --dry-run                 print what would change, change nothing
 #
-# Undo: ops/hostcheck/uninstall.sh. Needs Dustin's approval before running on the VPS (host change).
+# Undo: ops/hostcheck/uninstall.sh. Needs the owner's approval before running on the VPS (host change).
 set -euo pipefail
 
 ROOT="${MOOSE_ROOT:-}"          # tests only: install into a fake root

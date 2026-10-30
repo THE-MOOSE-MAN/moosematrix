@@ -1,0 +1,210 @@
+/* @moosematrix/tokens 0.1.0 — search overlay (native <dialog>). Needs tokens.css. */
+
+.mm-search {
+  width: min(860px, calc(100% - 2 * var(--mm-space-4)));
+  max-height: calc(100dvh - 2 * var(--mm-space-6));
+  margin: 12vh auto auto;
+  padding: 0;
+  border: 1px solid var(--mm-color-rule);
+  border-radius: 20px;
+  background: var(--mm-color-ground);
+  color: var(--mm-color-ink);
+  box-shadow: var(--mm-shadow-dialog);
+  font-family: var(--mm-font-body);
+}
+
+.mm-search::backdrop {
+  background: var(--mm-color-scrim);
+}
+
+/* Scroll lock without touching body.style */
+html:has(.mm-search[open]) {
+  overflow: hidden;
+}
+
+.mm-search-in {
+  padding: var(--mm-space-5);
+}
+
+.mm-search-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--mm-space-4);
+  margin-bottom: var(--mm-space-4);
+}
+
+.mm-search-top h2 {
+  margin: 0;
+  color: var(--mm-color-ink-2);
+}
+
+.mm-search :is(a, button, input):focus-visible {
+  outline: var(--mm-focus-ring);
+  outline-offset: var(--mm-focus-offset);
+}
+
+.mm-search-close {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mm-space-2);
+  min-height: 44px;
+  padding: 0 var(--mm-space-4);
+  border: 1px solid var(--mm-color-edge);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--mm-color-ink);
+  font: 500 0.75rem/1 var(--mm-font-mono);
+  cursor: pointer;
+}
+
+.mm-search-close:hover {
+  border-color: var(--mm-color-accent);
+}
+
+.mm-search-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--mm-space-3);
+  min-height: 60px;
+  padding: var(--mm-space-1) var(--mm-space-2) var(--mm-space-1) var(--mm-space-5);
+  border: 1px solid var(--mm-color-accent);
+  border-radius: 999px;
+  background: var(--mm-color-panel);
+}
+
+.mm-search-bar:focus-within {
+  box-shadow: 0 0 0 4px var(--mm-color-selection);
+}
+
+.mm-search-bar input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--mm-color-ink);
+  font: inherit;
+  font-size: 1rem;
+}
+
+.mm-search-bar input:focus-visible {
+  outline: none;
+}
+
+.mm-search-bar input::placeholder {
+  color: var(--mm-color-ink-2);
+  opacity: 1;
+}
+
+.mm-search-bar .mm-icon {
+  color: var(--mm-color-ink-2);
+}
+
+.mm-search-submit {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  flex: none;
+  border: 0;
+  border-radius: 50%;
+  background: var(--mm-color-accent-fill);
+  color: var(--mm-color-on-accent);
+  cursor: pointer;
+}
+
+.mm-search-submit:hover {
+  background: var(--mm-color-accent-fill-hover);
+}
+
+.mm-search-status {
+  min-height: 1.5em;
+  margin: var(--mm-space-3) var(--mm-space-1) 0;
+  color: var(--mm-color-ink-2);
+  font-size: 0.8125rem;
+}
+
+.mm-search-results {
+  list-style: none;
+  margin: var(--mm-space-2) 0 0;
+  padding: 0;
+  max-height: min(320px, 40vh);
+  overflow: auto;
+}
+
+.mm-search-results:empty {
+  display: none;
+}
+
+.mm-search-results a {
+  display: block;
+  padding: var(--mm-space-3);
+  border-bottom: 1px solid var(--mm-color-rule);
+  border-radius: 8px;
+  color: var(--mm-color-ink);
+  text-decoration: none;
+}
+
+.mm-search-results a:hover {
+  background: var(--mm-color-panel-2);
+}
+
+.mm-result-meta {
+  display: block;
+  margin-bottom: var(--mm-space-1);
+  color: var(--mm-color-accent);
+  font: 500 0.6875rem/1.4 var(--mm-font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mm-result-title {
+  display: block;
+  font-weight: 700;
+}
+
+.mm-result-summary {
+  display: block;
+  margin-top: var(--mm-space-1);
+  color: var(--mm-color-ink-2);
+  font-size: 0.875rem;
+}
+
+.mm-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mm-space-2);
+  margin-top: var(--mm-space-4);
+}
+
+.mm-chip {
+  min-height: 44px;
+  padding: 0 var(--mm-space-4);
+  border: 1px solid var(--mm-color-edge);
+  border-radius: 999px;
+  background: var(--mm-color-panel);
+  color: var(--mm-color-ink);
+  font: inherit;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.mm-chip:hover {
+  border-color: var(--mm-color-accent);
+}
+
+@media (max-width: 750px) {
+  .mm-search {
+    margin-top: var(--mm-space-4);
+    border-radius: var(--mm-radius-panel);
+  }
+
+  .mm-search-in {
+    padding: var(--mm-space-4);
+  }
+
+  .mm-search-bar {
+    padding-left: var(--mm-space-4);
+  }
+}

@@ -14,12 +14,12 @@
 /* Legacy page styles (cards, chips, prose) for the pages not yet redesigned. */
 @import "@moosematrix/ui/styles.css";
 
-/* @moosematrix/tokens 0.1.0 (packages/tokens): tokens, then the shared header, search overlay and footer.
+/* @moosematrix/tokens 0.1.0 (pinned copy in vendor/tokens-0.1.0; see src/lib/partials.mjs): tokens, then the shared header, search overlay and footer.
    Fonts load from /mm/fonts.css (copied by scripts/sync-tokens.mjs) so the preloaded URLs match. */
-@import "../../../../packages/tokens/tokens.css";
-@import "../../../../packages/tokens/header.css";
-@import "../../../../packages/tokens/search.css";
-@import "../../../../packages/tokens/footer.css";
+@import "../../vendor/tokens-0.1.0/tokens.css";
+@import "../../vendor/tokens-0.1.0/header.css";
+@import "../../vendor/tokens-0.1.0/search.css";
+@import "../../vendor/tokens-0.1.0/footer.css";
 
 /* ===== Legacy variables -> tokens ======================================
    packages/ui and the older pages read --bg/--fg/--muted/...; point them at the v5 tokens so every page shares

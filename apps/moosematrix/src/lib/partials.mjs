@@ -1,4 +1,4 @@
-// Shared header, footer and search overlay from @moosematrix/tokens (packages/tokens), read at build time.
+// Shared header, footer and search overlay from @moosematrix/tokens 0.1.0 (vendor/tokens-0.1.0), read at build time.
 // Every page is prerendered (scripts/csp-hashes.mjs), so this runs during `next build` only, never per request.
 // The partials link to the planned v5 routes on moosematrix.com. Until those pages exist, each link is mapped to
 // the page that serves it today, so the header never leads to a 404 and links stay same-origin (works on dev too).
@@ -65,7 +65,15 @@ export function tokensDir(cwd = process.cwd()) {
   return path.resolve(cwd, "..", "..", "packages", "tokens");
 }
 
-export function loadPartials(dir = tokensDir()) {
+// The app is pinned to tokens 0.1.0 until it moves to 0.1.1 in its own PR (UI cleanup card PR-3). packages/tokens is
+// now 0.1.1, so the 0.1.0 text files the app uses (partials, nav.js, search.js and CSS) are a frozen copy in
+// vendor/tokens-0.1.0/ (byte-identical to packages/tokens at d12b78d; tests/vendored-tokens.test.mjs). Fonts are
+// unchanged in 0.1.1 and still come from packages/tokens/fonts (sha256-checked by scripts/sync-tokens.mjs).
+export function pinnedTokensDir(cwd = process.cwd()) {
+  return path.resolve(cwd, "vendor", "tokens-0.1.0");
+}
+
+export function loadPartials(dir = pinnedTokensDir()) {
   const read = (f) => stripComments(fs.readFileSync(path.join(dir, f), "utf8")).trim();
   const header = applyNav(mapHrefs(read("header.html")));
   let footer = mapHrefs(read("footer.html"));

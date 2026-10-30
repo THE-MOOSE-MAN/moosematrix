@@ -6,7 +6,8 @@
 //  - fonts: fonts/SHA256SUMS verifies
 //  - JS parses (node --check)
 //  - logos: inline SVG path data equals brand/main-mark-dark.svg
-//  - contrast: WCAG 2.2 AA pairs in both themes; the dark media block equals the explicit dark block
+//  - contrast: WCAG 2.2 AA pairs in both themes (:root = dark default, [data-theme="light"] = light)
+//  - theme: no OS colour-scheme media block, no decodeURIComponent / dataset writes in theme code
 //  - IPs: no public or tailnet IPs, IPv6 literals, SSH port or MagicDNS names (scripts/check-ips.mjs)
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { createHash } from "node:crypto";
@@ -69,6 +70,16 @@ for (const f of js.filter((f) => !f.startsWith("scripts/"))) {
 }
 if (failures.length === n) ok("scripts: no HTML sinks, eval, inline styles or new-tab links (nav.js, search.js)");
 
+// Theme code: constants only reach the DOM and the cookie (UI card F2)
+n = failures.length;
+for (const f of ["theme-core.js", "theme-init.js", "nav.js"]) {
+  const s = read(f);
+  if (/decodeURIComponent|decodeURI\b|unescape\(/.test(s)) fail(`${f}: decodes the cookie value`);
+  if (/\.dataset\b/.test(s)) fail(`${f}: dataset write (use the constant setAttribute)`);
+  if (/render <html data-theme>|on the server/i.test(s)) fail(`${f}: server-side theming comment (no server reads mm-theme)`);
+}
+if (failures.length === n) ok("theme: no cookie decoding, no dataset writes, no server-theming comment");
+
 // Self-hosted only (CSS)
 n = failures.length;
 for (const f of css) {
@@ -85,7 +96,7 @@ const changelog = (read("CHANGELOG.md").match(/^##\s+\[?(\d+\.\d+\.\d+)/m) || []
 const marker = (read("tokens.css").match(/--mm-tokens-version:\s*"([^"]+)"/) || [])[1];
 if (changelog !== version) fail(`version: CHANGELOG top entry ${changelog} != package.json ${version}`);
 if (marker !== version) fail(`version: tokens.css marker ${marker} != package.json ${version}`);
-for (const f of [...css.filter((f) => !f.startsWith("demo/")), "nav.js", "search.js", ...html.filter((f) => !f.startsWith("demo/"))]) {
+for (const f of [...css.filter((f) => !f.startsWith("demo/")), "nav.js", "search.js", "theme-core.js", "theme-init.js", "render.mjs", ...html.filter((f) => !f.startsWith("demo/"))]) {
   const m = read(f).match(/@moosematrix\/tokens (\d+\.\d+\.\d+)/);
   if (!m) fail(`version: ${f} has no "@moosematrix/tokens x.y.z" header`);
   else if (m[1] !== version) fail(`version: ${f} header says ${m[1]}, package.json ${version}`);
@@ -142,10 +153,11 @@ const block = (re) => {
   if (!m) return null;
   return Object.fromEntries([...m[1].matchAll(/--mm-(?:color|logo)-([a-z0-9-]+):\s*(#[0-9a-f]{6})/gi)].map((x) => [x[1], x[2].toLowerCase()]));
 };
-const light = block(/^:root\s*\{([\s\S]*?)^\}/m);
-const darkExplicit = block(/^:root\[data-theme="dark"\]\s*\{([\s\S]*?)^\}/m);
-const darkMedia = block(/:root:not\(\[data-theme\]\)\s*\{([\s\S]*?)^\s{2}\}/m);
-if (JSON.stringify(darkExplicit) !== JSON.stringify(darkMedia)) fail("tokens: prefers-color-scheme dark block differs from [data-theme=dark]");
+const dark = block(/^:root\s*\{([\s\S]*?)^\}/m);
+const light = block(/^:root\[data-theme="light"\]\s*\{([\s\S]*?)^\}/m);
+if (/prefers-color-scheme/.test(tokens)) fail("tokens: prefers-color-scheme block present (the OS setting must never pick the theme)");
+if (/data-theme="dark"/.test(tokens)) fail('tokens: [data-theme="dark"] block present (dark is the :root default)');
+if (!/^:root\s*\{[^}]*color-scheme:\s*dark;/m.test(tokens)) fail("tokens: :root must set color-scheme: dark");
 const lum = (hex) => {
   const c = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
   return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
@@ -165,7 +177,7 @@ const pairs = [
   ["edge", "ground", UI], ["edge", "panel", UI], ["edge", "panel-2", UI],
   ["accent", "ground", UI], ["mark", "tile", UI],
 ];
-for (const [theme, t] of [["light", light], ["dark", darkExplicit]]) {
+for (const [theme, t] of [["dark", dark], ["light", light]]) {
   if (!t) {
     fail(`tokens: ${theme} block not found`);
     continue;

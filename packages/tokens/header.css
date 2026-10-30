@@ -1,4 +1,4 @@
-/* @moosematrix/tokens 0.1.0 — header with the moose-head nav. Needs tokens.css.
+/* @moosematrix/tokens 0.1.1 — header with the moose-head nav. Needs tokens.css.
    Resting ticks taper toward the centre (the antler spread); a shield crest with the logo mark hangs
    under the middle of the nav (the head). Hover/focus/current draws an accent line left to right. */
 
@@ -202,13 +202,10 @@
   padding: 0 5px;
 }
 
-/* Theme switch (hidden until nav.js runs, since it needs JS) */
+/* Theme toggle: one 2-state button (aria-pressed = light on). Hidden until nav.js runs, since it needs JS;
+   without JS every page is dark. */
 .mm-theme {
   display: inline-flex;
-  gap: 2px;
-  padding: 2px;
-  border: 1px solid var(--mm-color-edge);
-  border-radius: 999px;
   flex: none;
 }
 
@@ -217,14 +214,18 @@
 }
 
 .mm-theme button {
-  display: grid;
-  place-items: center;
-  width: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mm-space-2);
+  min-width: 44px;
   height: 40px;
-  border: 0;
+  padding: 0 var(--mm-space-3);
+  border: 1px solid var(--mm-color-edge);
   border-radius: 999px;
   background: transparent;
   color: var(--mm-color-ink-2);
+  font: inherit;
+  font-size: var(--mm-text-sm);
   cursor: pointer;
 }
 
@@ -233,6 +234,7 @@
 }
 
 .mm-theme button[aria-pressed="true"] {
+  border-color: var(--mm-color-accent-fill);
   background: var(--mm-color-accent-fill);
   color: var(--mm-color-on-accent);
 }
@@ -386,4 +388,31 @@
   .mm-nav-link::after {
     background: Highlight;
   }
+}
+
+/* 0.1.1: research children in the mobile menu, and the optional per-site row under the header. */
+.mm-menu-nav a.mm-menu-sub {
+  padding-left: var(--mm-space-6);
+  color: var(--mm-color-ink-2);
+}
+
+.mm-menu-nav a.mm-menu-sub[aria-current="page"] {
+  color: var(--mm-color-accent);
+}
+
+.mm-site-row {
+  border-top: 1px solid var(--mm-color-rule);
+}
+
+.mm-site-row .mm-shell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mm-space-4);
+  min-height: var(--mm-control-height);
+  align-items: center;
+  font-size: 0.875rem;
+}
+
+.mm-site-row a[aria-current="page"] {
+  color: var(--mm-color-accent);
 }

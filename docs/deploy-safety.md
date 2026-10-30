@@ -24,7 +24,7 @@ with the verify/rollback/record steps silently skipped (Vulnerability Bot R39 H1
 Wrapping the body in a function makes bash parse all of it before anything runs, and `</dev/null` gives every
 child an empty stdin. Keep new remote commands inside `main`.
 
-## Pre-merge step for Dustin: add the `VPS_KNOWN_HOSTS` repo secret
+## Pre-merge step for the owner: add the `VPS_KNOWN_HOSTS` repo secret
 
 The deploy now pins the VPS host key from a secret (`StrictHostKeyChecking=yes`) instead of
 `StrictHostKeyChecking=no` / trusting `ssh-keyscan` on every run. **Until the secret exists the deploy job stops

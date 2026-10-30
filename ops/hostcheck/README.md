@@ -27,7 +27,7 @@ a week (`weekly-<date>.json`) instead of spending its own tokens on these checks
 Exit code: `0` = the check ran (warnings are not failures); `1` = the script failed (a check could not run, e.g.
 docker unreachable, or a crash). Failures are counted in `state.json` either way.
 
-## Install (needs Dustin's approval: host change)
+## Install (needs the owner's approval: host change)
 
 ```bash
 sudo ops/hostcheck/install.sh --prepare-deploy-records --run-now   # systemd timer, daily 06:17 UTC ±10 min
