@@ -32,3 +32,11 @@ test("guard rejects body fields, premium tags, long premium summaries, samples, 
   bad([{ ...free, type: "Nope" }]);
   bad([{ ...free, tags: undefined }]);
 });
+
+test("L1: status must be one of the public statuses; anything else fails the build", () => {
+  for (const status of ["published", "Live", "In development", "Planned"]) assert.deepEqual(guard([{ ...free, status }]), [], status);
+  assert.deepEqual(guard([{ ...free }]), [], "no status is fine");
+  for (const status of ["draft", "unlisted", "Published", "live", "", null, 1]) bad([{ ...free, status }], /status/);
+  bad([{ ...premium, status: "draft" }], /status/);
+});
+

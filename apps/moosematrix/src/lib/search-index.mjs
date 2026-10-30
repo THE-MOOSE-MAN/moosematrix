@@ -4,6 +4,8 @@ export const LIBRARY_TYPES = ["Research", "Writeup", "Essay"];
 const FORBIDDEN = ["body", "body_premium", "content", "html", "excerpt"];
 const PREMIUM_ALLOWED = new Set(["id", "title", "summary", "site", "type", "url", "access", "related", "status", "sample"]);
 const FREE_ALLOWED = new Set([...PREMIUM_ALLOWED, "tags"]);
+// Only these statuses are public; anything else (draft, unlisted, a typo) fails the build. Missing status is allowed.
+export const STATUSES = ["published", "Live", "In development", "Planned"];
 export const MAX_GZ_BYTES = 150 * 1024;
 
 export function guard(items) {
@@ -20,6 +22,7 @@ export function guard(items) {
     if (!["moosematrix", "mooseman"].includes(it.site)) errors.push(`${at}: unknown site ${it.site}`);
     if (!/^https:\/\//.test(String(it.url))) errors.push(`${at}: url must be absolute https`);
     if (it.sample === true) errors.push(`${at}: samples are never published`);
+    if ("status" in it && !STATUSES.includes(it.status)) errors.push(`${at}: status ${JSON.stringify(it.status)} is not public (allowed: ${STATUSES.join(", ")})`);
     if (!Array.isArray(it.related)) errors.push(`${at}: related must be an array`);
     if (it.access === "premium") {
       for (const k of Object.keys(it)) if (!PREMIUM_ALLOWED.has(k)) errors.push(`${at}: premium item has "${k}"`);
