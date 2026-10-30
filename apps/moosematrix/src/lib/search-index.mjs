@@ -21,7 +21,7 @@ export function guard(items) {
     if (!TYPES.includes(it.type)) errors.push(`${at}: unknown type ${it.type}`);
     if (!["moosematrix", "mooseman"].includes(it.site)) errors.push(`${at}: unknown site ${it.site}`);
     if (!/^https:\/\//.test(String(it.url))) errors.push(`${at}: url must be absolute https`);
-    if (it.sample === true) errors.push(`${at}: samples are never published`);
+    if ("sample" in it && it.sample !== false) errors.push(`${at}: samples are never published (sample must be exactly false)`);
     if ("status" in it && !STATUSES.includes(it.status)) errors.push(`${at}: status ${JSON.stringify(it.status)} is not public (allowed: ${STATUSES.join(", ")})`);
     if (!Array.isArray(it.related)) errors.push(`${at}: related must be an array`);
     if (it.access === "premium") {

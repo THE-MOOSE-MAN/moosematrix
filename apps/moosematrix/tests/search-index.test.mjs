@@ -40,3 +40,8 @@ test("L1: status must be one of the public statuses; anything else fails the bui
   bad([{ ...premium, status: "draft" }], /status/);
 });
 
+test("L2: sample must be exactly false when present", () => {
+  assert.deepEqual(guard([{ ...free, sample: false }]), []);
+  for (const sample of [true, "true", "false", 1, 0, null, undefined, {}]) bad([{ ...free, sample }], /sample/);
+  bad([{ ...premium, sample: "yes" }], /sample/);
+});
