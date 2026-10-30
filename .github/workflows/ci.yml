@@ -1,7 +1,9 @@
-# Pull request checks. Read-only token, no deploy. The only secret is REGISTRY_DENYLIST, used by the
-# privacy scan at the end of "PR checks" (env only, 0600 temp file, every term masked, never printed).
-# The privacy scan fails closed: if the secret is missing (e.g. a fork PR, which never gets secrets) the
-# job fails. Never run this workflow on pull_request_target.
+# Pull request checks. Read-only token, no deploy.
+# "PR checks" holds the blocking checks (secret scan, IP leak, links, a11y, theme, tokens) and uses no secrets.
+# "Privacy scan (advisory)" is a separate, non-required job. Its only secret is REGISTRY_DENYLIST
+# (env only, 0600 temp file, every term masked, never printed). It still fails closed: if the secret is
+# missing (e.g. a fork PR, which never gets secrets) that job goes red, but it does not block merges and
+# cannot affect "PR checks". Never run this workflow on pull_request_target.
 name: CI
 
 on:
@@ -127,39 +129,6 @@ jobs:
         working-directory: .github/ci-tools/a11y
         run: CHROME_PATH="$(command -v google-chrome)" node run-theme.mjs ../../../packages/tokens
 
-      - name: Search package tarball (for the privacy scan)
-        working-directory: packages/search
-        run: |
-          mkdir -p "$RUNNER_TEMP/search-pack"
-          npm pack --pack-destination "$RUNNER_TEMP/search-pack"
-
-      # Privacy scan. Required: it is part of this "PR checks" job. Fails closed.
-      - name: Privacy scan (self-test, canaries only)
-        run: node --test .github/ci-tools/privacy-scan/scan.test.mjs
-
-      - name: Privacy scan (whole tree, tokens and search tarballs, rendered nav)
-        env:
-          REGISTRY_DENYLIST: ${{ secrets.REGISTRY_DENYLIST }}
-        run: |
-          set +x
-          umask 077
-          if [ -z "${REGISTRY_DENYLIST//[[:space:],]/}" ]; then
-            echo "DENYLIST NOT RUN – secret missing"
-            exit 1
-          fi
-          printf '%s' "$REGISTRY_DENYLIST" > "$RUNNER_TEMP/denylist"
-          unset REGISTRY_DENYLIST
-          node .github/ci-tools/privacy-scan/mask.mjs "$RUNNER_TEMP/denylist"
-          scan=.github/ci-tools/privacy-scan/scan.mjs
-          node "$scan" --terms "$RUNNER_TEMP/denylist" --tree .
-          node "$scan" --terms "$RUNNER_TEMP/denylist" --tarball "$(ls "$RUNNER_TEMP/pack/"*.tgz)" --profile tokens-tarball
-          node "$scan" --terms "$RUNNER_TEMP/denylist" --tarball "$(ls "$RUNNER_TEMP/search-pack/"*.tgz)" --profile none
-          node "$scan" --terms "$RUNNER_TEMP/denylist" --dir packages/tokens/tests/snapshots --profile none
-
-      - name: Privacy scan cleanup
-        if: always()
-        run: rm -f "$RUNNER_TEMP/denylist"
-
   app:
     name: App build and tests (apps/moosematrix)
     runs-on: ubuntu-24.04
@@ -228,3 +197,62 @@ jobs:
         run: |
           npm ci --ignore-scripts --no-audit --no-fund
           CHROME_PATH="$(command -v google-chrome)" node run-search-e2e.mjs ../../../packages
+
+  privacy-scan:
+    name: Privacy scan (advisory)
+    # Advisory: not a required status check, and nothing depends on it (no `needs:`), so a failure here
+    # shows red on the PR but never blocks a merge or changes the "PR checks" result.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.22.1
+
+      - name: Tokens package tarball (for the privacy scan)
+        working-directory: packages/tokens
+        run: |
+          npm run build
+          mkdir -p "$RUNNER_TEMP/pack"
+          npm pack --pack-destination "$RUNNER_TEMP/pack"
+
+      - name: Search package tarball (for the privacy scan)
+        working-directory: packages/search
+        run: |
+          mkdir -p "$RUNNER_TEMP/search-pack"
+          npm pack --pack-destination "$RUNNER_TEMP/search-pack"
+
+      # Privacy scan. Advisory (own job, not required). Fails closed.
+      - name: Privacy scan (self-test, canaries only)
+        run: node --test .github/ci-tools/privacy-scan/scan.test.mjs
+
+      - name: Privacy scan (whole tree, tokens and search tarballs, rendered nav)
+        env:
+          REGISTRY_DENYLIST: ${{ secrets.REGISTRY_DENYLIST }}
+        run: |
+          set +x
+          umask 077
+          if [ -z "${REGISTRY_DENYLIST//[[:space:],]/}" ]; then
+            echo "DENYLIST NOT RUN – secret missing"
+            exit 1
+          fi
+          printf '%s' "$REGISTRY_DENYLIST" > "$RUNNER_TEMP/denylist"
+          unset REGISTRY_DENYLIST
+          node .github/ci-tools/privacy-scan/mask.mjs "$RUNNER_TEMP/denylist"
+          scan=.github/ci-tools/privacy-scan/scan.mjs
+          node "$scan" --terms "$RUNNER_TEMP/denylist" --tree .
+          node "$scan" --terms "$RUNNER_TEMP/denylist" --tarball "$(ls "$RUNNER_TEMP/pack/"*.tgz)" --profile tokens-tarball
+          node "$scan" --terms "$RUNNER_TEMP/denylist" --tarball "$(ls "$RUNNER_TEMP/search-pack/"*.tgz)" --profile none
+          node "$scan" --terms "$RUNNER_TEMP/denylist" --dir packages/tokens/tests/snapshots --profile none
+
+      - name: Privacy scan cleanup
+        if: always()
+        run: rm -f "$RUNNER_TEMP/denylist"
