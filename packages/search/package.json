@@ -1,0 +1,44 @@
+{
+  "name": "@moosematrix/search",
+  "version": "0.1.0",
+  "description": "The one Moose Matrix search overlay: a strict-CSP, Trusted Types ready ES module that searches a same-origin, schema-validated per-site index in the browser.",
+  "private": true,
+  "license": "UNLICENSED",
+  "type": "module",
+  "sideEffects": [
+    "*.css",
+    "./search.js"
+  ],
+  "exports": {
+    "./search.js": "./search.js",
+    "./search-core.mjs": "./search-core.mjs",
+    "./search.css": "./search.css",
+    "./overlay.mjs": "./overlay.mjs",
+    "./overlay.html": "./overlay.html",
+    "./index.schema.json": "./index.schema.json",
+    "./scopes.json": "./scopes.json",
+    "./scripts/projection.mjs": "./scripts/projection.mjs",
+    "./scripts/validate-index.mjs": "./scripts/validate-index.mjs",
+    "./scripts/scan-terms.mjs": "./scripts/scan-terms.mjs",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "search.js",
+    "search-core.mjs",
+    "search.css",
+    "overlay.mjs",
+    "overlay.html",
+    "index.schema.json",
+    "scopes.json",
+    "scripts/projection.mjs",
+    "scripts/validate-index.mjs",
+    "scripts/scan-terms.mjs",
+    "CHANGELOG.md",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node scripts/write-overlay.mjs && node scripts/build-demo.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "lint": "node scripts/lint.mjs"
+  }
+}

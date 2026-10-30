@@ -1,0 +1,82 @@
+# Semgrep rules for shared front-end packages (packages/search, packages/tokens).
+# Run: semgrep --config .semgrep/mm-packages.yml packages/
+# AST-based companion to packages/search/scripts/lint.mjs.
+rules:
+  - id: mm-no-html-sink
+    languages: [javascript]
+    severity: ERROR
+    message: HTML sink; build DOM with createElement/textContent (strict CSP, Trusted Types).
+    pattern-either:
+      - pattern: $X.innerHTML = $Y
+      - pattern: $X.outerHTML = $Y
+      - pattern: $X.insertAdjacentHTML(...)
+      - pattern: document.write(...)
+      - pattern: document.writeln(...)
+      - pattern: $X.createContextualFragment(...)
+      - pattern: new DOMParser()
+      - pattern: $X.srcdoc = $Y
+  - id: mm-no-eval
+    languages: [javascript]
+    severity: ERROR
+    message: eval / Function / string timers are forbidden (no unsafe-eval).
+    pattern-either:
+      - pattern: eval(...)
+      - pattern: new Function(...)
+      - pattern: Function(...)
+      - pattern: setTimeout("...", ...)
+      - pattern: setInterval("...", ...)
+  - id: mm-no-inline-handler
+    languages: [javascript]
+    severity: ERROR
+    message: Inline event handler; use addEventListener.
+    pattern-either:
+      - patterns:
+          - pattern: $X.setAttribute($NAME, ...)
+          - metavariable-regex:
+              metavariable: $NAME
+              regex: (?i)^["']on
+      - patterns:
+          - pattern: $X.$PROP = $Y
+          - metavariable-regex:
+              metavariable: $PROP
+              regex: ^on[a-z]+$
+  - id: mm-no-regexp-from-data
+    languages: [javascript]
+    severity: ERROR
+    message: No RegExp built at runtime (ReDoS); use NFKC + indexOf.
+    paths:
+      include: ["search.js", "search-core.mjs"]  # basename globs (Semgrep path globs are root-relative)
+    pattern-either:
+      - pattern: new RegExp(...)
+      - pattern: RegExp(...)
+  - id: mm-no-merge-into-state
+    languages: [javascript]
+    severity: ERROR
+    message: Never merge index data into objects (prototype pollution).
+    paths:
+      include: ["search.js", "search-core.mjs"]  # basename globs (Semgrep path globs are root-relative)
+    pattern-either:
+      - pattern: Object.assign(...)
+      - pattern: structuredClone(...)
+  - id: mm-no-new-tab
+    languages: [javascript]
+    severity: ERROR
+    message: Links open in the same tab.
+    pattern-either:
+      - pattern: window.open(...)
+      - pattern: $X.target = "_blank"
+  - id: mm-no-tracking-apis
+    languages: [javascript]
+    severity: ERROR
+    message: No storage, beacons or other network APIs in the search overlay.
+    paths:
+      include: ["search.js", "search-core.mjs"]  # basename globs (Semgrep path globs are root-relative)
+    pattern-either:
+      - pattern: localStorage
+      - pattern: sessionStorage
+      - pattern: indexedDB
+      - pattern: navigator.sendBeacon(...)
+      - pattern: new XMLHttpRequest()
+      - pattern: new WebSocket(...)
+      - pattern: new EventSource(...)
+      - pattern: document.cookie

@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "site": "mooseman",
+  "generated": "2026-10-30T12:00:00Z",
+  "items": [
+    {
+      "id": "mumble-hello",
+      "title": "Hello from Moose Mumbles",
+      "site": "mooseman",
+      "section": "mumbles",
+      "type": "post",
+      "url": "/moose-mumbles/hello/",
+      "summary": "The first mumble: why this blog exists.",
+      "tags": [
+        "blog"
+      ],
+      "date": "2026-02-14",
+      "access": "public"
+    },
+    {
+      "id": "mumble-reading",
+      "title": "What I am reading this month",
+      "site": "mooseman",
+      "section": "mumbles",
+      "type": "post",
+      "url": "/moose-mumbles/reading/",
+      "summary": "Three books and one long security paper.",
+      "tags": [
+        "books"
+      ],
+      "date": "2026-10-01",
+      "access": "public"
+    }
+  ]
+}

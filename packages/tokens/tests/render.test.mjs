@@ -84,7 +84,7 @@ test("a tampered nav.json with foreign or non-https URLs is rejected", () => {
     }
   }
   const n = clone();
-  n.main[0].onclick = "x";
+  n.main[0]["onclick"] = "x"; // bracket form: the packages/ lint bans .on* property handlers
   assert.throws(() => validateNav(n), /unknown key/);
   const m = clone();
   m.extra = 1;

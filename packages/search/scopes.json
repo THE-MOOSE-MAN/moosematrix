@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "scopes": [
+    { "id": "all", "label": "All", "sections": [] },
+    { "id": "library", "label": "Library", "sections": ["library", "projects"] },
+    { "id": "mumbles", "label": "Moose Mumbles", "sections": ["mumbles"], "linkOutUnlessSite": "mooseman" },
+    { "id": "reading-room", "label": "Reading Room", "sections": ["reading-room"] },
+    { "id": "ctf", "label": "CTF", "sections": ["ctf"] },
+    { "id": "money", "label": "Moo$e Money", "sections": ["money"] }
+  ],
+  "mumblesLinkOut": "https://mooseman.moosematrix.com/moose-mumbles/?mm-scope=mumbles"
+}

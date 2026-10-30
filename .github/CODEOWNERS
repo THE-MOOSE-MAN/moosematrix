@@ -1,0 +1,7 @@
+# Not enforced until "Require review from Code Owners" is turned on in the
+# repo ruleset (an owner settings change). Until then this file documents ownership only.
+/.github/                         @THE-MOOSE-MAN
+/.semgrep/                        @THE-MOOSE-MAN
+/packages/search/scripts/         @THE-MOOSE-MAN
+/packages/search/search-core.mjs  @THE-MOOSE-MAN
+/packages/search/index.schema.json @THE-MOOSE-MAN

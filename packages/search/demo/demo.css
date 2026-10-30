@@ -1,0 +1,44 @@
+/* Demo page only (not shipped). */
+body {
+  margin: 0;
+  background: var(--mm-color-ground);
+  color: var(--mm-color-ink);
+  font: var(--mm-text-base) / var(--mm-leading-body) var(--mm-font-body);
+}
+
+.demo-wrap {
+  max-width: var(--mm-max-width);
+  margin: 0 auto;
+  padding: var(--mm-space-4);
+}
+
+.demo-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mm-space-2);
+  align-items: center;
+}
+
+.demo-btn {
+  min-height: 44px;
+  padding: 0 var(--mm-space-4);
+  border: 1px solid var(--mm-color-edge);
+  border-radius: 999px;
+  background: var(--mm-color-panel);
+  color: var(--mm-color-ink);
+  font: inherit;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.demo-btn:focus-visible {
+  outline: var(--mm-focus-ring);
+  outline-offset: var(--mm-focus-offset);
+}
+
+h1 {
+  font: 700 var(--mm-text-h2) / var(--mm-leading-display) var(--mm-font-display);
+  overflow-wrap: anywhere; /* long package name at 360 px */
+}

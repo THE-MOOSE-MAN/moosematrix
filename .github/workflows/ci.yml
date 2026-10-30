@@ -127,11 +127,17 @@ jobs:
         working-directory: .github/ci-tools/a11y
         run: CHROME_PATH="$(command -v google-chrome)" node run-theme.mjs ../../../packages/tokens
 
+      - name: Search package tarball (for the privacy scan)
+        working-directory: packages/search
+        run: |
+          mkdir -p "$RUNNER_TEMP/search-pack"
+          npm pack --pack-destination "$RUNNER_TEMP/search-pack"
+
       # Privacy scan. Required: it is part of this "PR checks" job. Fails closed.
       - name: Privacy scan (self-test, canaries only)
         run: node --test .github/ci-tools/privacy-scan/scan.test.mjs
 
-      - name: Privacy scan (whole tree, tokens tarball, rendered nav)
+      - name: Privacy scan (whole tree, tokens and search tarballs, rendered nav)
         env:
           REGISTRY_DENYLIST: ${{ secrets.REGISTRY_DENYLIST }}
         run: |
@@ -147,6 +153,7 @@ jobs:
           scan=.github/ci-tools/privacy-scan/scan.mjs
           node "$scan" --terms "$RUNNER_TEMP/denylist" --tree .
           node "$scan" --terms "$RUNNER_TEMP/denylist" --tarball "$(ls "$RUNNER_TEMP/pack/"*.tgz)" --profile tokens-tarball
+          node "$scan" --terms "$RUNNER_TEMP/denylist" --tarball "$(ls "$RUNNER_TEMP/search-pack/"*.tgz)" --profile none
           node "$scan" --terms "$RUNNER_TEMP/denylist" --dir packages/tokens/tests/snapshots --profile none
 
       - name: Privacy scan cleanup
@@ -179,3 +186,45 @@ jobs:
       - name: Unit and built-page tests
         run: npm -w moosematrix test
 
+  search-package:
+    name: Search package (@moosematrix/search)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.22.1
+
+      - name: Lint (HTML sinks, RegExp from data, storage, URLs, fetch)
+        working-directory: packages/search
+        run: npm run lint
+
+      - name: Tests (incl. every abuse-case fixture)
+        working-directory: packages/search
+        run: npm test
+
+      - name: Build (overlay.html and demo must be up to date)
+        working-directory: packages/search
+        run: |
+          npm run build
+          git diff --exit-code -- overlay.html demo/
+
+      - name: Package contents
+        working-directory: packages/search
+        run: |
+          npm pack --dry-run
+          npm pack --pack-destination "$RUNNER_TEMP"
+
+      - name: Browser checks (CSP, keyboard, hostile indexes, axe at 360 and 1280 px)
+        working-directory: .github/ci-tools/a11y
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          CHROME_PATH="$(command -v google-chrome)" node run-search-e2e.mjs ../../../packages
