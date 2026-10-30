@@ -12,8 +12,8 @@ const between = (h, a, b) => { const i = h.indexOf(a); assert.ok(i >= 0, a); con
 // Text of the visually-hidden copy inside a TypedLine heading.
 const srText = (h1) => { const m = h1.match(/<span class="mmx-tw-sr">(.*?)<\/span><span class="mmx-tw-a"/); assert.ok(m, "mmx-tw-sr"); return { html: m[1], text: strip(m[1]) }; };
 const links = (h) => [...h.matchAll(/<a [^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/g)].map((m) => [m[1], strip(m[2])]);
-const pages = ["index.html", "library.html", "search.html", "lab.html", "builds.html", "about.html", "contact.html", "security.html", "subsidiaries.html", "privacy.html", "terms.html"];
-const NAV = [["/builds", "Projects"], ["/library", "Library"], ["/lab", "Lab"], ["https://merch.moosematrix.com/", "Shop"], ["/about", "About"]];
+const pages = ["index.html", "research.html", "library.html", "search.html", "lab.html", "builds.html", "about.html", "contact.html", "security.html", "subsidiaries.html", "privacy.html", "terms.html"];
+const NAV = [["/research", "Research"], ["https://mooseman.moosematrix.com/moose-mumbles", "Moose Mumbles"], ["https://m2.moosematrix.com/", "Moo$e Money"], ["https://merch.moosematrix.com/", "Shop"], ["/about", "About"]];
 
 test("every page: tokens header with the moose-head nav, search overlay and footer; skip link targets #main", () => {
   for (const f of pages) {
@@ -23,6 +23,9 @@ test("every page: tokens header with the moose-head nav, search overlay and foot
     assert.match(h, /<main id="main" tabindex="-1"/, f);
     const nav = between(header, '<nav class="mm-nav"', "</nav>");
     assert.deepEqual(links(nav), NAV, f);
+    const menu = between(header, '<nav class="mm-menu-nav"', "</nav>");
+    assert.deepEqual(links(menu).slice(0, NAV.length), NAV, f + " menu");
+    assert.match(nav, /href="\/research" data-mm-also="\/builds \/lab \/library"/, f);
     assert.match(h, /<dialog class="mm-search" id="mm-search"[^>]* data-mm-index="\/search-index.json"/, f + ": same-origin index only");
     assert.match(h, /<footer class="mm-footer"/, f);
     assert.match(h, /<script src="\/mm\/nav.js" defer="">/, f);
@@ -54,6 +57,13 @@ test("Home: v5 hero, three selected projects, editorial row, merch and studio se
   const h2 = [...between(i, "<main", "</main>").matchAll(/<h2[^>]*>([\s\S]*?)<\/h2>/g)].map((m) => strip(m[1].replace(/<br\/?>/g, " ")));
   assert.deepEqual(h2, ["SELECTED PROJECTS", "FROM THE LIBRARY", "THE MOOSE LAB", "FROM THE MOOSE MAN", "TOOLS FOR CURIOUS MINDS.", "ABOUT THE STUDIO", "CONTACT"]);
   assert.ok(!/SAMPLE/.test(strip(i)), "no sample content on prod");
+});
+
+test("Research hub links to Projects, Lab and Library", () => {
+  const r = read("research.html");
+  assert.match(strip(between(r, "<h1", "</h1>")), /RESEARCH/);
+  const hub = links(between(r, '<ul class="mm-mini-cards mm-hub"', "</ul>")).map(([h]) => h);
+  assert.deepEqual(hub, ["/builds", "/lab", "/library"]);
 });
 
 test("Library, Search, Lab: v5 page heroes; full list in the HTML; filtering is an external script", () => {

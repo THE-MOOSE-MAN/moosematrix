@@ -249,3 +249,16 @@ body {
   .mm-search-trigger { padding: 0; justify-content: center; width: 48px; height: 48px; }
   .mm-st-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 }
+/* The Oct 30 nav labels (Moose Mumbles, Moo$e Money) are ~120px wider than the v5 ones. Up to 940px the brand shows
+   its moose tile only; the link keeps aria-label "The Moose Matrix home". TODO(tokens 0.1.1): a compact header step. */
+@media (min-width: 751px) and (max-width: 940px) {
+  .mm-brand-title { display: none; }
+}
+
+/* Hub link on the pages it holds (Research on /builds, /lab, /library): same look as the current page.
+   Set by public/js/mm-nav-current.js. TODO(tokens 0.1.1): style [aria-current="true"] in header.css. */
+.mm-nav-link[aria-current="true"]::after { transform: scaleX(1); }
+.mm-nav-link[aria-current="true"] { color: var(--mm-color-accent); }
+.mm-menu-nav a[aria-current="true"] { color: var(--mm-color-accent); border-color: var(--mm-color-accent); }
+.mm-hub { list-style: none; padding: 0; }
+.mm-hub > li { position: relative; }

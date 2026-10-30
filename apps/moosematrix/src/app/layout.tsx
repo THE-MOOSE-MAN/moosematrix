@@ -89,6 +89,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="stylesheet" href="/mm/fonts.css" />
         {/* Header behaviour (theme toggle, current link, menu) and the search overlay; same-origin, deferred. */}
         <script src="/mm/nav.js" defer />
+        <script src="/js/mm-nav-current.js" defer />
         <script src="/mm/search.js" defer />
       </head>
       <body>
