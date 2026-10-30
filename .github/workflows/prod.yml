@@ -3,6 +3,9 @@ name: Deploy MooseMatrix (Prod)
 on:
   push:
     branches: ["main"]
+    paths-ignore:
+      - "packages/tokens/**"
+      - ".github/ci-tools/**"
   workflow_dispatch:
 
 permissions:

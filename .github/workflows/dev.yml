@@ -3,6 +3,9 @@ name: Deploy Moosematrix (Dev)
 on:
   push:
     branches: ["dev"]
+    paths-ignore:
+      - "packages/tokens/**"
+      - ".github/ci-tools/**"
   workflow_dispatch:
 
 permissions:
