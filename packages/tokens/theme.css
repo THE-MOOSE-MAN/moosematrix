@@ -1,0 +1,38 @@
+/* @moosematrix/tokens 0.1.0 — Tailwind CSS v4 theme.
+   Usage (after tokens.css):  @import "tailwindcss";  @import "@moosematrix/tokens/theme.css";
+   "inline" makes utilities reference the runtime variables, so dark/light switching keeps working. */
+
+@theme inline {
+  --color-ground: var(--mm-color-ground);
+  --color-panel: var(--mm-color-panel);
+  --color-panel-2: var(--mm-color-panel-2);
+  --color-ink: var(--mm-color-ink);
+  --color-ink-2: var(--mm-color-ink-2);
+  --color-accent: var(--mm-color-accent);
+  --color-accent-fill: var(--mm-color-accent-fill);
+  --color-accent-fill-hover: var(--mm-color-accent-fill-hover);
+  --color-on-accent: var(--mm-color-on-accent);
+  --color-edge: var(--mm-color-edge);
+  --color-rule: var(--mm-color-rule);
+  --color-money: var(--mm-color-money);
+  --color-store: var(--mm-color-store);
+  --color-selection: var(--mm-color-selection);
+
+  --font-display: var(--mm-font-display);
+  --font-body: var(--mm-font-body);
+  --font-mono: var(--mm-font-mono);
+
+  --text-sm: var(--mm-text-sm);
+  --text-base: var(--mm-text-base);
+  --text-lg: var(--mm-text-lg);
+  --text-h3: var(--mm-text-h3);
+  --text-h2: var(--mm-text-h2);
+  --text-h1: var(--mm-text-h1);
+
+  --spacing: 0.25rem;
+
+  --radius-control: var(--mm-radius-control);
+  --radius-panel: var(--mm-radius-panel);
+
+  --container-page: var(--mm-max-width);
+}

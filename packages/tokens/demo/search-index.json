@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "note": "DEMO DATA ONLY. Sample entries for the @moosematrix/tokens demo page, not real site content.",
+  "items": [
+    { "title": "Demo project: terminal toolkit", "type": "Project", "site": "Demo", "summary": "Sample entry to show a project result.", "tags": ["projects", "security"], "url": "https://moosematrix.com/projects/" },
+    { "title": "Demo book list", "type": "Library", "site": "Demo", "summary": "Sample entry to show a library result.", "tags": ["books"], "url": "https://moosematrix.com/library/" },
+    { "title": "Demo lab note: reverse engineering basics", "type": "Lab", "site": "Demo", "summary": "Sample entry to show a lab result.", "tags": ["reverse engineering", "security"], "url": "https://moosematrix.com/lab/" },
+    { "title": "Demo shop item", "type": "Shop", "site": "Demo", "summary": "Sample entry to show a shop result.", "tags": ["shop"], "url": "https://moosematrix.com/shop/" },
+    { "title": "Rejected: unsafe URL is dropped", "type": "Test", "site": "Demo", "summary": "This entry must never render.", "tags": ["security"], "url": "javascript:alert(1)" },
+    { "title": "<img src=x onerror=alert(1)> rendered as text", "type": "Test", "site": "Demo", "summary": "Markup in data shows as plain text.", "tags": ["security"], "url": "https://moosematrix.com/" }
+  ]
+}

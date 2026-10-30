@@ -1,0 +1,389 @@
+/* @moosematrix/tokens 0.1.0 — header with the moose-head nav. Needs tokens.css.
+   Resting ticks taper toward the centre (the antler spread); a shield crest with the logo mark hangs
+   under the middle of the nav (the head). Hover/focus/current draws an accent line left to right. */
+
+.mm-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: var(--mm-color-header);
+  border-bottom: 1px solid var(--mm-color-rule);
+  color: var(--mm-color-ink);
+  font-family: var(--mm-font-body);
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  .mm-header {
+    backdrop-filter: blur(18px);
+  }
+}
+
+.mm-header a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.mm-header :is(a, button, summary):focus-visible,
+.mm-skip:focus-visible {
+  outline: var(--mm-focus-ring);
+  outline-offset: var(--mm-focus-offset);
+  border-radius: 4px;
+}
+
+.mm-header-in {
+  position: relative;
+  min-height: 84px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mm-space-6);
+}
+
+/* Brand */
+.mm-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--mm-space-3);
+  flex: none;
+  min-height: 44px;
+}
+
+.mm-brand-icon {
+  width: 52px;
+  height: 52px;
+  display: block;
+  flex: none;
+}
+
+.mm-brand-icon .mm-logo-tile {
+  fill: var(--mm-logo-tile);
+}
+
+.mm-brand-icon .mm-logo-mark {
+  fill: var(--mm-logo-mark);
+}
+
+.mm-brand-title {
+  font: 800 1.5rem/0.86 var(--mm-font-display);
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+/* Moose-head nav */
+.mm-nav {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: clamp(0.75rem, 2.4vw, 2.25rem);
+  align-self: stretch;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.mm-nav-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  white-space: nowrap;
+  color: var(--mm-color-ink);
+}
+
+.mm-nav-link::before,
+.mm-nav-link::after {
+  content: "";
+  position: absolute;
+  bottom: 4px;
+  height: 2px;
+  border-radius: 2px;
+}
+
+.mm-nav-link::before {
+  left: 50%;
+  width: var(--mm-tick, 22px);
+  background: var(--mm-color-tick);
+  transform: translateX(-50%);
+}
+
+.mm-nav-link::after {
+  left: 0;
+  width: 100%;
+  background: var(--mm-color-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--mm-duration) var(--mm-ease);
+}
+
+.mm-nav-link:hover::after,
+.mm-nav-link:focus-visible::after,
+.mm-nav-link[aria-current="page"]::after {
+  transform: scaleX(1);
+}
+
+.mm-nav-link[aria-current="page"] {
+  color: var(--mm-color-accent);
+}
+
+.mm-tick-1 {
+  --mm-tick: 10px;
+}
+
+.mm-tick-2 {
+  --mm-tick: 22px;
+}
+
+.mm-tick-3 {
+  --mm-tick: 34px;
+}
+
+.mm-crest {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 48px;
+  height: 30px;
+  transform: translateX(-50%);
+  background: var(--mm-color-rule);
+  clip-path: polygon(0 0, 100% 0, 100% 42%, 50% 100%, 0 42%);
+  pointer-events: none;
+}
+
+.mm-crest::before {
+  content: "";
+  position: absolute;
+  inset: 0 1px 1.5px;
+  background: var(--mm-color-ground);
+  clip-path: polygon(0 0, 100% 0, 100% 42%, 50% 100%, 0 42%);
+}
+
+.mm-crest-mark {
+  position: absolute;
+  left: 50%;
+  top: 2px;
+  width: 21px;
+  height: 18px;
+  transform: translateX(-50%);
+  color: var(--mm-color-accent);
+}
+
+/* Search trigger (a link to /search/ that search.js upgrades to open the overlay) */
+.mm-search-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mm-space-2);
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 var(--mm-space-4);
+  border: 1px solid var(--mm-color-accent);
+  border-radius: 999px;
+  background: var(--mm-color-panel);
+  color: var(--mm-color-ink);
+  font: 500 0.8125rem/1 var(--mm-font-body);
+  flex: none;
+  margin-left: auto;
+}
+
+.mm-search-trigger:hover {
+  background: var(--mm-color-panel-2);
+}
+
+.mm-icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+  flex: none;
+}
+
+.mm-kbd {
+  font: 500 0.6875rem/1.4 var(--mm-font-mono);
+  color: var(--mm-color-ink-2);
+  border: 1px solid var(--mm-color-edge);
+  border-radius: 5px;
+  padding: 0 5px;
+}
+
+/* Theme switch (hidden until nav.js runs, since it needs JS) */
+.mm-theme {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--mm-color-edge);
+  border-radius: 999px;
+  flex: none;
+}
+
+.mm-theme[hidden] {
+  display: none;
+}
+
+.mm-theme button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 40px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--mm-color-ink-2);
+  cursor: pointer;
+}
+
+.mm-theme button:hover {
+  color: var(--mm-color-ink);
+}
+
+.mm-theme button[aria-pressed="true"] {
+  background: var(--mm-color-accent-fill);
+  color: var(--mm-color-on-accent);
+}
+
+.mm-header-side {
+  border-left: 1px solid var(--mm-color-rule);
+  padding-left: var(--mm-space-5);
+  color: var(--mm-color-ink-2);
+  flex: none;
+}
+
+/* Menu (native <details>, so it works without JS) */
+.mm-menu {
+  display: none;
+}
+
+.mm-menu-toggle {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  list-style: none;
+  border: 1px solid var(--mm-color-edge);
+  border-radius: var(--mm-radius-panel);
+  background: var(--mm-color-panel);
+  color: var(--mm-color-ink);
+  cursor: pointer;
+}
+
+.mm-menu-toggle::-webkit-details-marker {
+  display: none;
+}
+
+.mm-menu[open] .mm-menu-toggle {
+  border-color: var(--mm-color-accent);
+  color: var(--mm-color-accent);
+}
+
+.mm-menu-mark {
+  width: 27px;
+  height: 24px;
+  display: block;
+}
+
+.mm-menu-panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  padding: var(--mm-space-4) 0 var(--mm-space-6);
+  border-bottom: 1px solid var(--mm-color-rule);
+  background: var(--mm-color-ground);
+}
+
+.mm-menu-nav {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--mm-space-2);
+}
+
+.mm-menu-nav a {
+  display: flex;
+  align-items: center;
+  min-height: var(--mm-control-height);
+  padding: var(--mm-space-3) var(--mm-space-4);
+  border: 1px solid var(--mm-color-rule);
+  border-radius: 10px;
+  background: var(--mm-color-panel);
+  font-size: 0.9375rem;
+}
+
+.mm-menu-nav a[aria-current="page"] {
+  color: var(--mm-color-accent);
+  border-color: var(--mm-color-accent);
+}
+
+.mm-menu-panel .mm-theme {
+  margin-top: var(--mm-space-4);
+}
+
+@media (max-width: 1100px) {
+  .mm-header-side {
+    display: none;
+  }
+
+  .mm-nav {
+    gap: var(--mm-space-4);
+  }
+
+  .mm-kbd {
+    display: none;
+  }
+}
+
+@media (max-width: 750px) {
+  .mm-header-in {
+    min-height: 72px;
+    gap: var(--mm-space-3);
+  }
+
+  .mm-brand-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .mm-brand-title {
+    font-size: 1.3125rem;
+  }
+
+  .mm-nav,
+  .mm-header-in > .mm-theme {
+    display: none;
+  }
+
+  .mm-search-trigger {
+    padding: 0;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+  }
+
+  .mm-st-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .mm-menu {
+    display: block;
+  }
+
+  .mm-menu-panel {
+    padding-inline: var(--mm-space-4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mm-nav-link::after {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .mm-nav-link::before {
+    background: CanvasText;
+  }
+
+  .mm-nav-link::after {
+    background: Highlight;
+  }
+}
