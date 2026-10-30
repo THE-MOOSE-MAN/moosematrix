@@ -21,7 +21,7 @@ export const HREF_MAP = {
   "/terms": "/terms",
 };
 
-// Header nav (Dustin, 30 Oct 2026): Research (hub for Projects, Lab and Library; replaces R&D), Moose Mumbles,
+// Header nav (The Moose Man, 30 Oct 2026): Research (hub for Projects, Lab and Library; replaces R&D), Moose Mumbles,
 // Moo$e Money, Shop, About (replaces More). Applied here, after mapHrefs, so packages/tokens stays at 0.1.0.
 // `also` lists the pages under a hub: public/js/mm-nav-current.js marks the hub aria-current="true" on them.
 // TODO(tokens 0.1.1): make the nav items a partial input instead of rewriting the shipped markup.
