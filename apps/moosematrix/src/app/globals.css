@@ -11,99 +11,254 @@
 @source not "../../../../packages/ui/**/dist/**";
 @source not "../../../../packages/ui/**/.next/**";
 
+/* Legacy page styles (cards, chips, prose) for the pages not yet redesigned. */
 @import "@moosematrix/ui/styles.css";
 
-/* ===== Homepage: mobile-first layer =====================================
-   One DOM for every width. Below 768px the hero fills the first screen and the four sections become compact,
-   whole-card links. From 768px the A2 desktop layout is untouched (these rules only restyle it, see the
-   desktop block at the end). No inline styles, no JS. */
-.mm-home { --mm-gap: 0.75rem; }
+/* @moosematrix/tokens 0.1.0 (packages/tokens): tokens, then the shared header, search overlay and footer.
+   Fonts load from /mm/fonts.css (copied by scripts/sync-tokens.mjs) so the preloaded URLs match. */
+@import "../../../../packages/tokens/tokens.css";
+@import "../../../../packages/tokens/header.css";
+@import "../../../../packages/tokens/search.css";
+@import "../../../../packages/tokens/footer.css";
 
-/* "Latest" line: desktop look (as A2). Phones restyle it as a pill below. */
-.mm-latest { margin-top: 1.25rem; font-size: 14px; color: var(--muted); }
-.mm-latest-link { display: inline-flex; align-items: center; gap: 0.375rem; min-height: 24px; color: inherit; text-decoration: none; text-underline-offset: 3px; }
-.mm-latest-link:hover { color: var(--fg); text-decoration: underline; }
-.mm-latest-tag { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.14em; color: var(--fg); }
-
-@media (max-width: 767.98px) {
-  /* Hero: fills the first screen (svh: no jump when the address bar collapses) minus a 2.75rem peek of the first
-     card ("there is more" cue); capped at 41rem so tall phones don't get an empty slab. Message on top, the one
-     primary action at the bottom of the hero (thumb zone). */
-  .mm-hero-in {
-    display: flex; flex-direction: column;
-    min-height: clamp(30rem, calc(100svh - var(--mmx-header-h) - 2.75rem), 41rem);
-    padding-top: clamp(1.25rem, 5svh, 2.75rem);
-    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+/* ===== Legacy variables -> tokens ======================================
+   packages/ui and the older pages read --bg/--fg/--muted/...; point them at the v5 tokens so every page shares
+   one palette in both themes (all text pairs AA, see packages/tokens/scripts/check.mjs). */
+:root,
+:root[data-theme="light"],
+:root[data-theme="dark"] {
+  --bg: var(--mm-color-ground);
+  --surface: var(--mm-color-panel);
+  --surface-2: var(--mm-color-panel-2);
+  --fg: var(--mm-color-ink);
+  --muted: var(--mm-color-ink-2);
+  --border: var(--mm-color-rule);
+  --accent: var(--mm-color-accent);
+  --accent-2: var(--mm-color-accent-fill-hover);
+  --ring: var(--mm-color-selection);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --bg: var(--mm-color-ground);
+    --surface: var(--mm-color-panel);
+    --surface-2: var(--mm-color-panel-2);
+    --fg: var(--mm-color-ink);
+    --muted: var(--mm-color-ink-2);
+    --border: var(--mm-color-rule);
+    --accent: var(--mm-color-accent);
+    --accent-2: var(--mm-color-accent-fill-hover);
+    --ring: var(--mm-color-selection);
   }
-  .mm-hero-top { flex: 1; display: flex; flex-direction: column; justify-content: center; width: 100%; margin: 0; }
-  .mm-hero-icon { display: flex; margin-bottom: 1.5rem; }
-  .mm-hero-icon img { width: 72px; height: 72px; border-radius: 18px; }
-  .mm-hero-icon img { box-shadow: var(--shadow-sm); }
-  /* 38px at 360 -> 46px at 430 (also fits the monospace stack phones actually render: SF Mono / Droid Mono). */
-  .mm-hero-h1 { font-size: clamp(2.25rem, 11.43vw - 0.2rem, 3rem); line-height: 1.08; letter-spacing: -0.02em; }
-  .mm-hero-sub { margin-top: 1rem; font-size: 18px; }
-  .mm-hero-act { width: 100%; padding-top: 1.5rem; }
-  .mm-hero-cta { min-height: 56px; font-size: 17px; border-radius: 16px; }
-  .mm-hero-cta:active { transform: scale(0.98); }
-
-  /* Latest: a full-width pill, whole pill tappable (the link's ::after covers it), 48px tall. */
-  .mm-latest { position: relative; display: flex; align-items: center; justify-content: center; gap: 0.25rem; margin-top: 0.75rem;
-    min-height: 48px; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 999px;
-    background: color-mix(in srgb, var(--surface) 88%, transparent); font-size: 16px; }
-  .mm-latest-link { min-height: 24px; color: var(--fg); font-weight: 600; }
-  .mm-latest-link::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
-  .mm-latest-link:hover { text-decoration: none; }
-  .mm-latest-link:focus-visible { outline: none; }
-  .mm-latest-link:focus-visible::after { outline: 3px solid var(--ring); outline-offset: 2px; }
-  .mm-latest:has(.mm-latest-link:active) { background: var(--surface-2); }
-  .mm-latest-tag { padding: 0.15rem 0.5rem; border-radius: 999px; background: var(--accent); color: #fff; font-size: 12px; letter-spacing: 0.12em; }
-  :root[data-theme="dark"] .mm-latest-tag { color: #070b13; }
-
-  /* Sections -> compact cards: icon | label + one line + outcome. Whole card is the one link (stretched). */
-  .mm-tiles { display: grid; gap: var(--mm-gap); padding: 0.5rem 0 1rem; }
-  .mm-sec-in { padding-top: 0; padding-bottom: 0; }
-  .mm-tile { position: relative; display: grid; grid-template-columns: 3rem 1fr; column-gap: 1rem; row-gap: 0.125rem; align-items: start;
-    padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow-sm);
-    transition: transform 120ms ease, background-color 120ms ease; }
-  .mm-tile-icon { grid-row: 1 / span 3; display: flex; }
-  .mm-tile-h { font-size: 20px; line-height: 1.3; letter-spacing: -0.01em; }
-  .mm-tile-p { font-size: 16px; line-height: 1.45; }
-  .mm-tile-act { margin-top: 0.375rem; }
-  .mm-tile .mm-tile-link.mm-btn-secondary { display: inline-flex; width: auto; min-height: 0; padding: 0; gap: 0.375rem; border: 0; border-radius: 0;
-    background: none; box-shadow: none; color: var(--accent); font-size: 16px; font-weight: 700; justify-content: flex-start; }
-  .mm-tile .mm-tile-link::after { content: ""; position: absolute; inset: 0; border-radius: var(--radius); }
-  .mm-tile .mm-tile-link:focus-visible { outline: none; }
-  .mm-tile .mm-tile-link:focus-visible::after { outline: 3px solid var(--ring); outline-offset: 2px; }
-  .mm-tile:has(.mm-tile-link:active) { background: var(--surface-2); transform: scale(0.985); }
-  .mm-tile .mm-tile-link:active { transform: none; }
-}
-/* Dark accent text on the pill tag follows the system theme too. */
-@media (max-width: 767.98px) and (prefers-color-scheme: dark) { :root:not([data-theme]) .mm-latest-tag { color: #070b13; } }
-
-/* Desktop: keep A2. The hero action block is centred under the message, as before. */
-@media (min-width: 768px) {
-  .mm-hero-act { margin-top: 2rem; text-align: center; }
-  .mm-latest-link { gap: 0.375rem; }
 }
 
-/* ===== Header on phones (A3) ===== Wordmark lockup + Menu only; the theme toggle moves into the Menu below
-   560px (the bar keeps it from 560px). Menu rows are 52px; the panel is a full-width sheet. */
-.mmx-panel-theme { display: none; }
-@media (max-width: 559.98px) {
-  :root { --mmx-bar-h: 60px; }
-  .mmx-bar { padding-left: max(1rem, env(safe-area-inset-left, 0px)); padding-right: max(1rem, env(safe-area-inset-right, 0px)); }
-  .mmx-bar-theme { display: none; }
-  .mmx-panel-theme { display: block; padding: 0 0.75rem 0.25rem; }
-  .mmx-panel-theme .mmx-group { padding: 0; }
-  .mmx-panel-theme .mm-theme-toggle { display: flex; width: 100%; }
-  .mmx-panel-theme .mm-theme-toggle button { flex: 1; min-height: 44px; }
-  .mmx-panel-theme .mm-theme-toggle .mm-tt-label { display: inline; }
+html { scroll-padding-top: 5rem; }
+body {
+  margin: 0;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  background: var(--mm-color-ground);
+  color: var(--mm-color-ink);
+  font: 400 var(--mm-text-base) / var(--mm-leading-body) var(--mm-font-body);
+  -webkit-font-smoothing: antialiased;
 }
-@media (max-width: 1055.98px) {
-  .mmx-panel { border-radius: 0 0 20px 20px; padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); }
-  .mmx-panel .mmx-link { min-height: 52px; font-size: 17px; }
-  .mmx-panel .mmx-link:active { background: var(--surface-2); }
-  .mmx-menu > summary:active { background: var(--surface-2); }
+.mm-partial { display: contents; }
+.mm-main { flex: 1; }
+.mm-main:focus { outline: none; }
+:where(.mm-v5) a:focus-visible,
+:where(.mm-v5) button:focus-visible,
+:where(.mm-v5) input:focus-visible { outline: var(--mm-focus-ring); outline-offset: var(--mm-focus-offset); }
+
+/* ===== v5 page building blocks (Home, Library, Search, Lab) ============ mobile-first, 360px up. */
+.mm-v5 { --mm-line: var(--mm-color-rule); }
+:where(.mm-v5) :where(h1, h2, h3, p) { margin: 0; }
+.mm-display {
+  font-family: var(--mm-font-display);
+  font-weight: 800;
+  line-height: var(--mm-leading-display);
+  letter-spacing: 0.005em;
+  text-transform: uppercase;
 }
-/* Tap feedback for whole-card links (e.g. /subsidiaries). No hover-only affordances. */
-a.mm-card:active { background: var(--surface-2); }
+.mm-accent { color: var(--mm-color-accent); }
+.mm-muted { color: var(--mm-color-ink-2); }
+.mm-eyebrow { display: flex; gap: var(--mm-space-4); align-items: flex-start; margin-bottom: var(--mm-space-6); color: var(--mm-color-ink-2); }
+.mm-eyebrow::before { content: ""; flex: none; width: 2px; height: 2.25rem; background: var(--mm-color-accent); }
+.mm-text-link {
+  display: inline-flex; align-items: center; min-height: 44px;
+  color: var(--mm-color-accent); font: 500 0.8125rem/1.4 var(--mm-font-mono); letter-spacing: 0.03em;
+  text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px;
+}
+.mm-text-link:hover { color: var(--mm-color-ink); }
+.mm-section { padding: var(--mm-space-12) 0; border-bottom: 1px solid var(--mm-line); }
+.mm-section-top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: var(--mm-space-2) var(--mm-space-4); margin-bottom: var(--mm-space-6); }
+.mm-section-title { font-size: clamp(2.125rem, 1.6rem + 2.4vw, 3.25rem); }
+.mm-section-note { margin-top: var(--mm-space-2); color: var(--mm-color-ink-2); font-size: var(--mm-text-sm); }
+.mm-chips-row { display: flex; flex-wrap: wrap; gap: var(--mm-space-2); }
+.mm-chip-link {
+  display: inline-flex; align-items: center; gap: var(--mm-space-2); min-height: 44px; padding: 0 var(--mm-space-4);
+  border: 1px solid var(--mm-color-edge); border-radius: 999px; background: var(--mm-color-panel);
+  color: var(--mm-color-ink); font-size: var(--mm-text-sm); text-decoration: none; cursor: pointer;
+  font-family: var(--mm-font-body);
+  transition: border-color var(--mm-duration) var(--mm-ease), background-color var(--mm-duration) var(--mm-ease);
+}
+.mm-chip-link:hover, .mm-chip-link[aria-pressed="true"] { border-color: var(--mm-color-accent); background: var(--mm-color-selection); }
+.mm-chip-link[aria-pressed="true"] { font-weight: 700; }
+.mm-chip-icon { color: var(--mm-color-accent); }
+
+/* Hero */
+.mm-hero { position: relative; overflow: hidden; border-bottom: 1px solid var(--mm-line); background: radial-gradient(ellipse at 80% 30%, var(--mm-color-selection) 0%, transparent 45%), var(--mm-color-ground); }
+.mm-hero::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0.35;
+  background-image: linear-gradient(to right, var(--mm-color-rule) 1px, transparent 1px), linear-gradient(to bottom, var(--mm-color-rule) 1px, transparent 1px);
+  background-size: 64px 64px; mask-image: linear-gradient(to right, transparent, black);
+}
+.mm-hero-in { position: relative; z-index: 1; padding: var(--mm-space-12) 0 var(--mm-space-10); }
+.mm-hero-art { position: absolute; right: -38%; top: var(--mm-space-4); width: 100%; height: 16rem; color: var(--mm-color-accent); opacity: 0.14; pointer-events: none; }
+.mm-hero-svg { display: block; width: 100%; height: 100%; }
+.mm-hero-copy { position: relative; z-index: 2; max-width: 62rem; }
+.mm-hero-desc, .mm-hero-sub { max-width: 36rem; }
+.mm-hero-title { font-size: clamp(3.75rem, 2.2rem + 8.6vw, 9.5rem); line-height: 0.88; }
+.mm-hero-sub { margin: var(--mm-space-3) 0 var(--mm-space-5); font: 400 clamp(0.875rem, 0.7rem + 0.8vw, 1.5rem)/1.3 var(--mm-font-mono); letter-spacing: 0.16em; text-transform: uppercase; }
+.mm-hero-desc { max-width: 36rem; color: var(--mm-color-ink-2); }
+.mm-hero-links { position: relative; z-index: 2; margin-top: var(--mm-space-8); }
+
+/* Selected projects */
+.mm-projects { display: grid; gap: var(--mm-space-4); }
+.mm-project { display: flex; flex-direction: column; min-width: 0; padding: var(--mm-space-5); border: 1px solid var(--mm-color-rule); border-radius: var(--mm-radius-panel); background: var(--mm-color-panel); transition: border-color var(--mm-duration) var(--mm-ease); }
+.mm-project:hover, .mm-project:focus-within { border-color: var(--mm-color-accent); }
+.mm-project-top { display: flex; justify-content: space-between; gap: var(--mm-space-2); color: var(--mm-color-ink-2); margin-bottom: var(--mm-space-3); }
+.mm-visual { height: 9.5rem; overflow: hidden; border: 1px solid var(--mm-color-rule); border-radius: var(--mm-radius-control); background: var(--mm-color-panel-2); color: var(--mm-color-tick); }
+.mm-visual svg { display: block; width: 100%; height: 100%; }
+.mm-g-line { stroke: var(--mm-color-accent); }
+.mm-g-area { fill: var(--mm-color-accent); }
+.mm-terminal { padding: var(--mm-space-3); font: 0.6875rem/1.7 var(--mm-font-mono); color: var(--mm-color-money); white-space: pre; }
+.mm-terminal .mm-accent { color: var(--mm-color-accent); }
+.mm-visual-grid { background: repeating-linear-gradient(0deg, transparent 0 19px, var(--mm-color-rule) 20px, transparent 21px), repeating-linear-gradient(90deg, transparent 0 31px, var(--mm-color-rule) 32px, transparent 33px), radial-gradient(circle at 60% 40%, var(--mm-color-selection), var(--mm-color-panel-2) 60%); }
+.mm-project h3 { margin: var(--mm-space-4) 0 var(--mm-space-2); font-size: var(--mm-text-lg); line-height: 1.3; }
+.mm-card-link { color: inherit; text-decoration: none; }
+.mm-card-link::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.mm-project { position: relative; }
+.mm-card-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+.mm-card-link:focus-visible { outline: none; }
+.mm-card-link:focus-visible::after { outline: var(--mm-focus-ring); outline-offset: 2px; }
+.mm-project p { color: var(--mm-color-ink-2); font-size: var(--mm-text-sm); }
+.mm-card-tags { margin-top: auto; padding-top: var(--mm-space-4); color: var(--mm-color-ink-2); }
+
+/* Editorial row: Library / Lab / Moose Man */
+.mm-editorial { display: grid; gap: var(--mm-space-10); }
+.mm-col-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--mm-space-2); padding-bottom: var(--mm-space-2); margin-bottom: var(--mm-space-2); border-bottom: 1px solid var(--mm-color-edge); }
+.mm-col-head h2 { font-size: 2rem; }
+.mm-entry { display: flex; gap: var(--mm-space-4); align-items: center; min-height: 44px; padding: var(--mm-space-4) 0; border-bottom: 1px solid var(--mm-line); color: inherit; text-decoration: none; }
+.mm-entry:hover strong { color: var(--mm-color-accent); text-decoration: underline; text-underline-offset: 4px; }
+.mm-thumb { flex: none; width: 4.5rem; height: 3.75rem; border: 1px solid var(--mm-color-edge); border-radius: 4px; background: radial-gradient(circle at 30% 25%, var(--mm-color-accent-fill), transparent 60%), repeating-linear-gradient(45deg, var(--mm-color-panel-2) 0 9px, var(--mm-color-panel) 10px 19px); }
+.mm-entry small { display: block; color: var(--mm-color-ink-2); }
+.mm-entry strong { display: block; margin-top: var(--mm-space-1); font-size: var(--mm-text-sm); line-height: 1.45; }
+.mm-empty { padding: var(--mm-space-4) 0; color: var(--mm-color-ink-2); font-size: var(--mm-text-sm); border-bottom: 1px solid var(--mm-line); }
+.mm-lab-panel { position: relative; overflow: hidden; min-height: 14rem; padding: var(--mm-space-6); border: 1px solid var(--mm-color-rule); border-radius: var(--mm-radius-panel); background: var(--mm-color-panel); }
+.mm-lab-panel pre { margin: 0; font: 0.8125rem/1.85 var(--mm-font-mono); color: var(--mm-color-ink); white-space: pre-wrap; }
+.mm-lab-panel .mm-comment { color: var(--mm-color-ink-2); }
+.mm-lab-desc { padding: var(--mm-space-4) 0; color: var(--mm-color-ink-2); font-size: var(--mm-text-sm); }
+
+/* Merch band */
+.mm-merch { border-bottom: 1px solid var(--mm-line); background: radial-gradient(ellipse at 80% 40%, var(--mm-color-selection), var(--mm-color-panel-2) 65%); padding: var(--mm-space-12) 0; }
+.mm-merch h2 { margin: var(--mm-space-4) 0; font-size: clamp(3rem, 2rem + 4.5vw, 5.375rem); }
+.mm-merch p { max-width: 26rem; color: var(--mm-color-ink-2); }
+.mm-outline-button {
+  display: inline-flex; align-items: center; gap: var(--mm-space-4); min-height: var(--mm-control-height); margin: var(--mm-space-6) 0 var(--mm-space-4); padding: 0 var(--mm-space-5);
+  border: 1px solid var(--mm-color-accent); border-radius: var(--mm-radius-control); background: var(--mm-color-panel);
+  color: var(--mm-color-ink); font: 500 0.8125rem var(--mm-font-mono); letter-spacing: 0.04em; text-decoration: none;
+}
+.mm-outline-button:hover { background: var(--mm-color-selection); }
+
+/* About + contact */
+.mm-studio { display: grid; gap: var(--mm-space-10); }
+.mm-studio-copy { max-width: 36rem; color: var(--mm-color-ink-2); }
+.mm-studio-links { display: flex; flex-wrap: wrap; gap: var(--mm-space-1) var(--mm-space-6); margin-top: var(--mm-space-4); }
+
+/* Inner page hero + breadcrumbs (Library, Search, Lab) */
+.mm-page-hero { border-bottom: 1px solid var(--mm-line); background: radial-gradient(ellipse at 85% 20%, var(--mm-color-selection), transparent 45%); }
+.mm-page-hero-in { padding: var(--mm-space-8) 0 var(--mm-space-10); }
+.mm-crumbs ol { display: flex; flex-wrap: wrap; gap: var(--mm-space-2); margin: 0 0 var(--mm-space-6); padding: 0; list-style: none; color: var(--mm-color-ink-2); }
+.mm-crumbs li + li::before { content: "/"; margin-right: var(--mm-space-2); }
+.mm-crumbs a { color: var(--mm-color-accent); display: inline-flex; min-height: 24px; align-items: center; }
+.mm-page-title { font-size: var(--mm-text-h1); }
+.mm-page-sub { margin: var(--mm-space-2) 0 var(--mm-space-4); font: 400 0.875rem/1.4 var(--mm-font-mono); letter-spacing: 0.14em; color: var(--mm-color-ink-2); }
+
+/* Library / search list (one UI, scoped by data-scope) */
+.mm-lib-form { display: flex; align-items: center; gap: var(--mm-space-3); min-height: 3.5rem; padding: var(--mm-space-1) var(--mm-space-1) var(--mm-space-1) var(--mm-space-5); border: 1px solid var(--mm-color-edge); border-radius: 999px; background: var(--mm-color-panel); }
+.mm-lib-form:focus-within { border-color: var(--mm-color-accent); box-shadow: 0 0 0 3px var(--mm-color-selection); }
+.mm-lib-form svg { width: 1.25rem; height: 1.25rem; flex: none; color: var(--mm-color-ink-2); }
+.mm-lib-form input { flex: 1; min-width: 0; min-height: 44px; border: 0; background: transparent; color: var(--mm-color-ink); font: inherit; }
+.mm-lib-form input:focus-visible { outline: none; }
+.mm-lib-form input::placeholder { color: var(--mm-color-ink-2); opacity: 1; }
+.mm-lib-submit { display: grid; place-items: center; width: 3rem; height: 3rem; flex: none; border: 0; border-radius: 50%; background: var(--mm-color-accent-fill); color: var(--mm-color-on-accent); cursor: pointer; }
+.mm-lib-submit:hover { background: var(--mm-color-accent-fill-hover); }
+.mm-filters { display: grid; gap: var(--mm-space-3); margin-top: var(--mm-space-5); }
+.mm-filter-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--mm-space-2) var(--mm-space-3); }
+.mm-filter-row > .mm-micro { min-width: 3rem; color: var(--mm-color-ink-2); }
+.mm-lib-meta { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--mm-space-2); margin: var(--mm-space-6) 0 var(--mm-space-2); }
+.mm-link-button { min-height: 44px; padding: 0; border: 0; background: none; color: var(--mm-color-accent); font: 500 0.8125rem var(--mm-font-mono); cursor: pointer; text-decoration: underline; text-underline-offset: 4px; }
+.mm-lib-list { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--mm-line); }
+.mm-lib-list li { border-bottom: 1px solid var(--mm-line); }
+.mm-lib-list a { display: block; padding: var(--mm-space-4) 0; color: inherit; text-decoration: none; }
+.mm-lib-list a:hover .mm-lib-title { color: var(--mm-color-accent); text-decoration: underline; text-underline-offset: 4px; }
+.mm-lib-kind { display: block; color: var(--mm-color-ink-2); }
+.mm-lib-title { display: block; margin-top: var(--mm-space-1); font-weight: 700; font-size: var(--mm-text-lg); line-height: 1.35; }
+.mm-lib-summary { display: block; margin-top: var(--mm-space-1); color: var(--mm-color-ink-2); font-size: var(--mm-text-sm); }
+.mm-lib-note { margin-top: var(--mm-space-6) ; max-width: 46rem; color: var(--mm-color-ink-2); font-size: var(--mm-text-sm); }
+.mm-two-col { display: grid; gap: var(--mm-space-8); }
+.mm-mini-cards { display: grid; gap: var(--mm-space-4); margin-top: var(--mm-space-5); }
+.mm-mini-card { padding: var(--mm-space-5); border: 1px solid var(--mm-color-rule); border-radius: var(--mm-radius-panel); background: var(--mm-color-panel); }
+.mm-mini-card h3 { margin: var(--mm-space-2) 0 ; font-size: var(--mm-text-lg); }
+.mm-mini-card p { color: var(--mm-color-ink-2); font-size: var(--mm-text-sm); }
+
+@media (min-width: 751px) {
+  .mm-hero-in { padding: var(--mm-space-20) 0 var(--mm-space-12); min-height: 36rem; }
+  .mm-hero-art { right: -4%; top: var(--mm-space-6); width: 55%; height: 30rem; opacity: 0.2; }
+  .mm-projects { grid-template-columns: 1.1fr 1fr 1fr; }
+  .mm-editorial { grid-template-columns: 1fr 1fr; }
+  .mm-editorial > :last-child { grid-column: 1 / -1; }
+  .mm-studio, .mm-two-col { grid-template-columns: 1fr 1fr; }
+  .mm-mini-cards { grid-template-columns: repeat(3, 1fr); }
+  .mm-section { padding: var(--mm-space-16) 0; }
+  .mm-page-hero-in { padding: var(--mm-space-12) 0 var(--mm-space-16); }
+}
+@media (min-width: 1101px) {
+  .mm-editorial { grid-template-columns: 1fr 1.2fr 1fr; }
+  .mm-editorial > :last-child { grid-column: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mm-v5 *, .mm-v5 *::before, .mm-v5 *::after { transition: none ; }
+}
+
+/* ===== Pages not yet redesigned ========================================
+   The tokens package owns .mm-shell (centred column) and .mm-chip (search overlay); the older pages use these instead. */
+.mm-shell { background: none; }
+.mm-legacy { background: radial-gradient(900px 440px at 50% -10%, var(--mm-color-selection), transparent 60%), var(--mm-color-ground); }
+.mm-legacy-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); font-size: 12px; font-weight: 700; text-decoration: none; }
+.mm-lab-areas { margin-top: var(--mm-space-12) ; }
+/* Links inside running text are underlined, not colour-only (WCAG 1.4.1). */
+.mm-v5 :is(p, .mm-empty) a:not([class*="mm-"]),
+.mm-v5 p a.mm-accent { color: var(--mm-color-accent); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+/* Tokens 0.1.0 header: between 751px and 1000px the full nav + search label + theme switch is ~30px too wide.
+   Show the search trigger as an icon there (same as phones) until tokens 0.1.1 fixes it upstream. */
+@media (min-width: 751px) and (max-width: 1000px) {
+  .mm-header-in { gap: var(--mm-space-4); }
+  .mm-nav { gap: var(--mm-space-3); }
+  .mm-search-trigger { padding: 0; justify-content: center; width: 48px; height: 48px; }
+  .mm-st-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
+/* The Oct 30 nav labels (Moose Mumbles, Moo$e Money) are ~120px wider than the v5 ones. Up to 940px the brand shows
+   its moose tile only; the link keeps aria-label "The Moose Matrix home". TODO(tokens 0.1.1): a compact header step. */
+@media (min-width: 751px) and (max-width: 940px) {
+  .mm-brand-title { display: none; }
+}
+
+/* Hub link on the pages it holds (Research on /builds, /lab, /library): same look as the current page.
+   Set by public/js/mm-nav-current.js. TODO(tokens 0.1.1): style [aria-current="true"] in header.css. */
+.mm-nav-link[aria-current="true"]::after { transform: scaleX(1); }
+.mm-nav-link[aria-current="true"] { color: var(--mm-color-accent); }
+.mm-menu-nav a[aria-current="true"] { color: var(--mm-color-accent); border-color: var(--mm-color-accent); }
+.mm-hub { list-style: none; padding: 0; }
+.mm-hub > li { position: relative; }

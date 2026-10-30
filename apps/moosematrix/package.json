@@ -2,13 +2,14 @@
   "name": "moosematrix",
   "private": true,
   "scripts": {
-    "predev": "bash ./scripts/free-port.sh 3001",
+    "predev": "bash ./scripts/free-port.sh 3001 && npm run prebuild-assets",
     "dev": "next dev --webpack -p 3001",
-    "build": "next build && node scripts/csp-hashes.mjs",
+    "build": "npm run prebuild-assets && next build && node scripts/csp-hashes.mjs",
     "start": "node server.js",
     "lint": "next lint",
     "test": "node --test tests/*.test.ts tests/*.test.mjs",
-    "test:e2e": "node --test tests/e2e/header.e2e.mjs"
+    "test:e2e": "node --test tests/e2e/header.e2e.mjs",
+    "prebuild-assets": "node scripts/sync-tokens.mjs && node scripts/build-search-index.mjs"
   },
   "dependencies": {
     "@moosematrix/ui": "file:../../packages/ui",

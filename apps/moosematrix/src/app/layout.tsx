@@ -1,8 +1,11 @@
 // layout.tsx
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import { FooterStatic } from "@moosematrix/ui";
-import { SiteNav } from "../components/SiteNav";
+// Header, footer and search overlay are the shared @moosematrix/tokens partials, read once at build time
+// (every page is prerendered). See src/lib/partials.mjs for how their links map to today's routes.
+import { loadPartials } from "../lib/partials.mjs";
+
+const PARTIALS = loadPartials();
 
 export const metadata: Metadata = {
   title: "The Moose Matrix",
@@ -80,13 +83,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Plain inline script (not next/script): runs while <head> is parsed, before first paint, so the
             saved theme never flashes. next/script "beforeInteractive" queues it until the runtime boots. */}
         <script id="mm-theme-init" dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
+        {/* Self-hosted fonts (font-src 'self'): preload the two above-the-fold faces (rollout CWV budget). */}
+        <link rel="preload" href="/mm/fonts/IBMPlexSans-Regular-Latin1.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        <link rel="preload" href="/mm/fonts/BarlowCondensed-ExtraBold-Latin1.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        <link rel="stylesheet" href="/mm/fonts.css" />
+        {/* Header behaviour (theme toggle, current link, menu) and the search overlay; same-origin, deferred. */}
+        <script src="/mm/nav.js" defer />
+        <script src="/js/mm-nav-current.js" defer />
+        <script src="/mm/search.js" defer />
       </head>
-      <body className="min-h-svh antialiased flex flex-col overflow-x-hidden">
-        {/* Skip link first in the tab order; target is the one <main> below (pages render no <main> of their own). */}
-        <a href="#content" className="mm-skip-link">Skip to content</a>
-        <SiteNav />
-        <main id="content" tabIndex={-1} className="flex-1">{children}</main>
-        <FooterStatic />
+      <body>
+        {/* Skip link (first in the tab order), header with the moose-head nav, then the one <main id="main">;
+            pages render no <main> of their own. The wrappers are display:contents, so they add no box. */}
+        <div className="mm-partial" dangerouslySetInnerHTML={{ __html: PARTIALS.header }} />
+        <main id="main" tabIndex={-1} className="mm-main">{children}</main>
+        <div className="mm-partial" dangerouslySetInnerHTML={{ __html: PARTIALS.search + PARTIALS.footer }} />
       </body>
     </html>
   );

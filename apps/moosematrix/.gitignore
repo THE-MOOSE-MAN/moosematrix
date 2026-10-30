@@ -1,0 +1,3 @@
+# Generated at build (scripts/sync-tokens.mjs, scripts/build-search-index.mjs)
+public/mm/
+public/search-index.json

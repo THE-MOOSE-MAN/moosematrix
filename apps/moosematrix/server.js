@@ -50,7 +50,34 @@ app.prepare().then(() => {
   });
 
   // ----------------------------
-  // 3. Default Next.js handler
+  // 3. /search-index.json (rollout §2): The Moose Man's search overlay is its one foreign reader, so the CORS origin is a
+  //    fixed value, never an echo, and there is no Allow-Credentials. Plain GET, so no preflight.
+  // ----------------------------
+  const indexCors = (res) => {
+    res.setHeader("Access-Control-Allow-Origin", "https://mooseman.moosematrix.com");
+    res.setHeader("Vary", "Origin");
+    res.setHeader("Cache-Control", "public, max-age=300");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+  };
+  server.get("/search-index.json", (req, res, nextMw) => {
+    indexCors(res);
+    res.setHeader("Content-Type", "application/json");
+    nextMw();
+  });
+  // OPTIONS on the index and the static scripts: 204 with the same CORS rules as GET (the index allows the mooseman
+  // origin for GET/HEAD only, no credentials; /mm/* and /js/* grant no CORS). Next would answer these with a 500.
+  server.options(["/search-index.json", "/mm/*", "/js/*"], (req, res) => {
+    if (req.path === "/search-index.json") {
+      indexCors(res);
+      res.setHeader("Access-Control-Allow-Methods", "GET, HEAD");
+      res.setHeader("Access-Control-Max-Age", "600");
+    }
+    res.setHeader("Allow", "GET, HEAD, OPTIONS");
+    res.status(204).end();
+  });
+
+  // ----------------------------
+  // 4. Default Next.js handler
   // ----------------------------
   server.all("*", (req, res) => handle(req, res));
 

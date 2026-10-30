@@ -64,7 +64,7 @@ function statusPill(status: Door["status"]) {
 
 export default function SubsidiariesPage() {
   return (
-    <div className="mm-shell">
+    <div className="mm-legacy">
       <div className="mx-auto max-w-6xl px-4 py-10 md:px-6 md:py-14">
         {/* Header */}
         <div className="flex flex-col gap-3">

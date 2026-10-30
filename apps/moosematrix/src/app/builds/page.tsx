@@ -73,7 +73,7 @@ const PROJECTS: Build[] = [
 function StatusPill({ status }: { status: Status }) {
   const dot = status === "Live" ? "bg-[var(--accent)]" : "border border-[var(--muted)]";
   return (
-    <span className="mm-chip mm-mono inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.16em]">
+    <span className="mm-legacy-chip mm-mono inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.16em]">
       <span aria-hidden="true" className={`inline-block h-2 w-2 rounded-full ${dot}`} />
       {status}
     </span>
@@ -86,7 +86,7 @@ function linkLabel(b: Build) {
 
 export default function BuildsPage() {
   return (
-    <div className="mm-shell">
+    <div className="mm-legacy">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-10 sm:pt-14 pb-16">
         <div className="mm-mono text-[12px] uppercase tracking-[0.22em] text-[var(--muted)]">Research &amp; Development</div>
 
