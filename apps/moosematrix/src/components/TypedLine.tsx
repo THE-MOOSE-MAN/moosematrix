@@ -1,5 +1,5 @@
 // Headline that types itself out once on load, the WHOLE line, with one phrase in the accent colour
-// (Dustin, 22 Oct 2026; replaces TypedAccent, which typed only the accent word). Pure CSS
+// (the owner, 22 Oct 2026; replaces TypedAccent, which typed only the accent word). Pure CSS
 // (packages/ui/src/styles.css, .mmx-tw*): server-rendered, no client JS, no inline styles, so the CSP is unchanged.
 // - The sentence is in the HTML from the start as one visually-hidden copy (screen readers read it in one piece,
 //   search engines and no-JS get it). The per-character copy is aria-hidden, so it is never read glyph by glyph.

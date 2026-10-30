@@ -1,95 +1,99 @@
-// @moosematrix/tokens 0.1.0 — header behaviour. Load with <script src=".../nav.js" defer></script>.
+// @moosematrix/tokens 0.1.1 — header behaviour. Load with <script src=".../nav.js" defer></script>.
 // No inline script or style is needed, so it works under a strict CSP (script-src 'self').
-// Everything here is an enhancement: without JS the links, the <details> menu and system theme still work.
+// Everything here is an enhancement: without JS the links and the <details> menu work and the page is dark.
 //
-// Theme: same shared preference as packages/ui ThemeToggle, the "mm-theme" cookie
-// (light | dark; absent = system), Domain=.moosematrix.com on moosematrix hosts, 1 year, SameSite=Lax.
-// For no flash on first paint, render <html data-theme="..."> on the server from the cookie;
-// this script also applies the cookie on load for pages that cannot.
+// Theme: a 2-state toggle (<button aria-pressed>, pressed = light). It is the only interactive writer of the
+// shared "mm-theme" cookie; theme-init.js applies the saved value before first paint. Both use the same
+// theme-core.js block below (see theme-core.js for the cookie contract).
 (function () {
   "use strict";
+  // BEGIN theme-core.js (copied by scripts/build.mjs; edit theme-core.js, not this block)
+  var MM_THEME_LIGHT = "mm-theme=light; Domain=.moosematrix.com; Path=/; Secure; SameSite=Lax; Max-Age=31536000";
+  var MM_THEME_DARK = "mm-theme=dark; Domain=.moosematrix.com; Path=/; Secure; SameSite=Lax; Max-Age=31536000";
+  var MM_THEME_COLOR_LIGHT = "#f7f6f3";
+  var MM_THEME_COLOR_DARK = "#070b13";
 
-  var COOKIE = "mm-theme";
-  var ONE_YEAR = 60 * 60 * 24 * 365;
-  var COLORS = { light: "#f7f6f3", dark: "#070b13" };
+  function mmThemeValues(cookies) {
+    var re = /(?:^|;\s*)mm-theme=([^;]*)/g;
+    var out = [];
+    var m;
+    var s = typeof cookies === "string" ? cookies : "";
+    while ((m = re.exec(s)) !== null) out.push(m[1]);
+    return out;
+  }
+
+  function mmThemeRead(cookies) {
+    var v = mmThemeValues(cookies);
+    for (var i = 0; i < v.length; i++) if (v[i] === "light") return "light";
+    return "dark";
+  }
+
+  function mmThemeHostPaths(pathname) {
+    var out = ["/"];
+    var p = typeof pathname === "string" ? pathname : "/";
+    if (!/^\/[A-Za-z0-9._~%\/-]*$/.test(p)) return out;
+    var dir = p.lastIndexOf("/") > 0 ? p.slice(0, p.lastIndexOf("/")) : "/";
+    if (out.indexOf(dir) < 0) out.push(dir);
+    if (out.indexOf(p) < 0) out.push(p);
+    return out;
+  }
+
+  function mmThemeDeleteHostOnly(doc, pathname) {
+    var paths = mmThemeHostPaths(pathname);
+    for (var i = 0; i < paths.length; i++) doc.cookie = "mm-theme=; Path=" + paths[i] + "; Max-Age=0; Secure; SameSite=Lax";
+  }
+
+  function mmThemeMigrate(doc, pathname) {
+    var v = mmThemeValues(doc.cookie);
+    var odd = v.length > 1;
+    for (var i = 0; i < v.length; i++) if (v[i] !== "light" && v[i] !== "dark") odd = true;
+    if (odd) mmThemeDeleteHostOnly(doc, pathname);
+    return odd;
+  }
+
+  function mmThemeApply(doc, mode) {
+    var root = doc.documentElement;
+    if (mode === "light") root.setAttribute("data-theme", "light");
+    else root.removeAttribute("data-theme");
+    var metas = doc.querySelectorAll ? doc.querySelectorAll('meta[name="theme-color"]') : [];
+    for (var i = 0; i < metas.length; i++) metas[i].setAttribute("content", mode === "light" ? MM_THEME_COLOR_LIGHT : MM_THEME_COLOR_DARK);
+  }
+
+  function mmThemeWrite(doc, mode, pathname) {
+    mmThemeDeleteHostOnly(doc, pathname);
+    doc.cookie = mode === "light" ? MM_THEME_LIGHT : MM_THEME_DARK;
+  }
+  // END theme-core.js
+
   var root = document.documentElement;
+  var toggles = document.querySelectorAll("[data-mm-theme-toggle]");
 
-  function readCookie() {
-    var parts = document.cookie ? document.cookie.split(";") : [];
-    for (var i = 0; i < parts.length; i++) {
-      var kv = parts[i].trim().split("=");
-      if (kv[0] === COOKIE) {
-        var v = kv.slice(1).join("=");
-        return v === "light" || v === "dark" ? v : "system";
-      }
-    }
-    return null;
+  function syncToggles() {
+    var pressed = root.getAttribute("data-theme") === "light" ? "true" : "false";
+    for (var i = 0; i < toggles.length; i++) toggles[i].setAttribute("aria-pressed", pressed);
   }
 
-  function readMode() {
-    var v = root.getAttribute("data-theme");
-    return v === "light" || v === "dark" ? v : "system";
-  }
+  // Same reader as theme-init.js (covers a page that lacks it); reading never writes.
+  mmThemeApply(document, mmThemeRead(document.cookie));
 
-  function writeCookie(mode) {
-    var h = window.location.hostname;
-    var shared = h === "moosematrix.com" || h.slice(-16) === ".moosematrix.com";
-    var secure = window.location.protocol === "https:";
-    var attrs = (shared ? "; Domain=.moosematrix.com" : "") + "; Path=/; SameSite=Lax" + (secure ? "; Secure" : "");
-    if (shared) document.cookie = COOKIE + "=; Path=/; Max-Age=0; SameSite=Lax"; // drop a legacy host-only cookie
-    document.cookie = mode === "system"
-      ? COOKIE + "=" + attrs + "; Max-Age=0"
-      : COOKIE + "=" + mode + attrs + "; Max-Age=" + ONE_YEAR;
-  }
-
-  function applyMode(mode) {
-    if (mode === "system") root.removeAttribute("data-theme");
-    else root.setAttribute("data-theme", mode);
-    var meta = document.getElementById("mm-theme-color");
-    if (mode === "system") {
-      if (meta) meta.remove();
-      return;
-    }
-    if (!meta) {
-      meta = document.createElement("meta");
-      meta.name = "theme-color";
-      meta.id = "mm-theme-color";
-      document.head.prepend(meta);
-    }
-    meta.content = COLORS[mode];
-  }
-
-  function syncGroups() {
-    var mode = readMode();
-    var buttons = document.querySelectorAll("[data-mm-theme] [data-theme-set]");
-    for (var i = 0; i < buttons.length; i++) {
-      buttons[i].setAttribute("aria-pressed", String(buttons[i].getAttribute("data-theme-set") === mode));
-    }
-  }
-
-  // Apply a saved choice if the server did not.
-  var saved = readCookie();
-  if (saved && !root.hasAttribute("data-theme")) applyMode(saved);
-
-  var groups = document.querySelectorAll("[data-mm-theme]");
-  for (var g = 0; g < groups.length; g++) {
-    groups[g].hidden = false;
-    groups[g].addEventListener("click", function (event) {
-      var btn = event.target instanceof Element ? event.target.closest("[data-theme-set]") : null;
-      if (!btn) return;
-      var mode = btn.getAttribute("data-theme-set");
-      if (mode !== "system" && mode !== "light" && mode !== "dark") return;
-      applyMode(mode);
-      writeCookie(mode);
-      syncGroups();
+  for (var t = 0; t < toggles.length; t++) {
+    toggles[t].addEventListener("click", function () {
+      var mode = root.getAttribute("data-theme") === "light" ? "dark" : "light";
+      mmThemeApply(document, mode);
+      mmThemeWrite(document, mode, window.location.pathname);
+      syncToggles();
     });
   }
-  syncGroups();
+  var groups = document.querySelectorAll("[data-mm-theme]");
+  for (var g = 0; g < groups.length; g++) groups[g].hidden = false;
+  syncToggles();
 
-  // Mark the current section in both navs (same-host, path-prefix match; "/" only matches itself).
+  // Mark the current section in both navs when the page did not (same-host, path-prefix match; "/" only matches
+  // itself). renderHeader({ current }) marks it at build time; then this does nothing.
   var here = window.location;
   var links = document.querySelectorAll(".mm-nav a[href], .mm-menu-nav a[href]");
-  for (var l = 0; l < links.length; l++) {
+  var marked = document.querySelector(".mm-nav [aria-current], .mm-menu-nav [aria-current]");
+  for (var l = 0; l < links.length && !marked; l++) {
     var url;
     try {
       url = new URL(links[l].getAttribute("href"), here.href);

@@ -20,11 +20,11 @@ The deploy job streams `scripts/deploy-safe.sh` plus the remote body over one SS
 
 `bash -s` reads its script from stdin as it goes. Any child that reads stdin (`docker compose run`, which keeps
 stdin attached by default, or `docker compose exec`) would eat the rest of the script, and bash would exit 0
-with the verify/rollback/record steps silently skipped (Vulnerability Bot R39 H1; it happened on moose-brain).
+with the verify/rollback/record steps silently skipped (this happened once on moose-brain).
 Wrapping the body in a function makes bash parse all of it before anything runs, and `</dev/null` gives every
 child an empty stdin. Keep new remote commands inside `main`.
 
-## Pre-merge step for Dustin: add the `VPS_KNOWN_HOSTS` repo secret
+## Pre-merge step for the owner: add the `VPS_KNOWN_HOSTS` repo secret
 
 The deploy now pins the VPS host key from a secret (`StrictHostKeyChecking=yes`) instead of
 `StrictHostKeyChecking=no` / trusting `ssh-keyscan` on every run. **Until the secret exists the deploy job stops
@@ -57,9 +57,9 @@ What this means for the secret:
   `moose-vps ssh-ed25519 AAAA…`. The host field can be anything (it is replaced); **the key is what is pinned.**
 - Hashed entries (`|1|…`, from `ssh-keyscan -H`) and `@cert-authority`/`@revoked` lines are rejected: the step
   fails with an error and nothing connects.
-- Blank and `#` comment lines are skipped (VB R39 L9); at least one key line is required. The secret reaches the
-  step through `env:`, never as inline `${{ }}` text in the script (L10).
-- The same value Vulnerability Bot prepared for moose-brain (the 3 `[<IP>]:<PORT> <type> <key>` lines read from the
+- Blank and `#` comment lines are skipped; at least one key line is required. The secret reaches the
+  step through `env:`, never as inline `${{ }}` text in the script.
+- The same value prepared for moose-brain (the 3 `[<IP>]:<PORT> <type> <key>` lines read from the
   VPS's own `/etc/ssh/ssh_host_*_key.pub`) works here unchanged, whether `VPS_HOST` is the IP or a hostname.
 - Check before setting: `ssh-keygen -lf <file>` must show the VPS fingerprints.
 - A wrong key fails closed ("Host key verification failed"); nothing reaches the VPS.

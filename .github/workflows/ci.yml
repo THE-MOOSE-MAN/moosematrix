@@ -1,5 +1,7 @@
-# Pull request checks. Read-only token, no deploy, no secrets except the
-# optional denylist presence test (its value is never printed).
+# Pull request checks. Read-only token, no deploy. The only secret is REGISTRY_DENYLIST, used by the
+# privacy scan at the end of "PR checks" (env only, 0600 temp file, every term masked, never printed).
+# The privacy scan fails closed: if the secret is missing (e.g. a fork PR, which never gets secrets) the
+# job fails. Never run this workflow on pull_request_target.
 name: CI
 
 on:
@@ -19,7 +21,6 @@ jobs:
     timeout-minutes: 15
     env:
       BASE_REF: ${{ github.event.pull_request.base.ref }}
-      HAS_DENYLIST: ${{ secrets.REGISTRY_DENYLIST != '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
@@ -41,15 +42,35 @@ jobs:
         working-directory: packages/tokens
         run: npm run lint
 
-      - name: Tokens package build (demo must be up to date)
+      - name: Tokens package build (generated files must be committed)
         working-directory: packages/tokens
         run: |
           npm run build
-          git diff --exit-code -- demo/
+          git diff --exit-code -- demo/ header.html footer.html nav.js theme-init.js hashed/
+          untracked=$(git status --porcelain --untracked-files=all -- . | grep '^??' || true)
+          if [ -n "$untracked" ]; then echo "$untracked"; echo "::error::build created files that are not committed"; exit 1; fi
 
-      - name: Tokens package contents
+      - name: Tokens package tests (render, theme cookie, theme-init delivery, npm pack)
         working-directory: packages/tokens
-        run: npm pack --dry-run
+        run: npm test
+
+      - name: Tokens package tarball
+        working-directory: packages/tokens
+        run: |
+          mkdir -p "$RUNNER_TEMP/pack"
+          npm pack --pack-destination "$RUNNER_TEMP/pack"
+          tar -xzf "$RUNNER_TEMP/pack/"*.tgz -C "$RUNNER_TEMP/pack"
+
+      - name: Secret scan of the tarball (gitleaks)
+        env:
+          GITLEAKS_URL: https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
+          GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/gitleaks.tgz" "$GITLEAKS_URL"
+          echo "$GITLEAKS_SHA256  $RUNNER_TEMP/gitleaks.tgz" | sha256sum -c -
+          mkdir -p "$RUNNER_TEMP/gitleaks"
+          tar -xzf "$RUNNER_TEMP/gitleaks.tgz" -C "$RUNNER_TEMP/gitleaks" gitleaks
+          "$RUNNER_TEMP/gitleaks/gitleaks" dir --no-banner --redact "$RUNNER_TEMP/pack/package"
 
       - name: Token version check
         run: |
@@ -102,17 +123,35 @@ jobs:
           npm ci --ignore-scripts --no-audit --no-fund
           CHROME_PATH="$(command -v google-chrome)" node run-axe.mjs ../../../packages/tokens
 
-      - name: Name denylist
-        if: env.HAS_DENYLIST == 'true'
+      - name: Theme (first paint, toggle, shared cookie across origins, JS off)
+        working-directory: .github/ci-tools/a11y
+        run: CHROME_PATH="$(command -v google-chrome)" node run-theme.mjs ../../../packages/tokens
+
+      # Privacy scan. Required: it is part of this "PR checks" job. Fails closed.
+      - name: Privacy scan (self-test, canaries only)
+        run: node --test .github/ci-tools/privacy-scan/scan.test.mjs
+
+      - name: Privacy scan (whole tree, tokens tarball, rendered nav)
         env:
           REGISTRY_DENYLIST: ${{ secrets.REGISTRY_DENYLIST }}
         run: |
-          mapfile -t files < <(while IFS= read -r f; do [ -f "$f" ] && echo "$f"; done < "$RUNNER_TEMP/changed.txt")
-          node .github/ci-tools/check-denylist.mjs "${files[@]}"
+          set +x
+          umask 077
+          if [ -z "${REGISTRY_DENYLIST//[[:space:],]/}" ]; then
+            echo "DENYLIST NOT RUN – secret missing"
+            exit 1
+          fi
+          printf '%s' "$REGISTRY_DENYLIST" > "$RUNNER_TEMP/denylist"
+          unset REGISTRY_DENYLIST
+          node .github/ci-tools/privacy-scan/mask.mjs "$RUNNER_TEMP/denylist"
+          scan=.github/ci-tools/privacy-scan/scan.mjs
+          node "$scan" --terms "$RUNNER_TEMP/denylist" --tree .
+          node "$scan" --terms "$RUNNER_TEMP/denylist" --tarball "$(ls "$RUNNER_TEMP/pack/"*.tgz)" --profile tokens-tarball
+          node "$scan" --terms "$RUNNER_TEMP/denylist" --dir packages/tokens/tests/snapshots --profile none
 
-      - name: Name denylist (skipped)
-        if: env.HAS_DENYLIST != 'true'
-        run: echo "REGISTRY_DENYLIST is not set; denylist check skipped."
+      - name: Privacy scan cleanup
+        if: always()
+        run: rm -f "$RUNNER_TEMP/denylist"
 
   app:
     name: App build and tests (apps/moosematrix)

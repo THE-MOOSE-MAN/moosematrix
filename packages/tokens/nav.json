@@ -1,0 +1,49 @@
+{
+  "$schema": "./nav.schema.json",
+  "version": "0.1.1",
+  "main": [
+    { "id": "research", "label": "Research", "href": "https://moosematrix.com/research/", "tick": 3 },
+    { "id": "moose-mumbles", "label": "Moose Mumbles", "href": "https://mooseman.moosematrix.com/moose-mumbles", "tick": 2 },
+    { "id": "money", "label": "Moo$e Money", "href": "https://m2.moosematrix.com/", "tick": 1 },
+    { "id": "shop", "label": "Shop", "href": "https://merch.moosematrix.com/", "tick": 2 },
+    { "id": "about", "label": "About", "href": "https://moosematrix.com/about/", "tick": 3 }
+  ],
+  "research": {
+    "children": [
+      { "id": "projects", "label": "Projects", "href": "https://moosematrix.com/projects/" },
+      { "id": "lab", "label": "Lab", "href": "https://moosematrix.com/lab/" },
+      { "id": "library", "label": "Library", "href": "https://moosematrix.com/library/" }
+    ]
+  },
+  "siteRows": {
+    "mooseman": {
+      "label": "The Moose Man",
+      "items": [
+        { "id": "mooseman-home", "label": "Home", "href": "https://mooseman.moosematrix.com/" },
+        { "id": "mooseman-mumbles", "label": "Moose Mumbles", "href": "https://mooseman.moosematrix.com/moose-mumbles" }
+      ]
+    },
+    "m2": {
+      "label": "Moo$e Money",
+      "items": [
+        { "id": "m2-home", "label": "Moo$e Money", "href": "https://m2.moosematrix.com/" }
+      ]
+    },
+    "merch": {
+      "label": "Shop",
+      "items": [
+        { "id": "merch-home", "label": "Shop", "href": "https://merch.moosematrix.com/" }
+      ]
+    }
+  },
+  "heroTopics": [
+    { "id": "reverse-engineering", "label": "Reverse engineering", "q": "reverse engineering" },
+    { "id": "security", "label": "Security", "q": "security" },
+    { "id": "books", "label": "Books", "q": "books", "scope": "library" },
+    { "id": "ctf", "label": "CTF", "q": "ctf", "scope": "ctf" },
+    { "id": "money-tools", "label": "Money tools", "q": "money", "scope": "money" }
+  ],
+  "menuExtras": [
+    { "id": "moose-man", "label": "The Moose Man", "href": "https://mooseman.moosematrix.com/" }
+  ]
+}

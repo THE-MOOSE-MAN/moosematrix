@@ -8,7 +8,7 @@
 #   --run-now                 run one check right away
 #   --dry-run                 print what would change, change nothing
 #
-# Undo: ops/hostcheck/uninstall.sh. Needs Dustin's approval before running on the VPS (host change).
+# Undo: ops/hostcheck/uninstall.sh. Needs the owner's approval before running on the VPS (host change).
 set -euo pipefail
 
 ROOT="${MOOSE_ROOT:-}"          # tests only: install into a fake root
@@ -20,7 +20,7 @@ UNITS="$ROOT/etc/systemd/system"
 RECORDS="$ROOT/var/lib/moose-deploys"
 SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# The systemd timer is the only supported scheduler: it carries the sandbox (VB R39 M4 removed --cron).
+# The systemd timer is the only supported scheduler: it carries the sandbox (--cron was removed).
 PREP=0 RUN_NOW=0 DRY=0
 for a in "$@"; do
   case "$a" in

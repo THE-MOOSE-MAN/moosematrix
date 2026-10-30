@@ -1,4 +1,4 @@
-/* @moosematrix/tokens 0.1.0 — self-hosted fonts (SIL OFL 1.1, see fonts/README.md).
+/* @moosematrix/tokens 0.1.1 — self-hosted fonts (SIL OFL 1.1, see fonts/README.md).
    Same-origin only, so CSP font-src 'self' is enough. URLs are relative to this file.
    Latin-1 subsets; anything outside unicode-range falls back to the system stack in tokens.css.
    Weights 500 and 600 resolve to the nearest shipped face (400 and 700) by normal CSS font matching. */
