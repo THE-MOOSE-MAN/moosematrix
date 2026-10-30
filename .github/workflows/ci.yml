@@ -127,7 +127,7 @@ jobs:
         working-directory: .github/ci-tools/a11y
         run: CHROME_PATH="$(command -v google-chrome)" node run-theme.mjs ../../../packages/tokens
 
-      # Privacy scan (card F6-X / T1). Required: it is part of this "PR checks" job. Fails closed.
+      # Privacy scan. Required: it is part of this "PR checks" job. Fails closed.
       - name: Privacy scan (self-test, canaries only)
         run: node --test .github/ci-tools/privacy-scan/scan.test.mjs
 

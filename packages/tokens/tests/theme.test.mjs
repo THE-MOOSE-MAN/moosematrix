@@ -1,4 +1,4 @@
-// F2 theme cookie contract: theme-core.js (and its bundled copies in theme-init.js and nav.js) against a fake
+// Theme cookie contract: theme-core.js (and its bundled copies in theme-init.js and nav.js) against a fake
 // document with spies. No browser; the browser side is .github/ci-tools/a11y/run-theme.mjs.
 import { test } from "node:test";
 import assert from "node:assert/strict";

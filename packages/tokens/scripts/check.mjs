@@ -70,7 +70,7 @@ for (const f of js.filter((f) => !f.startsWith("scripts/"))) {
 }
 if (failures.length === n) ok("scripts: no HTML sinks, eval, inline styles or new-tab links (nav.js, search.js)");
 
-// Theme code: constants only reach the DOM and the cookie (UI card F2)
+// Theme code: constants only reach the DOM and the cookie
 n = failures.length;
 for (const f of ["theme-core.js", "theme-init.js", "nav.js"]) {
   const s = read(f);

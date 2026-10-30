@@ -2,7 +2,7 @@
 // Not loaded on its own: scripts/build.mjs copies this block verbatim into theme-init.js (first paint)
 // and nav.js (the toggle), between the "theme-core.js" markers, and a test checks both copies match.
 //
-// Contract (UI cleanup card F2, owner decision Q11):
+// Contract:
 //  - Writer: exactly "mm-theme=<dark|light>; Domain=.moosematrix.com; Path=/; Secure; SameSite=Lax; Max-Age=31536000".
 //    Fixed strings only, written only after the visitor presses the toggle. 1 bit: colour only, no identifier.
 //  - Reader: exact-name match over document.cookie; the raw value is compared with === "light", never decoded.

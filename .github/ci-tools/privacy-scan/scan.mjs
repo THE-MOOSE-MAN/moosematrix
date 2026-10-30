@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Privacy scan (card §F6-X b/c/d, §T1). Fails closed.
+// Privacy scan over the tree, tarballs and rendered output. Fails closed.
 //
 //   node scan.mjs --terms <file> --tree [<repo>]                    every `git ls-files` file
 //   node scan.mjs --terms <file> --tarball <x.tgz> --profile <p>    every file in an npm pack tarball

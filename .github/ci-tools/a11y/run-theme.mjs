@@ -1,4 +1,4 @@
-// Browser test of the theme contract (UI card PR-1, F2/F3) on packages/tokens/demo/index.html, served on two real
+// Browser test of the theme contract (cookie and first-paint delivery) on packages/tokens/demo/index.html, served on two real
 // https *.moosematrix.com origins via request routing (see harness.mjs):
 //  - first paint is dark with no cookie, also with prefers-color-scheme: light emulated (checked at DOMContentLoaded)
 //  - a light cookie gives light before nav.js runs (theme-init in <head>)

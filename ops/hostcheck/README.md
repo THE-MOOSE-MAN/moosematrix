@@ -1,6 +1,6 @@
 # moose-hostcheck
 
-Daily, read-only health check for the VPS. It uses no tokens and makes no network calls. Vulnerability Bot reads one file
+Daily, read-only health check for the VPS. It uses no tokens and makes no network calls. The security reviewer reads one file
 a week (`weekly-<date>.json`) instead of spending its own tokens on these checks.
 
 ## What it checks
@@ -67,7 +67,7 @@ The script only runs `df`, `apt list --upgradable`, `systemctl show`, `docker im
 ## Threat model (4 questions)
 
 1. **What are we building?** A root-owned Python script, run daily by systemd as a non-root, docker-group user. It reads
-   host state and the CI deploy records and writes JSON reports that Vulnerability Bot reads over SSH.
+   host state and the CI deploy records and writes JSON reports that the security reviewer reads over SSH.
 2. **What can go wrong?**
    - Docker group = root-equivalent, so a compromised script file means root. The script is root-owned 0755 in
      `/usr/local/lib`, so only root can change it.
@@ -83,14 +83,14 @@ The script only runs `df`, `apt list --upgradable`, `systemctl show`, `docker im
      deploy user) is already in the docker group, which is root-equivalent, so a forged record adds no new power.
      What it catches is honest drift: a manual `docker run`, a failed deploy, or a container recreated from another
      image. The running image id always comes from Docker, never from the record.
-   - The weekly file reports the script's own run and fail counts, and Vulnerability Bot alerts when it's missing
+   - The weekly file reports the script's own run and fail counts, and the security reviewer alerts when it's missing
      or stale.
    - History is pruned after 14 days. Every command has a 60 s timeout. The service has a 5 min timeout and runs at
      idle IO priority.
 4. **Did we do a good job?** There are unit tests with fixtures for every check, warning and failure path, plus
    hostile records, weekly roll-up, pruning and file modes (`tests/test_hostcheck.py`). There are also install and
    uninstall idempotency tests in a fake root (`tests/install.bats`), `systemd-analyze verify` on the units, and
-   shellcheck on all shell. Vulnerability Bot reviews before install.
+   shellcheck on all shell. Security review happens before install.
 
 ## Tests
 

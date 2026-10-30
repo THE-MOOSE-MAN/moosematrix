@@ -15,7 +15,7 @@ const clone = () => structuredClone(nav);
 const section = (html, cls) => html.slice(html.indexOf(`<nav class="${cls}"`), html.indexOf("</nav>", html.indexOf(`<nav class="${cls}"`)));
 const links = (html) => [...html.matchAll(/<a[^>]* href="([^"]+)"[^>]*>([^<]*)<\/a>/g)].map((m) => [m[1], m[2]]);
 
-test("nav.json validates and has the card's main list", () => {
+test("nav.json validates and has the expected main list", () => {
   validateNav(nav);
   assert.deepEqual(nav.main.map((l) => l.id), ["research", "moose-mumbles", "money", "shop", "about"]);
   assert.deepEqual(nav.main.map((l) => l.tick), [3, 2, 1, 2, 3]);

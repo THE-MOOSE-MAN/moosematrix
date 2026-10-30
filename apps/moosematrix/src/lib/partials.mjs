@@ -65,7 +65,7 @@ export function tokensDir(cwd = process.cwd()) {
   return path.resolve(cwd, "..", "..", "packages", "tokens");
 }
 
-// The app is pinned to tokens 0.1.0 until it moves to 0.1.1 in its own PR (UI cleanup card PR-3). packages/tokens is
+// The app is pinned to tokens 0.1.0 until it moves to 0.1.1 in its own PR. packages/tokens is
 // now 0.1.1, so the 0.1.0 text files the app uses (partials, nav.js, search.js and CSS) are a frozen copy in
 // vendor/tokens-0.1.0/ (byte-identical to packages/tokens at d12b78d; tests/vendored-tokens.test.mjs). Fonts are
 // unchanged in 0.1.1 and still come from packages/tokens/fonts (sha256-checked by scripts/sync-tokens.mjs).

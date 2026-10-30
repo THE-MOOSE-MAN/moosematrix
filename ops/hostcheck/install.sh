@@ -20,7 +20,7 @@ UNITS="$ROOT/etc/systemd/system"
 RECORDS="$ROOT/var/lib/moose-deploys"
 SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# The systemd timer is the only supported scheduler: it carries the sandbox (VB R39 M4 removed --cron).
+# The systemd timer is the only supported scheduler: it carries the sandbox (--cron was removed).
 PREP=0 RUN_NOW=0 DRY=0
 for a in "$@"; do
   case "$a" in

@@ -1,4 +1,4 @@
-// M3 matcher (card §F6-X c). Terms are never printed or returned; callers only see term numbers.
+// Term matcher. Terms are never printed or returned; callers only see term numbers.
 //
 // Before matching, text and terms are normalised: NFKC, case-fold, lookalike letters folded
 // (confusables skeleton subset: Cyrillic/Greek/Latin homoglyphs, fullwidth via NFKC, digit lookalikes),

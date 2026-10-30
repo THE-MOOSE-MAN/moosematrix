@@ -1,4 +1,4 @@
-// F3 theme-init delivery and package contents.
+// theme-init delivery and package contents.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, existsSync, mkdtempSync, rmSync, readdirSync } from "node:fs";

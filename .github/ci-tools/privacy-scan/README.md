@@ -1,6 +1,6 @@
 # privacy-scan
 
-Fail-closed name scan for moosematrix CI (UI cleanup card §F6-X and §T1). Runs at the end of the
+Fail-closed name scan for moosematrix CI (whole tree, packed tarballs and rendered output). Runs at the end of the
 required **PR checks** job in `.github/workflows/ci.yml`.
 
 - `scan.mjs`: the scanner. Modes: `--tree` (every `git ls-files` file), `--tarball` (an `npm pack`

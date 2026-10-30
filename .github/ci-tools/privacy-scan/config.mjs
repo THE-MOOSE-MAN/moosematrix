@@ -1,4 +1,4 @@
-// Fixed scanner config (card §F6-X / PR-1 "T1 whole-tree name scan", VB N1 + R2).
+// Fixed scanner config.
 //
 // Every scanned file is either decodable text or a binary whose extension is listed here.
 // For each profile the expected COUNT per binary extension is fixed: the scan prints actual vs
