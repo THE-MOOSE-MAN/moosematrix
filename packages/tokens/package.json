@@ -1,0 +1,48 @@
+{
+  "name": "@moosematrix/tokens",
+  "version": "0.1.0",
+  "description": "Moose Matrix design tokens, Tailwind v4 theme, self-hosted fonts, logos, and the shared header, footer and search overlay as plain HTML/CSS/JS.",
+  "private": true,
+  "license": "UNLICENSED",
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "exports": {
+    "./tokens.css": "./tokens.css",
+    "./theme.css": "./theme.css",
+    "./fonts.css": "./fonts.css",
+    "./header.css": "./header.css",
+    "./footer.css": "./footer.css",
+    "./search.css": "./search.css",
+    "./nav.js": "./nav.js",
+    "./search.js": "./search.js",
+    "./header.html": "./header.html",
+    "./footer.html": "./footer.html",
+    "./search.html": "./search.html",
+    "./fonts/*": "./fonts/*",
+    "./brand/*": "./brand/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "tokens.css",
+    "theme.css",
+    "fonts.css",
+    "header.css",
+    "footer.css",
+    "search.css",
+    "nav.js",
+    "search.js",
+    "header.html",
+    "footer.html",
+    "search.html",
+    "fonts/",
+    "brand/",
+    "CHANGELOG.md",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node scripts/build-demo.mjs",
+    "lint": "node scripts/check.mjs"
+  }
+}

@@ -1,0 +1,25 @@
+<!-- @moosematrix/tokens 0.1.0 search overlay partial. Needs tokens.css, search.css, search.js.
+     data-mm-index: space-separated index URLs (same-origin, or a CORS-enabled sibling site). Fetched with credentials omitted.
+     Without JS (or without <dialog> support) the header link and this form go to /search/?q= in the same tab. -->
+<dialog class="mm-search" id="mm-search" aria-labelledby="mm-search-title" data-mm-index="/search-index.json">
+  <div class="mm-search-in">
+    <div class="mm-search-top">
+      <h2 class="mm-micro" id="mm-search-title">Search The Moose Matrix</h2>
+      <button type="button" class="mm-search-close" data-mm-search-close>Close<span class="mm-sr-only"> search</span> <kbd class="mm-kbd" aria-hidden="true">Esc</kbd></button>
+    </div>
+    <form class="mm-search-bar" action="https://moosematrix.com/search/" method="get" role="search">
+      <label class="mm-sr-only" for="mm-search-input">Search both sites</label>
+      <svg class="mm-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg>
+      <input id="mm-search-input" name="q" type="search" autocomplete="off" spellcheck="false" placeholder="Search projects, library, lab" aria-describedby="mm-search-status">
+      <button class="mm-search-submit" type="submit"><span class="mm-sr-only">Show all results</span><svg class="mm-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+    </form>
+    <p class="mm-search-status" id="mm-search-status" data-mm-status role="status" aria-live="polite"></p>
+    <ul class="mm-search-results" data-mm-results></ul>
+    <div class="mm-chips" role="group" aria-label="Popular topics">
+      <button type="button" class="mm-chip" data-mm-query="Projects">Projects</button>
+      <button type="button" class="mm-chip" data-mm-query="Books">Books</button>
+      <button type="button" class="mm-chip" data-mm-query="Reverse engineering">Reverse engineering</button>
+      <button type="button" class="mm-chip" data-mm-query="Security">Security</button>
+    </div>
+  </div>
+</dialog>

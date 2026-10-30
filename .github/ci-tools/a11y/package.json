@@ -1,0 +1,10 @@
+{
+  "name": "moosematrix-ci-a11y",
+  "private": true,
+  "description": "CI-only: axe-core accessibility run on packages/tokens/demo. Uses the runner's installed Chrome; no browser download.",
+  "type": "module",
+  "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "playwright-core": "1.64.1"
+  }
+}

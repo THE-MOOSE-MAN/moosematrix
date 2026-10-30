@@ -1,0 +1,115 @@
+# Pull request checks. Read-only token, no deploy, no secrets except the
+# optional denylist presence test (its value is never printed).
+name: CI
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: PR checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      BASE_REF: ${{ github.event.pull_request.base.ref }}
+      HAS_DENYLIST: ${{ secrets.REGISTRY_DENYLIST != '' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.22.1
+
+      - name: List changed files
+        run: |
+          git diff --name-only --diff-filter=ACMR "origin/${BASE_REF}...HEAD" > "$RUNNER_TEMP/changed.txt"
+          echo "Changed files:"; cat "$RUNNER_TEMP/changed.txt"
+
+      - name: Tokens package lint
+        working-directory: packages/tokens
+        run: npm run lint
+
+      - name: Tokens package build (demo must be up to date)
+        working-directory: packages/tokens
+        run: |
+          npm run build
+          git diff --exit-code -- demo/
+
+      - name: Tokens package contents
+        working-directory: packages/tokens
+        run: npm pack --dry-run
+
+      - name: Token version check
+        run: |
+          v=$(node -p 'require("./packages/tokens/package.json").version')
+          grep -q -- "--mm-tokens-version: \"$v\"" packages/tokens/tokens.css
+          grep -q -- "^## $v" packages/tokens/CHANGELOG.md
+          if grep -q '^packages/tokens/' "$RUNNER_TEMP/changed.txt" \
+             && git cat-file -e "origin/${BASE_REF}:packages/tokens/package.json" 2>/dev/null; then
+            base=$(git show "origin/${BASE_REF}:packages/tokens/package.json" | node -p 'JSON.parse(require("fs").readFileSync(0)).version')
+            if [ "$base" = "$v" ]; then
+              echo "packages/tokens changed but version is still $v; bump it and add a CHANGELOG entry"; exit 1
+            fi
+          fi
+          echo "tokens version $v ok"
+
+      - name: No target=_blank or window.open
+        run: |
+          status=0
+          while IFS= read -r f; do
+            [ -f "$f" ] || continue
+            case "$f" in *.html|*.htm|*.js|*.mjs|*.jsx|*.ts|*.tsx|*.astro|*.md|*.mdx|*.svelte|*.vue) ;; *) continue ;; esac
+            if grep -nEi "target[[:space:]]*=[[:space:]]*[\"'{]?[[:space:]]*[\"']?_blank|window\.open[[:space:]]*\(" "$f"; then
+              echo "::error file=$f::new-tab link or window.open found"; status=1
+            fi
+          done < "$RUNNER_TEMP/changed.txt"
+          exit $status
+
+      - name: IP leak check (self-test)
+        run: node --test packages/tokens/scripts/check-ips.test.mjs
+
+      - name: IP leak check
+        run: |
+          mapfile -t files < <(while IFS= read -r f; do [ -f "$f" ] && echo "$f"; done < "$RUNNER_TEMP/changed.txt")
+          node packages/tokens/scripts/check-ips.mjs packages/tokens "${files[@]}"
+
+      - name: Links (lychee, offline)
+        env:
+          LYCHEE_URL: https://github.com/lycheeverse/lychee/releases/download/lychee-v0.24.2/lychee-x86_64-unknown-linux-gnu.tar.gz
+          LYCHEE_SHA256: 1f4e0ef7f6554a6ed33dd7ac144fb2e1bbed98598e7af973042fc5cd43951c9a
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/lychee.tgz" "$LYCHEE_URL"
+          echo "$LYCHEE_SHA256  $RUNNER_TEMP/lychee.tgz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/lychee.tgz" -C "$RUNNER_TEMP"
+          "$RUNNER_TEMP/lychee-x86_64-unknown-linux-gnu/lychee" --offline --no-progress --include-fragments \
+            packages/tokens/demo/index.html 'packages/tokens/**/*.md'
+
+      - name: Accessibility (axe, 360 px and 1280 px, light and dark)
+        working-directory: .github/ci-tools/a11y
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          CHROME_PATH="$(command -v google-chrome)" node run-axe.mjs ../../../packages/tokens
+
+      - name: Name denylist
+        if: env.HAS_DENYLIST == 'true'
+        env:
+          REGISTRY_DENYLIST: ${{ secrets.REGISTRY_DENYLIST }}
+        run: |
+          mapfile -t files < <(while IFS= read -r f; do [ -f "$f" ] && echo "$f"; done < "$RUNNER_TEMP/changed.txt")
+          node .github/ci-tools/check-denylist.mjs "${files[@]}"
+
+      - name: Name denylist (skipped)
+        if: env.HAS_DENYLIST != 'true'
+        run: echo "REGISTRY_DENYLIST is not set; denylist check skipped."

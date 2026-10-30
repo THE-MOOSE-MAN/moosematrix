@@ -1,0 +1,121 @@
+/* Demo page only, not shipped in the package. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body.demo {
+  margin: 0;
+  background: var(--mm-color-ground);
+  color: var(--mm-color-ink);
+  font: 400 var(--mm-text-base) / var(--mm-leading-body) var(--mm-font-body);
+}
+
+.demo-main {
+  padding: var(--mm-space-16) 0;
+}
+
+.demo-eyebrow {
+  margin: 0 0 var(--mm-space-3);
+  color: var(--mm-color-ink-2);
+}
+
+.demo-title,
+.demo-h2,
+.demo-display {
+  font-family: var(--mm-font-display);
+  font-weight: 800;
+  line-height: var(--mm-leading-display);
+  text-transform: uppercase;
+  margin: 0 0 var(--mm-space-4);
+}
+
+.demo-title {
+  font-size: var(--mm-text-h1);
+}
+
+.demo-h2 {
+  font-size: var(--mm-text-h3);
+  margin-top: var(--mm-space-12);
+}
+
+.demo-display {
+  font-size: var(--mm-text-h2);
+}
+
+.demo-lede {
+  max-width: 60ch;
+  color: var(--mm-color-ink-2);
+}
+
+.demo-link {
+  color: var(--mm-color-accent);
+  text-underline-offset: 3px;
+}
+
+.demo-link:focus-visible {
+  outline: var(--mm-focus-ring);
+  outline-offset: var(--mm-focus-offset);
+}
+
+code {
+  font-family: var(--mm-font-mono);
+  font-size: 0.9em;
+}
+
+.demo-money {
+  color: var(--mm-color-money);
+}
+
+.demo-store {
+  color: var(--mm-color-store);
+}
+
+.demo-swatches {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: var(--mm-space-3);
+}
+
+.demo-swatch {
+  display: flex;
+  align-items: center;
+  gap: var(--mm-space-3);
+  padding: var(--mm-space-2);
+  border: 1px solid var(--mm-color-rule);
+  border-radius: var(--mm-radius-control);
+  background: var(--mm-color-panel);
+  font-size: var(--mm-text-sm);
+}
+
+.demo-chip {
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  border: 1px solid var(--mm-color-edge);
+  border-radius: 4px;
+}
+
+.demo-swatch--ground .demo-chip { background: var(--mm-color-ground); }
+.demo-swatch--panel .demo-chip { background: var(--mm-color-panel); }
+.demo-swatch--panel-2 .demo-chip { background: var(--mm-color-panel-2); }
+.demo-swatch--ink .demo-chip { background: var(--mm-color-ink); }
+.demo-swatch--ink-2 .demo-chip { background: var(--mm-color-ink-2); }
+.demo-swatch--accent .demo-chip { background: var(--mm-color-accent); }
+.demo-swatch--accent-fill .demo-chip { background: var(--mm-color-accent-fill); }
+.demo-swatch--on-accent .demo-chip { background: var(--mm-color-on-accent); }
+.demo-swatch--edge .demo-chip { background: var(--mm-color-edge); }
+.demo-swatch--rule .demo-chip { background: var(--mm-color-rule); }
+.demo-swatch--money .demo-chip { background: var(--mm-color-money); }
+.demo-swatch--store .demo-chip { background: var(--mm-color-store); }
+.demo-swatch--selection .demo-chip { background: var(--mm-color-selection); }
+
+@media (max-width: 750px) {
+  .demo-main {
+    padding: var(--mm-space-10) 0;
+  }
+}

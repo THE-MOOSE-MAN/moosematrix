@@ -1,0 +1,139 @@
+/* @moosematrix/tokens 0.1.0 — footer. Needs tokens.css. */
+
+.mm-footer {
+  padding: var(--mm-space-16) 0 var(--mm-space-6);
+  border-top: 1px solid var(--mm-color-rule);
+  background: var(--mm-color-panel-2);
+  color: var(--mm-color-ink);
+  font-family: var(--mm-font-body);
+}
+
+.mm-footer a {
+  color: var(--mm-color-ink);
+  text-decoration: none;
+}
+
+.mm-footer a:hover {
+  color: var(--mm-color-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.mm-footer a:focus-visible {
+  outline: var(--mm-focus-ring);
+  outline-offset: var(--mm-focus-offset);
+  border-radius: 4px;
+}
+
+.mm-footer-grid {
+  display: grid;
+  grid-template-columns: 2fr repeat(3, 1fr);
+  gap: var(--mm-space-6);
+}
+
+.mm-footer .mm-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mm-space-3);
+  min-height: 44px;
+  margin-bottom: var(--mm-space-4);
+}
+
+.mm-footer .mm-brand-icon {
+  width: 52px;
+  height: 52px;
+  display: block;
+}
+
+.mm-footer .mm-brand-icon .mm-logo-tile {
+  fill: var(--mm-logo-tile);
+}
+
+.mm-footer .mm-brand-icon .mm-logo-mark {
+  fill: var(--mm-logo-mark);
+}
+
+.mm-footer .mm-brand-title {
+  font: 800 1.5rem/0.86 var(--mm-font-display);
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.mm-footer-brand p {
+  max-width: 34ch;
+  margin: 0;
+  color: var(--mm-color-ink-2);
+  font-size: 0.875rem;
+  line-height: 1.75;
+}
+
+.mm-footer-col h2 {
+  margin: 0 0 var(--mm-space-3);
+  font: 700 1.25rem/1.2 var(--mm-font-display);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.mm-footer-col a {
+  display: flex;
+  align-items: center;
+  width: max-content;
+  max-width: 100%;
+  min-height: 32px;
+  font-size: 0.875rem;
+}
+
+.mm-footer-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--mm-space-4);
+  margin-top: var(--mm-space-12);
+  padding-top: var(--mm-space-5);
+  border-top: 1px solid var(--mm-color-rule);
+  color: var(--mm-color-ink-2);
+  font-size: 0.8125rem;
+}
+
+.mm-footer-bottom p {
+  margin: 0;
+}
+
+.mm-footer-legal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mm-space-4);
+}
+
+.mm-footer-legal a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+}
+
+@media (max-width: 1100px) {
+  .mm-footer-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .mm-footer-brand {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 750px) {
+  .mm-footer {
+    padding-top: var(--mm-space-12);
+  }
+
+  .mm-footer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mm-footer-bottom {
+    margin-top: var(--mm-space-8);
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
