@@ -35,6 +35,37 @@ test("desktop and mobile menus are the same main list, from one call", () => {
   }
 });
 
+test("m2 site row lists Home, Tools, Roadmap and About; current marks that link like mooseman", () => {
+  assert.equal(nav.siteRows.m2.label, "Moo$e Money");
+  assert.deepEqual(
+    nav.siteRows.m2.items.map((l) => [l.id, l.label, l.href]),
+    [
+      ["m2-home", "Home", "https://m2.moosematrix.com/"],
+      ["m2-tools", "Tools", "https://m2.moosematrix.com/tools/"],
+      ["m2-roadmap", "Roadmap", "https://m2.moosematrix.com/roadmap/"],
+      ["m2-about", "About", "https://m2.moosematrix.com/about/"],
+    ],
+  );
+  const rowOf = (html) => section(html, "mm-site-row");
+  const m2 = renderHeader({ site: "m2" });
+  assert.ok(rowOf(m2).includes('aria-label="Moo$e Money"'));
+  assert.deepEqual(links(rowOf(m2)), [
+    ["https://m2.moosematrix.com/", "Home"],
+    ["https://m2.moosematrix.com/tools/", "Tools"],
+    ["https://m2.moosematrix.com/roadmap/", "Roadmap"],
+    ["https://m2.moosematrix.com/about/", "About"],
+  ]);
+  assert.equal((rowOf(m2).match(/aria-current/g) || []).length, 0);
+  const tools = renderHeader({ site: "m2", current: "m2-tools" });
+  assert.match(rowOf(tools), /href="https:\/\/m2\.moosematrix\.com\/tools\/" aria-current="page">Tools<\/a>/);
+  assert.equal((rowOf(tools).match(/aria-current="page"/g) || []).length, 1);
+  assert.equal((tools.match(/aria-current/g) || []).length, 1, "only the site-row link");
+  const moose = renderHeader({ site: "mooseman", current: "mooseman-home" });
+  assert.ok(rowOf(moose).includes('aria-label="The Moose Man"'));
+  assert.match(rowOf(moose), /href="https:\/\/mooseman\.moosematrix\.com\/" aria-current="page">Home<\/a>/);
+  assert.equal((rowOf(moose).match(/aria-current="page"/g) || []).length, 1);
+});
+
 test("current marks aria-current=page in both navs; a research child marks Research true", () => {
   let h = renderHeader({ current: "about" });
   assert.equal((h.match(/aria-current="page"/g) || []).length, 2);

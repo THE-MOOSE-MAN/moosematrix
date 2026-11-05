@@ -1,6 +1,6 @@
 {
   "$schema": "./nav.schema.json",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "main": [
     { "id": "research", "label": "Research", "href": "https://moosematrix.com/research/", "tick": 3 },
     { "id": "moose-mumbles", "label": "Moose Mumbles", "href": "https://mooseman.moosematrix.com/moose-mumbles", "tick": 2 },
@@ -26,7 +26,10 @@
     "m2": {
       "label": "Moo$e Money",
       "items": [
-        { "id": "m2-home", "label": "Moo$e Money", "href": "https://m2.moosematrix.com/" }
+        { "id": "m2-home", "label": "Home", "href": "https://m2.moosematrix.com/" },
+        { "id": "m2-tools", "label": "Tools", "href": "https://m2.moosematrix.com/tools/" },
+        { "id": "m2-roadmap", "label": "Roadmap", "href": "https://m2.moosematrix.com/roadmap/" },
+        { "id": "m2-about", "label": "About", "href": "https://m2.moosematrix.com/about/" }
       ]
     },
     "merch": {
