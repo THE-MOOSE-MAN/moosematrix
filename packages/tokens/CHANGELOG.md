@@ -2,6 +2,10 @@
 
 All notable changes to `@moosematrix/tokens`. Versions follow semver; release tags are `tokens-vX.Y.Z`.
 
+## 0.1.3 — unreleased
+
+- Moo$e Money site row (`siteRows.m2`): Home, Tools, Roadmap and About (`https://m2.moosematrix.com/`, `/tools/`, `/roadmap/`, `/about/`). The row label stays "Moo$e Money". Passing `current` as one of those ids marks that link `aria-current="page"`, the same as the Moose Man row.
+
 ## 0.1.2 — unreleased
 
 - Tests: use bracket-form event handler assignment in the render test (no runtime change).
