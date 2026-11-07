@@ -1,6 +1,14 @@
+import type { Metadata } from "next";
 import { TypedLine } from "../../components/TypedLine";
 export const dynamic = "force-static";
 export const revalidate = false;
+
+export const metadata: Metadata = {
+  title: "Privacy Policy · The Moose Matrix",
+  description:
+    "What The Moose Matrix collects: contact messages, basic technical logs for reliability and security, and a theme preference stored in your browser.",
+  alternates: { canonical: "/privacy" },
+};
 
 export default function PrivacyPage() {
   return (
