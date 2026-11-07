@@ -1,6 +1,14 @@
+import type { Metadata } from "next";
 import { TypedLine } from "../../components/TypedLine";
 export const dynamic = "force-static";
 export const revalidate = false;
+
+export const metadata: Metadata = {
+  title: "About · The Moose Matrix",
+  description:
+    "The Moose Matrix is a security-first ecosystem of tools, writing, and products, built to stay clean, reliable, and easy to understand.",
+  alternates: { canonical: "/about" },
+};
 
 export default function AboutPage() {
   return (
