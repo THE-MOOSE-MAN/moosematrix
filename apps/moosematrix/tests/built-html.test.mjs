@@ -79,6 +79,38 @@ test("Library, Search, Lab: v5 page heroes; full list in the HTML; filtering is 
   assert.match(strip(between(read("lab.html"), "<h1", "</h1>")), /THE MOOSE LAB/);
 });
 
+test("About and Privacy have unique document titles and meta descriptions", () => {
+  const headMeta = (file) => {
+    const h = read(file);
+    const title = h.match(/<title>([^<]*)<\/title>/);
+    const desc = h.match(/<meta name="description" content="([^"]*)"/);
+    assert.ok(title, file + ": document title");
+    assert.ok(desc, file + ": meta description");
+    return { title: title[1], description: desc[1] };
+  };
+  const about = headMeta("about.html");
+  const privacy = headMeta("privacy.html");
+  const home = headMeta("index.html");
+  assert.equal(about.title, "About · The Moose Matrix");
+  assert.equal(privacy.title, "Privacy Policy · The Moose Matrix");
+  assert.equal(
+    about.description,
+    "The Moose Matrix is a security-first ecosystem of tools, writing, and products, built to stay clean, reliable, and easy to understand.",
+  );
+  assert.equal(
+    privacy.description,
+    "What The Moose Matrix collects: contact messages, basic technical logs for reliability and security, and a theme preference stored in your browser.",
+  );
+  assert.notEqual(about.title, home.title);
+  assert.notEqual(privacy.title, home.title);
+  assert.notEqual(about.title, privacy.title);
+  assert.notEqual(about.description, privacy.description);
+  assert.notEqual(about.description, home.description);
+  assert.notEqual(privacy.description, home.description);
+  assert.notEqual(about.description, "A hub for projects, writing, and products.");
+  assert.notEqual(privacy.description, "A hub for projects, writing, and products.");
+});
+
 test("every TypedLine heading has the full text in its visually-hidden copy", () => {
   const want = { "builds.html": "What I\u2019m building", "about.html": "About", "contact.html": "Contact", "security.html": "Security", "subsidiaries.html": "Subsidiaries & subdomains", "privacy.html": "Privacy Policy", "terms.html": "Terms of Service", "_not-found.html": "Page not found" };
   for (const [f, text] of Object.entries(want)) {
